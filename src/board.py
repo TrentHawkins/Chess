@@ -1,22 +1,14 @@
-import re
-import numpy
-
-from pieces import Piece, Pawn, Bishop, Knight, Rook, Queen, King
+from pieces import Pawn, Bishop, Knight, Rook, Queen, King
 
 
-class Board(numpy.ndarray):
-    def __new__(cls):
-        """A chess-board shall be a fixed 8 times 8 2-dimensional array of type `Piece(object)`."""
-        return super(Board, cls).__new__(cls, (8, 8), dtype=Piece)  # [https: //numpy.org/doc/stable/user/basics.subclassing.html]
+class Board:
+    index_to_file = {index_: file_ for index_, file_ in zip(range(8), "abcdefgh")}
+    file_to_index = {file_: index_ for index_, file_ in zip(range(8), "abcdefgh")}
+    index_to_rank = {index_: rank_ for index_, rank_ in zip(range(8), "87654321")}
+    rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}
 
     def __init__(self):
-        """Board initialization with pieces.
-
-        The direction of a 2-dimennsional array is top-right, while that of a chess-board is bottom-right.
-        Therefore the white pieces are placed on rows 7 and 6 while the black pieces on rows 0 and 1.
-
-        See the `Piece` class tree for details."""
-        super(Board, self).__init__()
+        self.matrix = [[None] * 8 for _ in range(8)]
 
         self["a1"] = Rook("white")
         self["b1"] = Knight("white")
@@ -52,45 +44,28 @@ class Board(numpy.ndarray):
         self["g7"] = Pawn("black")
         self["h7"] = Pawn("black")
 
+    @classmethod
+    def board_coordinates(cls, file_rank: str) -> tuple[int, int]:
+        return cls.rank_to_index[file_rank[1]], cls.file_to_index[file_rank[0]]
+
+    def __setitem__(self, key, value):
+        i, j = self.board_coordinates(key)
+        self.matrix[i][j] = value
+
+    def __getitem__(self, key):
+        i, j = self.board_coordinates(key)
+        return self.matrix[i][j]
+
     def __repr__(self):
-        """A compact represantation of the board in proper direction and with using the representation of each piece."""
+        """Represent the board in proper direction and use the representation of each piece."""
         ranker = range(8)
 
         return (
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n" +
             "\n".join(
-                f"▐\033[7m{Square.rank(index)}\033[0m▌" +
-                " ".join(file.__repr__() for file in rank) +
-                f"▐\033[7m{Square.rank(index)}\033[0m▌"
-                for index, rank in enumerate(self)) +
+                f"▐\033[7m{self.index_to_rank[index]}\033[0m▌" +
+                " ".join(str(piece) for piece in rank) +
+                f"▐\033[7m{self.index_to_rank[index]}\033[0m▌"
+                for index, rank in enumerate(self.matrix)) +
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n\n"
         ).replace("None", " ")
-
-    def __setitem__(self, key: str, value: Piece):
-        """Finish using the chess algebraic notation by changing the indexing of the board by the user."""
-        if isinstance(key, str):
-            super(Board, self).__setitem__(Square(key), value)  # delegate wrong notation to the `Square` class
-        else:
-            super(Board, self).__setitem__(key, value)  # delegate all other indexing to NumPy as normal
-
-    def __getitem__(self, key: str):
-        """Finish using the chess algebraic notation by changing the indexing of the board by the user."""
-        if isinstance(key, str):
-            return super(Board, self).__getitem__(Square(key))  # delegate wrong notation to the `Square` class
-        else:
-            return super(Board, self).__getitem__(key)  # delegate all other indexing to NumPy as normal
-
-    def __delitem__(self, key: str):
-        """Finish using the chess algebraic notation by changing the indexing of the board by the user."""
-        if isinstance(key, str):
-            super(Board, self).__delitem__(Square(key))  # delegate wrong notation to the `Square` class
-
-        else:
-            super(Board, self).__delitem__(key)  # delegate all other indexing to NumPy as normal
-
-
-notation = re.compile("[abcdefgh][12345678]")
-index_to_file = {index_: file_ for index_, file_ in zip(range(8), "abcdefgh")}
-file_to_index = {file_: index_ for index_, file_ in zip(range(8), "abcdefgh")}
-index_to_rank = {index_: rank_ for index_, rank_ in zip(range(8), "87654321")}
-rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}
