@@ -89,71 +89,8 @@ class Board(numpy.ndarray):
             super(Board, self).__delitem__(key)  # delegate all other indexing to NumPy as normal
 
 
-class Square(tuple):
-    """The purpose of this duple class is to treat said duples as vectors.
-
-    Thus `Square` objects always have 2 integer components.
-    Also, operations are defined in both directions to allow operating with and on regular duples respectively.
-
-    NOTE: Maybe it is cleaner to just cast 2-component arrays into tuples for indexing the board.
-    However tuple indexing is the default with NumPy therefore this here seems to be the "native" solution.
-    In addition the `Square` object assumes a representation matching the chess algebraic notation,
-        which is best delegated to this class than any.
-
-    Methods:
-        __add__: add duples like vectors
-        __sub__: subtract duples like vectors
-    """
-
-    # Chess algebraic notation checker pattern.
-    notation = re.compile("[abcdefgh][12345678]")
-
-    @staticmethod
-    def rank(index, reverse: bool = False):
-        """Translate index to rank (row) in chess algebraic notation."""
-        if reverse:
-            return 8 - int(index)  # the direction of the board is up-side-down with respect to the indices
-        else:
-            return str(8 - index)
-
-    @staticmethod
-    def file(index, reverse: bool = False):
-        """Translate index to file (column) in chess algebraic notation."""
-        if reverse:
-            return ord(index) - ord("a")  # offset `ord` so that "a" matches 0
-        else:
-            return chr(index + ord("a"))
-
-    def __new__(cls, notation: str):
-        """Translate chess algebraic notation into an duple correnspoding to the proper array indices.
-
-        The chess algabraic notation consists of a leter indicating file (column) and a number indicating rank (row).
-        NOTE: Care must be taken to read rank and file in proper (reversed order), if you ever update this code.
-        """
-        if isinstance(notation, str):
-            if Square.notation.match(notation):
-                return super(Square, cls).__new__(cls, (Square.rank(notation[1], reverse=True), Square.file(notation[0], reverse=True)))
-            else:
-                print("Error: Invalid notation (no object created")
-        else:
-            return super(Square, cls).__new__(cls, notation)
-
-    def __repr__(self):
-        """Represent duples in chess algebraic notation to make the latter fully usable in this engine."""
-        return Square.file(self[1]) + Square.rank(self[0])  # back-translation from the formula used in `__new__`
-
-    def __add__(self, other: tuple):
-        """Add duples like vectors from the left."""
-        return Square((self[0] - other[1], self[1] + other[0]))
-
-    def __sub__(self, other: tuple):
-        """Subtract duples like vectors from the left."""
-        return Square((self[0] + other[1], self[1] - other[0]))
-
-    def __radd__(self, other: tuple):
-        """Add duples like vectors from the right."""
-        return self.__add__(other)
-
-    def __rsub__(self, other: tuple):
-        """Subtract duples like vectors from the right."""
-        return self.__sub__(other)
+notation = re.compile("[abcdefgh][12345678]")
+index_to_file = {index_: file_ for index_, file_ in zip(range(8), "abcdefgh")}
+file_to_index = {file_: index_ for index_, file_ in zip(range(8), "abcdefgh")}
+index_to_rank = {index_: rank_ for index_, rank_ in zip(range(8), "87654321")}
+rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}
