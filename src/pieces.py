@@ -1,65 +1,60 @@
-class Piece():
-    def __init__(self, color: str):
-        self.color = color  # clear color representation in string form
-        self.black = True if self.color == "black" else False
-        self.direction = -1 if self.black else +1  # black moves up the board ( - 1) and black down the board ( + 1)
+from dataclasses import dataclass
 
-    def __repr__(self):
-        return f"{self.__class__.__name__}({self.color})"
+
+@dataclass
+class Piece:
+    color: str
 
     def valid_steps(self):
         raise NotImplementedError
 
+    @property
+    def is_black(self):
+        return self.color == "black"
 
+
+@dataclass
 class Pawn(Piece):
-    def __init__(self, color: str):
-        super(Pawn, self).__init__(color)
-        self.value = 1
+    value: int = 1
 
     def __repr__(self):
-        return "♟" if self.black else "♙"
+        return "♟" if self.is_black else "♙"
 
 
+@dataclass
 class Bishop(Piece):
-    def __init__(self, color: str):
-        super(Bishop, self).__init__(color)
-        self.value = 3
+    value: int = 3
 
     def __repr__(self):
-        return "♝" if self.black else "♗"
+        return "♝" if self.is_black else "♗"
 
 
+@dataclass
 class Knight(Piece):
-    def __init__(self, color: str):
-        super(Knight, self).__init__(color)
-        self.value = 3
+    value: int = 3
 
     def __repr__(self):
-        return "♞" if self.black else "♘"
+        return "♞" if self.is_black else "♘"
 
 
+@dataclass
 class Rook(Piece):
-    def __init__(self, color: str):
-        super(Rook, self).__init__(color)
-        self.value = 5
+    value: int = 5
 
     def __repr__(self):
-        return "♜" if self.black else "♖"
+        return "♜" if self.is_black else "♖"
 
 
+@dataclass
 class Queen(Piece):
-    def __init__(self, color: str):
-        super(Queen, self).__init__(color)
-        self.value = 9
+    value: int = 9
 
     def __repr__(self):
-        return "♛" if self.black else "♕"
+        return "♛" if self.is_black else "♕"
 
 
+@dataclass
 class King(Piece):
-    def __init__(self, color: str):
-        super(King, self).__init__(color)
-        self.value = None
 
     def __repr__(self):
-        return "♚" if self.black else "♔"
+        return "♚" if self.is_black else "♔"
