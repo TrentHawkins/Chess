@@ -1,5 +1,3 @@
-import numpy
-
 class Chess:
-	def __init__(self):
-		pass
+    def __init__(self):
+        ...
