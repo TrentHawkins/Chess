@@ -1,10 +1,22 @@
-"""Implements the chess pieces that are placed in a chessboard."""
+"""Implements the chess pieces that are placed in a chessboard.
+
+Chess has 6 types of pieces with predifined rules of movement and worth in-game:
+    Pawn: Moves one step forward, unless first move, where it may move two squares forward.
+        Captures diagonally. Can en-pasant. Can be promoted to a higher value piece at the end of a player's board. Worth 1.
+    Bishop: Moves along diagonals. Worth 3. WOrth 3+ when in pairs of two or in an open game.
+    Knights: Moves 2 squares in one directions and 1 in a vertical to that direction).
+        Can jump over other pieces. Worth 3. Worth 3+ in closed games.
+    Rook: Moves along ranks and files. Worth 5.
+    Queen: Moves both like a rook and bishop. Worth 9.
+    King: Moves one square in any direction. Worth N/A (you loose the king it's game over).
+"""
+
 from dataclasses import dataclass
 
 
 @dataclass
 class Piece:
-    """A chess piece."""
+    """A generic chess piece."""
 
     color: str
 
@@ -14,6 +26,7 @@ class Piece:
         Raises:
             NotImplementedError: Needs implementation.
         """
+
         raise NotImplementedError
 
     @property
@@ -23,6 +36,7 @@ class Piece:
         Returns:
             Whether the piece is a black piece or not.
         """
+
         return self.color == "black"
 
 
@@ -38,6 +52,7 @@ class Pawn(Piece):
         Returns:
             The representation of a pawn.
         """
+
         return "♟" if self.is_black else "♙"
 
 
@@ -53,6 +68,7 @@ class Bishop(Piece):
         Returns:
             The representation of a bishop.
         """
+
         return "♝" if self.is_black else "♗"
 
 
@@ -68,6 +84,7 @@ class Knight(Piece):
         Returns:
             The representation of a knight.
         """
+
         return "♞" if self.is_black else "♘"
 
 
@@ -83,6 +100,7 @@ class Rook(Piece):
         Returns:
             The representation of a rook.
         """
+
         return "♜" if self.is_black else "♖"
 
 
@@ -98,6 +116,7 @@ class Queen(Piece):
         Returns:
             The representation of a queen.
         """
+
         return "♛" if self.is_black else "♕"
 
 
@@ -111,4 +130,5 @@ class King(Piece):
         Returns:
             The representation of a king.
         """
+
         return "♚" if self.is_black else "♔"
