@@ -20,16 +20,18 @@ class Board:
         Item at [7][0] is referenced as ["a1"].
     """
 
-    index_to_file = {index_: file_ for index_, file_ in zip(range(8), "abcdefgh")}
-    file_to_index = {file_: index_ for index_, file_ in zip(range(8), "abcdefgh")}
-    index_to_rank = {index_: rank_ for index_, rank_ in zip(range(8), "87654321")}
-    rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}
+    index_to_file = {index_: file_ for index_, file_ in zip(range(8), "abcdefgh")}  # translate range index to file in chess
+    file_to_index = {file_: index_ for index_, file_ in zip(range(8), "abcdefgh")}  # translate file in chess to range index
+    index_to_rank = {index_: rank_ for index_, rank_ in zip(range(8), "87654321")}  # translate range index to rank in chess
+    rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}  # translate rank in chess to range index
 
     def __init__(self):
         """Initialize a chessboard with a new game congifuration."""
 
-        self.matrix: list[list[Piece | None]] = [[None] * 8 for _ in range(8)]
+    #   Empty squares contain None in place of a Piece object.
+        self.board: list[list[Piece | None]] = [[None for _ in range(8)] for _ in range(8)]
 
+    #   White pieces on the first rank.
         self["a1"] = Rook("white")
         self["b1"] = Knight("white")
         self["c1"] = Bishop("white")
@@ -38,6 +40,8 @@ class Board:
         self["f1"] = Bishop("white")
         self["g1"] = Knight("white")
         self["h1"] = Rook("white")
+
+    #   White pawns on the second rank.
         self["a2"] = Pawn("white")
         self["b2"] = Pawn("white")
         self["c2"] = Pawn("white")
@@ -47,6 +51,7 @@ class Board:
         self["g2"] = Pawn("white")
         self["h2"] = Pawn("white")
 
+    #   Black pawns on the seventh rank.
         self["a8"] = Rook("black")
         self["b8"] = Knight("black")
         self["c8"] = Bishop("black")
@@ -55,6 +60,8 @@ class Board:
         self["f8"] = Bishop("black")
         self["g8"] = Knight("black")
         self["h8"] = Rook("black")
+
+    #   Black pieces on the eighth rank.
         self["a7"] = Pawn("black")
         self["b7"] = Pawn("black")
         self["c7"] = Pawn("black")
@@ -77,29 +84,42 @@ class Board:
 
         return cls.rank_to_index[file_rank[1]], cls.file_to_index[file_rank[0]]
 
-    def __setitem__(self, file_rank: str, value: Piece | None = None):
-        """Place a piece to a square.
+    def __setitem__(self, square: str, piece: Piece | None = None):
+        """Add a piece to a square.
 
         Args:
-            file_rank: The file and rank of the square.
-            value: The piece to be placed on the square.
+            square: The file and rank of the square.
+            piece: The piece to be placed on the square.
         """
 
-        i, j = self.board_coordinates(file_rank)
-        self.matrix[i][j] = value
+        i, j = self.board_coordinates(square)
+        self.board[i][j] = piece
 
-    def __getitem__(self, file_rank: str) -> Piece | None:
+    def __getitem__(self, square: str) -> Piece | None:
         """Get the piece of a given square.
 
         Args:
-            file_rank: The file and rank.
+            square: The file and rank of the square.
 
         Returns:
-            The piece to the given file and rank.
+            The piece on the given square.
         """
 
-        i, j = self.board_coordinates(file_rank)
-        return self.matrix[i][j]
+        i, j = self.board_coordinates(square)
+        return self.board[i][j]
+
+    def __delitem__(self, square: str):
+        """Remove the piece of a given square.
+
+        Args:
+            square: The file and rank of the square on which to remove a piece (if any).
+        """
+
+        i, j = self.board_coordinates(square)
+        self.board[i][j] = None
+
+    def __contains__(self, piece: Piece | None):
+        """Check if a piece is on the board"""
 
     def __repr__(self) -> str:
         """Represent the board in proper direction and use the representation of each piece.
@@ -107,12 +127,14 @@ class Board:
         Returns:
             The board representation.
         """
+
         return (
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n" +
             "\n".join(
                 f"▐\033[7m{self.index_to_rank[index]}\033[0m▌" +
                 " ".join(str(piece) for piece in rank) +
                 f"▐\033[7m{self.index_to_rank[index]}\033[0m▌"
-                for index, rank in enumerate(self.matrix)) +
+                for index, rank in enumerate(self.board)
+            ) +
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n\n"
         ).replace("None", " ")
