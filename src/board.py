@@ -1,4 +1,4 @@
-from pieces import Pawn, Bishop, Knight, Rook, Queen, King
+from src.pieces import Piece, Pawn, Bishop, Knight, Rook, Queen, King
 
 
 class Board:
@@ -8,7 +8,7 @@ class Board:
     rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}
 
     def __init__(self):
-        self.matrix = [[None] * 8 for _ in range(8)]
+        self.board = [[None] * 8 for _ in range(8)]
 
         self["a1"] = Rook("white")
         self["b1"] = Knight("white")
@@ -48,17 +48,26 @@ class Board:
     def board_coordinates(cls, file_rank: str) -> tuple[int, int]:
         return cls.rank_to_index[file_rank[1]], cls.file_to_index[file_rank[0]]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Piece):
         i, j = self.board_coordinates(key)
-        self.matrix[i][j] = value
+        self.board[i][j] = value
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str):
         i, j = self.board_coordinates(key)
-        return self.matrix[i][j]
+        return self.board[i][j]
+
+    def __delitem__(self, key: str):
+        i, j = self.board_coordinates(key)
+        del self.board[i][j]
+
+    def __iter__(self):
+        return iter(self.board)
+
+    def __contains__(self, value: Piece):
+        return any(value in rank for rank in self.board)
 
     def __repr__(self):
         """Represent the board in proper direction and use the representation of each piece."""
-        ranker = range(8)
 
         return (
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n" +
@@ -66,6 +75,6 @@ class Board:
                 f"▐\033[7m{self.index_to_rank[index]}\033[0m▌" +
                 " ".join(str(piece) for piece in rank) +
                 f"▐\033[7m{self.index_to_rank[index]}\033[0m▌"
-                for index, rank in enumerate(self.matrix)) +
+                for index, rank in enumerate(self)) +
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n\n"
         ).replace("None", " ")
