@@ -1,9 +1,24 @@
-"""Implements a chessboard."""
+"""Implements a chessboard.
+
+Referencing with chess algebraic notation is possible.
+"""
+
 from .pieces import Piece, Pawn, Bishop, Knight, Rook, Queen, King
 
 
 class Board:
-    """A Chessboard."""
+    """A Chessboard.
+
+    Pieces can be assigned, obtained or removed by referencing squares with chess algebraic notation.
+    The notation consists of a letter ('A' through 'H') for the file (column) of a square and a number (1-8) for the rank (row).
+    The convention here is to match `index+1` to file for columns (inner lists) and `8-index` for rows (reverse row referencing).
+
+    Examples:
+        Item at [2][3] is referenced as ["d6"].
+        Item at [5][3] is referenced as ["d3"].
+        Item at [0][7] is referenced as ["h8"].
+        Item at [7][0] is referenced as ["a1"].
+    """
 
     index_to_file = {index_: file_ for index_, file_ in zip(range(8), "abcdefgh")}
     file_to_index = {file_: index_ for index_, file_ in zip(range(8), "abcdefgh")}
@@ -11,7 +26,8 @@ class Board:
     rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}
 
     def __init__(self):
-        """Initialize a Chessboard with pieces being set on their starting positions."""
+        """Initialize a chessboard with a new game congifuration."""
+
         self.matrix: list[list[Piece | None]] = [[None] * 8 for _ in range(8)]
 
         self["a1"] = Rook("white")
@@ -58,20 +74,22 @@ class Board:
         Returns:
             The board coordinates.
         """
+
         return cls.rank_to_index[file_rank[1]], cls.file_to_index[file_rank[0]]
 
     def __setitem__(self, file_rank: str, value: Piece | None = None):
-        """Place a piece to a given file and rank.
+        """Place a piece to a square.
 
         Args:
-            file_rank: The file and rank.
-            value: The piece to be placed.
+            file_rank: The file and rank of the square.
+            value: The piece to be placed on the square.
         """
+
         i, j = self.board_coordinates(file_rank)
         self.matrix[i][j] = value
 
     def __getitem__(self, file_rank: str) -> Piece | None:
-        """Get the piece to a given file and rank.
+        """Get the piece of a given square.
 
         Args:
             file_rank: The file and rank.
@@ -79,6 +97,7 @@ class Board:
         Returns:
             The piece to the given file and rank.
         """
+
         i, j = self.board_coordinates(file_rank)
         return self.matrix[i][j]
 
