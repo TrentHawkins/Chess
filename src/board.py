@@ -121,6 +121,8 @@ class Board:
     def __contains__(self, piece: Piece | None):
         """Check if a piece is on the board"""
 
+        return any(piece in rank for rank in self.board)
+
     def __repr__(self) -> str:
         """Represent the board in proper direction and use the representation of each piece.
 
@@ -131,9 +133,9 @@ class Board:
         return (
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n" +
             "\n".join(
-                f"▐\033[7m{self.index_to_rank[index]}\033[0m▌" +
-                " ".join(str(piece) for piece in rank) +
-                f"▐\033[7m{self.index_to_rank[index]}\033[0m▌"
+                f"▐\033[7m{self.index_to_rank[index]}\033[27m\033[4m▌" +
+                "│".join(str(piece) for piece in rank) +
+                f"▐\033[24m\033[7m{self.index_to_rank[index]}\033[0m▌"
                 for index, rank in enumerate(self.board)
             ) +
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n\n"
