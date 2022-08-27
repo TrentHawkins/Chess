@@ -1,14 +1,18 @@
-from pieces import Pawn, Bishop, Knight, Rook, Queen, King
+"""Implements a chessboard."""
+from .pieces import Piece, Pawn, Bishop, Knight, Rook, Queen, King
 
 
 class Board:
+    """A Chessboard."""
+
     index_to_file = {index_: file_ for index_, file_ in zip(range(8), "abcdefgh")}
     file_to_index = {file_: index_ for index_, file_ in zip(range(8), "abcdefgh")}
     index_to_rank = {index_: rank_ for index_, rank_ in zip(range(8), "87654321")}
     rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}
 
     def __init__(self):
-        self.matrix = [[None] * 8 for _ in range(8)]
+        """Initialize a Chessboard with pieces being set on their starting positions."""
+        self.matrix: list[list[Piece | None]] = [[None] * 8 for _ in range(8)]
 
         self["a1"] = Rook("white")
         self["b1"] = Knight("white")
@@ -46,20 +50,44 @@ class Board:
 
     @classmethod
     def board_coordinates(cls, file_rank: str) -> tuple[int, int]:
+        """Provide the board coordinates for a given file and rank.
+
+        Args:
+            file_rank: The file and rank.
+
+        Returns:
+            The board coordinates.
+        """
         return cls.rank_to_index[file_rank[1]], cls.file_to_index[file_rank[0]]
 
-    def __setitem__(self, key, value):
-        i, j = self.board_coordinates(key)
+    def __setitem__(self, file_rank: str, value: Piece | None = None):
+        """Place a piece to a given file and rank.
+
+        Args:
+            file_rank: The file and rank.
+            value: The piece to be placed.
+        """
+        i, j = self.board_coordinates(file_rank)
         self.matrix[i][j] = value
 
-    def __getitem__(self, key):
-        i, j = self.board_coordinates(key)
+    def __getitem__(self, file_rank: str) -> Piece | None:
+        """Get the piece to a given file and rank.
+
+        Args:
+            file_rank: The file and rank.
+
+        Returns:
+            The piece to the given file and rank.
+        """
+        i, j = self.board_coordinates(file_rank)
         return self.matrix[i][j]
 
-    def __repr__(self):
-        """Represent the board in proper direction and use the representation of each piece."""
-        ranker = range(8)
+    def __repr__(self) -> str:
+        """Represent the board in proper direction and use the representation of each piece.
 
+        Returns:
+            The board representation.
+        """
         return (
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n" +
             "\n".join(
