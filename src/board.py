@@ -152,7 +152,7 @@ class Board:
         """
         return any(piece in rank for rank in self._board)
 
-    def square_of(self, piece: Piece) -> tuple[int, int] | None:
+    def square_of(self, piece: Piece, algebraic_notation: bool = True) -> str | tuple[int, int] | None:
         """Return the square of a specific piece.
 
         Args:
@@ -164,4 +164,4 @@ class Board:
         for i, rank in enumerate(self._board):
             for j, square in enumerate(rank):
                 if piece is not None and square is piece:
-                    return self._square((i, j))
+                    return self._square((i, j)) if algebraic_notation else (i, j)
