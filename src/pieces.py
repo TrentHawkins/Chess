@@ -37,6 +37,9 @@ class Piece:
         """
         return self.color == "black"
 
+    def check_movement(self, move:tuple[int, int], captured:"Piece") -> bool:
+        raise NotImplemented("Each subtype of Piece has its own valid movements")
+
 
 @dataclass
 class Pawn(Piece):
@@ -51,7 +54,12 @@ class Pawn(Piece):
             The representation of a pawn.
         """
         return "♟" if self.is_black else "♙"
-
+    
+    def check_movement(self, move:tuple[int, int], captured:"Piece") -> bool:
+        x, y = move
+        print(self)
+        print(move)
+        return x == 0 and ((not self.is_black and y == 1) or (self.is_black and y == -1))
 
 @dataclass
 class Bishop(Piece):
@@ -66,6 +74,10 @@ class Bishop(Piece):
             The representation of a bishop.
         """
         return "♝" if self.is_black else "♗"
+
+    def check_movement(self, move: tuple[int, int], captured: "Piece") -> bool:
+        x, y = move
+        return abs(x / y) == 1
 
 
 @dataclass

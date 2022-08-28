@@ -175,3 +175,47 @@ class Board:
             for j, square in enumerate(rank):
                 if square is piece:
                     return self._square((i, j)) if algebraic_notation else (i, j)
+
+    def movement(self, cur_square:Square, goto_square:Square) -> bool:
+        """Move a piece from its current square to the desired one.
+
+        Checks that there is a piece to move and the movement is valid for the specific piece.
+        If it is, execute the move and check whether a piece is captured and update the game score.
+        Args:
+            cur_square: the square from which a piece is moved
+            got_square: the desired destination square for the piece
+        Returns:
+            whether the move was valid and carried out.
+        """
+        piece = self[cur_square]
+        if piece is None:
+            return False
+        move = difference(self._indices(cur_square), self._indices(goto_square))
+        captured = self[goto_square]
+        valid = piece.check_movement(move, captured)
+        if valid:
+            self[cur_square] = None
+            self[goto_square] = piece
+        if captured is not None:
+            # currently this does nothing.
+            self.count_score(captured)
+        
+        return valid
+
+    def count_score(self, captured:Piece) -> None:
+        """Counts the score of the game. Not implemented."""
+        ...
+
+
+def difference(a:Indices, b:Indices) -> Indices:
+    """The pointwise difference between two tuples 
+    
+    Args:
+        a: tuple of ints
+        b: tuple of ints 
+    Returns:
+        The pointwise difference between a and b    
+    """
+    x, y = a
+    z, w = b
+    return z - x, w - y
