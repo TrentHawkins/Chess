@@ -15,7 +15,7 @@ File = int
 class Indices(tuple):
     """Type for pair of indices (rank and file) with operations."""
 
-    def __add__(self, other: "Indices") -> "Indices":
+    def __add__(self, other):
         """Add to indices.
 
         Args:
@@ -65,7 +65,26 @@ class Square(Indices):
         Args:
             square: A square in either chess notation or a couple of indices.
         """
-        return cls._indices(square) if isinstance(square, str) else square
+        return super(Square, cls).__new__(cls, cls._indices(square)) if isinstance(square, str) else super(Square, cls).__new__(cls, square)
+
+    def __repr__(self):
+        """Represent square in chess notaion.
+
+        Returns:
+            The rank and file of square in chess notation.
+        """
+        return self._algebraic_notation(self)
+
+    def __add__(self, other: Indices):
+        """Add to indices.
+
+        Args:
+            other: index differences to apply to indices
+
+        Returns:
+            Added indices.
+        """
+        return Square(Indices(self) + other)
 
 
 class Board:
