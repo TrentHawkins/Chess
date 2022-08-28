@@ -27,8 +27,6 @@ class Board:
 
     def __init__(self):
         """Initialize a chessboard with a new game congifuration."""
-
-    #   Empty squares contain None in place of a Piece object.
         self.board: list[list[Piece | None]] = [[None for _ in range(8)] for _ in range(8)]
 
     #   White pieces on the first rank.
@@ -81,7 +79,6 @@ class Board:
         Returns:
             The board coordinates.
         """
-
         return cls.rank_to_index[file_rank[1]], cls.file_to_index[file_rank[0]]
 
     def __setitem__(self, square: str, piece: Piece | None = None):
@@ -91,7 +88,6 @@ class Board:
             square: The file and rank of the square.
             piece: The piece to be placed on the square.
         """
-
         i, j = self.board_coordinates(square)
         self.board[i][j] = piece
 
@@ -104,7 +100,6 @@ class Board:
         Returns:
             The piece on the given square.
         """
-
         i, j = self.board_coordinates(square)
         return self.board[i][j]
 
@@ -114,13 +109,18 @@ class Board:
         Args:
             square: The file and rank of the square on which to remove a piece (if any).
         """
-
         i, j = self.board_coordinates(square)
         self.board[i][j] = None
 
-    def __contains__(self, piece: Piece | None):
-        """Check if a piece is on the board"""
+    def __contains__(self, piece: Piece | None) -> bool:
+        """Check if a piece is on the board.
 
+        Args:
+            piece: Basically type and color of piece to be checked.
+
+        Returns:
+            If piece is in board.
+        """
         return any(piece in rank for rank in self.board)
 
     def __repr__(self) -> str:
@@ -129,7 +129,6 @@ class Board:
         Returns:
             The board representation.
         """
-
         return (
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n" +
             "\n".join(
