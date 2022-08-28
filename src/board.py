@@ -3,14 +3,73 @@
 Referencing with chess algebraic notation is possible.
 """
 
+from dataclasses import dataclass
 from .pieces import Piece, Pawn, Bishop, Knight, Rook, Queen, King
 
 
 Rank = int
 File = int
-
 Indices = tuple[Rank, File]
-Square = str  # square is file+rank
+
+
+class Square:
+    """A square on the chessboard."""
+
+    index_to_file = {index_: file_ for index_, file_ in zip(range(8), "abcdefgh")}  # translate range index to file in chess
+    file_to_index = {file_: index_ for index_, file_ in zip(range(8), "abcdefgh")}  # translate file in chess to range index
+    index_to_rank = {index_: rank_ for index_, rank_ in zip(range(8), "87654321")}  # translate range index to rank in chess
+    rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}  # translate rank in chess to range index
+
+    @classmethod
+    def _indices(cls, square: str) -> Indices:
+        """Provide the array indices for a given square.
+
+        Args:
+            square: The rank and file.
+
+        Returns:
+            Indices.
+        """
+        return cls.rank_to_index[square[1]], cls.file_to_index[square[0]]
+
+    @classmethod
+    def _algebraic_notation(cls, indices: Indices) -> str:
+        """Provide the square notation of given array indices.
+
+        Args:
+            square: The rank and file of the given square.
+
+        Returns:
+            The square in chess notation.
+        """
+        return cls.index_to_file[indices[1]]+cls.index_to_rank[indices[0]]
+
+    def __init__(self, square: str | Indices):
+        """Make square.
+
+        Args:
+            square: A square in either chess notation or a couple of indices.
+        """
+        self.indices = self._indices(square) if isinstance(square, str) else square
+
+    def __repr__(self) -> str:
+        """Display indices.
+
+        Returns:
+            Indices of square.
+        """
+        return self._algebraic_notation(self.indices)
+
+    def __add__(self, other: Indices) -> "Square":
+        """Move square.
+
+        Args:
+            other: index difference to apply to square
+
+        Returns:
+            Moved square.
+        """
+        return Square((self.indices[0] + other[0], self.indices[1] + other[1]))
 
 
 class Board:
@@ -33,28 +92,13 @@ class Board:
     rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}  # translate rank in chess to range index
 
     @classmethod
-    def _indices(cls, square: Square) -> Indices:
-        """Provide the array indices for a given square.
+    def _square(cls, square: Square | str):
+        """Return square object from string format if such is given.
 
         Args:
-            square: The rank and file.
-
-        Returns:
-            Indices.
+            square: Can be an object or a string in chess notation.
         """
-        return cls.rank_to_index[square[1]], cls.file_to_index[square[0]]
-
-    @classmethod
-    def _square(cls, indices: Indices) -> Square:
-        """Provide the square notation of given array indices.
-
-        Args:
-            square: The rank and file of the given square.
-
-        Returns:
-            The square in chess notation.
-        """
-        return cls.index_to_file[indices[1]]+cls.index_to_rank[indices[0]]
+        return square if isinstance(square, Square) else Square(square)
 
     def __init__(self):
         """Initialize a chessboard with a new game congifuration."""
@@ -117,7 +161,7 @@ class Board:
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n\n"
         ).replace("None", " ")
 
-    def __setitem__(self, square: Square | Indices | None, piece: Piece | None):
+    def __setitem__(self, square: Square | str | None, piece: Piece | None):
         """Add a piece to a square.
 
         Args:
@@ -125,10 +169,10 @@ class Board:
             piece: The piece to be placed on the square.
         """
         if square:
-            i, j = self._indices(square) if isinstance(square, Square) else square
+            i, j = self._square(square).indices
             self._board[i][j] = piece
 
-    def __getitem__(self, square: Square | Indices | None) -> Piece | None:
+    def __getitem__(self, square: Square | str | None) -> Piece | None:
         """Get the piece of a given square.
 
         Args:
@@ -138,17 +182,17 @@ class Board:
             The piece on the given square.
         """
         if square:
-            i, j = self._indices(square) if isinstance(square, Square) else square
+            i, j = self._square(square).indices
             return self._board[i][j]
 
-    def __delitem__(self, square: Square | Indices | None):
+    def __delitem__(self, square: Square | str | None):
         """Remove the piece of a given square.
 
         Args:
             square: The rank and file of the square on which to remove a piece (if any).
         """
         if square:
-            i, j = self._indices(square) if isinstance(square, Square) else square
+            i, j = self._square(square).indices
             self._board[i][j] = None
 
     def __contains__(self, piece: Piece | None) -> bool:
@@ -162,7 +206,7 @@ class Board:
         """
         return any(piece in rank for rank in self._board)
 
-    def square_of(self, piece: Piece | None, algebraic_notation: bool = True) -> Square | Indices | None:
+    def square_of(self, piece: Piece | None) -> Square | None:
         """Return the square of a specific piece.
 
         Args:
@@ -172,6 +216,6 @@ class Board:
             The square of the piece in chess notation or indices or None if it is not on the board.
         """
         for i, rank in enumerate(self._board):
-            for j, square in enumerate(rank):
-                if square is piece:
-                    return self._square((i, j)) if algebraic_notation else (i, j)
+            for j, piece_in_square in enumerate(rank):
+                if piece_in_square is piece:
+                    return Square((i, j))
