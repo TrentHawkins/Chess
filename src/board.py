@@ -9,10 +9,25 @@ from .pieces import Piece, Pawn, Bishop, Knight, Rook, Queen, King
 
 Rank = int
 File = int
-Indices = tuple[Rank, File]
+# Indices = tuple[Rank, File]
 
 
-class Square:
+class Indices(tuple):
+    """Type for pair of indices (rank and file) with operations."""
+
+    def __add__(self, other: "Indices") -> "Indices":
+        """Add to indices.
+
+        Args:
+            other: index differences to apply to indices
+
+        Returns:
+            Added indices.
+        """
+        return Indices((self[0] + other[0], self[1] + other[1]))
+
+
+class Square(Indices):
     """A square on the chessboard."""
 
     index_to_file = {index_: file_ for index_, file_ in zip(range(8), "abcdefgh")}  # translate range index to file in chess
@@ -30,7 +45,7 @@ class Square:
         Returns:
             Indices.
         """
-        return cls.rank_to_index[square[1]], cls.file_to_index[square[0]]
+        return Indices((cls.rank_to_index[square[1]], cls.file_to_index[square[0]]))
 
     @classmethod
     def _algebraic_notation(cls, indices: Indices) -> str:
@@ -44,32 +59,13 @@ class Square:
         """
         return cls.index_to_file[indices[1]]+cls.index_to_rank[indices[0]]
 
-    def __init__(self, square: str | Indices):
+    def __new__(cls, square: str | Indices):
         """Make square.
 
         Args:
             square: A square in either chess notation or a couple of indices.
         """
-        self.indices = self._indices(square) if isinstance(square, str) else square
-
-    def __repr__(self) -> str:
-        """Display indices.
-
-        Returns:
-            Indices of square.
-        """
-        return self._algebraic_notation(self.indices)
-
-    def __add__(self, other: Indices) -> "Square":
-        """Move square.
-
-        Args:
-            other: index difference to apply to square
-
-        Returns:
-            Moved square.
-        """
-        return Square((self.indices[0] + other[0], self.indices[1] + other[1]))
+        return cls._indices(square) if isinstance(square, str) else square
 
 
 class Board:
@@ -169,7 +165,7 @@ class Board:
             piece: The piece to be placed on the square.
         """
         if square:
-            i, j = self._square(square).indices
+            i, j = self._square(square)
             self._board[i][j] = piece
 
     def __getitem__(self, square: Square | str | None) -> Piece | None:
@@ -182,7 +178,7 @@ class Board:
             The piece on the given square.
         """
         if square:
-            i, j = self._square(square).indices
+            i, j = self._square(square)
             return self._board[i][j]
 
     def __delitem__(self, square: Square | str | None):
@@ -192,7 +188,7 @@ class Board:
             square: The rank and file of the square on which to remove a piece (if any).
         """
         if square:
-            i, j = self._square(square).indices
+            i, j = self._square(square)
             self._board[i][j] = None
 
     def __contains__(self, piece: Piece | None) -> bool:
@@ -218,4 +214,4 @@ class Board:
         for i, rank in enumerate(self._board):
             for j, piece_in_square in enumerate(rank):
                 if piece_in_square is piece:
-                    return Square((i, j))
+                    return Square(Indices((i, j)))
