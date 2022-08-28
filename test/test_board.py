@@ -10,11 +10,11 @@ def board_start():
 
 
 def test_movement(board_start:Board):
-    cur_square = "a2"
-    goto_square = "a3"
-    assert isinstance(board_start["a2"], Pawn)
+    cur_square = "a7"
+    goto_square = "a6"
+    assert isinstance(board_start["a7"], Pawn)
     assert board_start.movement(cur_square, goto_square)
-    assert isinstance(board_start["a3"], Pawn)
+    assert isinstance(board_start["a6"], Pawn)
 
 
 def test_movement_nope(board_start:Board):

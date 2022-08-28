@@ -56,10 +56,17 @@ class Pawn(Piece):
         return "♟" if self.is_black else "♙"
     
     def check_movement(self, move:tuple[int, int], captured:"Piece") -> bool:
+        """Checks whether the Pawn is allowed to execute the move given.
+        
+        Args:
+            move: the move to execute
+            captured: whether a Piece is captured as a result of the move.
+        Returns:
+            a truth value indicating whether the move is valid.
+        """
         x, y = move
-        print(self)
-        print(move)
-        return x == 0 and ((not self.is_black and y == 1) or (self.is_black and y == -1))
+        return y == 0 and ((not self.is_black and x == -1) or (self.is_black and x == 1))
+
 
 @dataclass
 class Bishop(Piece):
@@ -74,10 +81,6 @@ class Bishop(Piece):
             The representation of a bishop.
         """
         return "♝" if self.is_black else "♗"
-
-    def check_movement(self, move: tuple[int, int], captured: "Piece") -> bool:
-        x, y = move
-        return abs(x / y) == 1
 
 
 @dataclass

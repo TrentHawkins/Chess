@@ -181,6 +181,7 @@ class Board:
 
         Checks that there is a piece to move and the movement is valid for the specific piece.
         If it is, execute the move and check whether a piece is captured and update the game score.
+        Currently, this does not check if movement is blocked by another piece, be it friend or enemy.
         Args:
             cur_square: the square from which a piece is moved
             got_square: the desired destination square for the piece
@@ -191,6 +192,7 @@ class Board:
         if piece is None:
             return False
         move = difference(self._indices(cur_square), self._indices(goto_square))
+        # need to check if move is blocked from another piece.
         captured = self[goto_square]
         valid = piece.check_movement(move, captured)
         if valid:

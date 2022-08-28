@@ -4,6 +4,6 @@ from src.pieces import Pawn
 
 
 def test_check_move():
-    pawn = Pawn("white")
-    assert not pawn.check_movement((1, 0), None)
-    assert pawn.check_movement((0, 1), None)
+    pawn = Pawn("black")
+    assert pawn.check_movement((1, 0), None)
+    assert not pawn.check_movement((0, 1), None)
