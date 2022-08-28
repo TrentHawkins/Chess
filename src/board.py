@@ -163,5 +163,5 @@ class Board:
         """
         for i, rank in enumerate(self._board):
             for j, square in enumerate(rank):
-                if piece is not None and square is piece:
+                if square is piece:
                     return self._square((i, j)) if algebraic_notation else (i, j)

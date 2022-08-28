@@ -33,5 +33,4 @@ class TestBoard:
 
         for rank in board._board:
             for piece in rank:
-                if piece is not None:
-                    assert board[board.square_of(piece)] is piece
+                assert board[board.square_of(piece)] is piece
