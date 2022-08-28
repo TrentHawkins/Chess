@@ -26,7 +26,6 @@ class Piece:
         Raises:
             NotImplementedError: Needs implementation.
         """
-
         raise NotImplementedError
 
     @property
@@ -36,7 +35,6 @@ class Piece:
         Returns:
             Whether the piece is a black piece or not.
         """
-
         return self.color == "black"
 
 
@@ -52,7 +50,6 @@ class Pawn(Piece):
         Returns:
             The representation of a pawn.
         """
-
         return "♟" if self.is_black else "♙"
 
 
@@ -68,7 +65,6 @@ class Bishop(Piece):
         Returns:
             The representation of a bishop.
         """
-
         return "♝" if self.is_black else "♗"
 
 
@@ -84,7 +80,6 @@ class Knight(Piece):
         Returns:
             The representation of a knight.
         """
-
         return "♞" if self.is_black else "♘"
 
 
@@ -100,7 +95,6 @@ class Rook(Piece):
         Returns:
             The representation of a rook.
         """
-
         return "♜" if self.is_black else "♖"
 
 
@@ -116,7 +110,6 @@ class Queen(Piece):
         Returns:
             The representation of a queen.
         """
-
         return "♛" if self.is_black else "♕"
 
 
@@ -130,5 +123,4 @@ class King(Piece):
         Returns:
             The representation of a king.
         """
-
         return "♚" if self.is_black else "♔"
