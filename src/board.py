@@ -26,16 +26,16 @@ class Board:
     rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}  # translate rank in chess to range index
 
     @classmethod
-    def _indices(cls, file_rank: str) -> tuple[int, int]:
+    def _indices(cls, square: str) -> tuple[int, int]:
         """Provide the array indices for a given square.
 
         Args:
-            square: The file and rank.
+            square: The rank and file.
 
         Returns:
             A tuple of indices.
         """
-        return cls.rank_to_index[file_rank[1]], cls.file_to_index[file_rank[0]]
+        return cls.rank_to_index[square[1]], cls.file_to_index[square[0]]
 
     @classmethod
     def _square(cls, indices: tuple[int, int]) -> str:
