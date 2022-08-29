@@ -34,3 +34,19 @@ class TestBoard:
         for rank in board._board:
             for piece in rank:
                 assert board[board.square_of(piece)] is piece
+
+    def test_square_operations(self):
+        """Test that squares can safely be operated on and that operations can be stacked."""
+        from src.board import Vector, Square
+
+        north = Vector(-1, 0)
+        west = Vector(0, -1)
+        south = Vector(+1, 0)
+        east = Vector(0, +1)
+
+        square = Square("e4")
+
+        assert square + north == Square("e5")
+        assert square + west == Square("d4")
+        assert square + south == Square("e3")
+        assert square + east == Square("f4")
