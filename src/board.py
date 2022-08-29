@@ -3,14 +3,38 @@
 Referencing with chess algebraic notation is possible.
 """
 
-from .pieces import Piece, Pawn, Bishop, Knight, Rook, Queen, King
+from .pieces import Piece, Pawn, Bishop, Knight, Rook, Queen, King, Move, horizontal, vertical
 
 
 Rank = int
 File = int
+Square = tuple[Rank, File]
 
-Indices = tuple[Rank, File]
-Square = str  # square is file+rank
+
+def rank(square:Square) -> Rank:
+    return square[0]
+
+
+def file(square:Square) -> File:
+    return square[1]
+
+
+def difference(square_left: Square, square_right:Square) -> Move:
+    horizontal_ = rank(square_right) - rank(square_left)
+    vertical_ = file(square_right) - file(square_left)
+    return horizontal_, vertical_       
+
+
+def advancement(square:Square, move:Move) -> Square:
+    rank_ = rank(square) + horizontal(move)
+    file_ = file(square) + vertical(move)
+    return rank_, file_   
+
+
+def decrement(move:Move, unit_move:Move) -> Move:
+    horizontal_ = horizontal(move) - horizontal(unit_move)
+    vertical_ = vertical(move) - vertical(unit_move)
+    return horizontal_, vertical_
 
 
 class Board:
@@ -33,19 +57,19 @@ class Board:
     rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}  # translate rank in chess to range index
 
     @classmethod
-    def _indices(cls, square: Square) -> Indices:
+    def _indices(cls, square: str) -> Square:
         """Provide the array indices for a given square.
 
         Args:
             square: The rank and file.
 
         Returns:
-            Indices.
+            Square.
         """
         return cls.rank_to_index[square[1]], cls.file_to_index[square[0]]
 
     @classmethod
-    def _square(cls, indices: Indices) -> Square:
+    def _square(cls, indices: Square) -> str:
         """Provide the square notation of given array indices.
 
         Args:
@@ -117,7 +141,7 @@ class Board:
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n\n"
         ).replace("None", " ")
 
-    def __setitem__(self, square: Square | Indices | None, piece: Piece | None):
+    def __setitem__(self, square: str | None, piece: Piece | None):
         """Add a piece to a square.
 
         Args:
@@ -125,10 +149,10 @@ class Board:
             piece: The piece to be placed on the square.
         """
         if square:
-            i, j = self._indices(square) if isinstance(square, Square) else square
+            i, j = self._indices(square)
             self._board[i][j] = piece
 
-    def __getitem__(self, square: Square | Indices | None) -> Piece | None:
+    def __getitem__(self, square: str | None) -> Piece | None:
         """Get the piece of a given square.
 
         Args:
@@ -138,17 +162,17 @@ class Board:
             The piece on the given square.
         """
         if square:
-            i, j = self._indices(square) if isinstance(square, Square) else square
+            i, j = self._indices(square) 
             return self._board[i][j]
 
-    def __delitem__(self, square: Square | Indices | None):
+    def __delitem__(self, square: str | None):
         """Remove the piece of a given square.
 
         Args:
             square: The rank and file of the square on which to remove a piece (if any).
         """
         if square:
-            i, j = self._indices(square) if isinstance(square, Square) else square
+            i, j = self._indices(square)
             self._board[i][j] = None
 
     def __contains__(self, piece: Piece | None) -> bool:
@@ -162,7 +186,7 @@ class Board:
         """
         return any(piece in rank for rank in self._board)
 
-    def square_of(self, piece: Piece | None, algebraic_notation: bool = True) -> Square | Indices | None:
+    def square_of(self, piece: Piece | None, algebraic_notation: bool = True) -> Square | Square | None:
         """Return the square of a specific piece.
 
         Args:
@@ -176,7 +200,7 @@ class Board:
                 if square is piece:
                     return self._square((i, j)) if algebraic_notation else (i, j)
 
-    def movement(self, cur_square:Square, goto_square:Square) -> bool:
+    def movement(self, cur_square:str, goto_square:str) -> bool:
         """Move a piece from its current square to the desired one.
 
         Checks that there is a piece to move and the movement is valid for the specific piece.
@@ -195,29 +219,47 @@ class Board:
         # need to check if move is blocked from another piece.
         captured = self[goto_square]
         valid = piece.check_movement(move, captured)
-        if valid:
+        if not valid:
+            return False
+        blocked = self.check_move_blocked(self._indices(cur_square), move)
+        if not blocked:
             self[cur_square] = None
             self[goto_square] = piece
         if captured is not None:
             # currently this does nothing.
             self.count_score(captured)
         
-        return valid
+        return valid and not blocked
 
     def count_score(self, captured:Piece) -> None:
         """Counts the score of the game. Not implemented."""
         ...
 
+    def check_move_blocked(self, square:Square, move:Move) -> bool:
+        piece = self._board[rank(square)][file(square)]
+        # a knight is a special case, it immediatly moves to the goto-square and is only blocked by 
+        # piece of the same color.
+        if isinstance(piece, Knight):
+            square = advancement(square, move)
+            other_piece = self._board[rank(square)][file(square)]
+            return other_piece is not None and other_piece.is_black == piece.is_black
+        blocked = False
+        while not blocked:
+            # a pawn moving diagonally is a special case, currently not addressed here.
+            # we can do this in a previous call (checks whether the move is a valid move for the piece independent of blocking)
+            unit_move = piece.unit_move(move)
+            move = decrement(move, unit_move)
+            # if move reaches goto_square and the color of any chest piece there is different, the chess piece is not blocked
+            square = advancement(square, unit_move)
+            if move == (0, 0):
+                other_piece = self._board[rank(square)][file(square)]
+                if other_piece is not None:
+                    return other_piece.is_black == piece.is_black
+                else:
+                    return False
+            # even if there is another piece of the opposite color on the square, we decide it blocks movement.
+            # another way to handle this is to automatically move the piece up to that square instead of the go-to one.
+            # in that case we should return the position the piece moves to, in order to update the board properly.
+            blocked = self._board[rank(square)][file(square)] is not None
 
-def difference(a:Indices, b:Indices) -> Indices:
-    """The pointwise difference between two tuples 
-    
-    Args:
-        a: tuple of ints
-        b: tuple of ints 
-    Returns:
-        The pointwise difference between a and b    
-    """
-    x, y = a
-    z, w = b
-    return z - x, w - y
+        return blocked

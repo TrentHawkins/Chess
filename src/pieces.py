@@ -14,6 +14,17 @@ Chess has 6 types of pieces with predifined rules of movement and worth in-game:
 from dataclasses import dataclass
 
 
+Move = tuple[int, int]
+
+
+def horizontal(move:Move) -> int:
+    return move[0]
+
+
+def vertical(move:Move) -> int:
+    return move[1]
+
+
 @dataclass
 class Piece:
     """A generic chess piece."""
@@ -37,8 +48,11 @@ class Piece:
         """
         return self.color == "black"
 
-    def check_movement(self, move:tuple[int, int], captured:"Piece") -> bool:
-        raise NotImplemented("Each subtype of Piece has its own valid movements")
+    def check_movement(self, move:Move, captured:"Piece") -> bool:
+        raise NotImplemented("Each subtype of Piece has its own valid movements.")
+
+    def unit_move(self, move:Move) -> Move:
+        raise NotImplemented("Each subtype of Piece has its own valid movements.")
 
 
 @dataclass
@@ -55,7 +69,7 @@ class Pawn(Piece):
         """
         return "♟" if self.is_black else "♙"
     
-    def check_movement(self, move:tuple[int, int], captured:"Piece") -> bool:
+    def check_movement(self, move:Move, captured:Piece | None) -> bool:
         """Checks whether the Pawn is allowed to execute the move given.
         
         Args:
@@ -66,6 +80,9 @@ class Pawn(Piece):
         """
         x, y = move
         return y == 0 and ((not self.is_black and x == -1) or (self.is_black and x == 1))
+
+    def unit_move(self, move: Move) -> Move:
+        return move
 
 
 @dataclass
@@ -112,6 +129,20 @@ class Rook(Piece):
         """
         return "♜" if self.is_black else "♖"
 
+    def check_movement(self, move:Move, piece:Piece | None):
+        return horizontal(move) != 0 ^ vertical(move) != 0
+
+    def unit_move(self, move:Move) -> Move:
+        if horizontal(move) > 0 and vertical(move) == 0:
+            return (1, 0)
+        if horizontal(move) < 0 and vertical(move) == 0:
+            return (-1, 0)
+        if horizontal(move) == 0 and vertical(move) > 0:
+            return (0, 1)
+        if horizontal(move) == 0 and vertical(move) < 0:
+            return (0, -1)
+        raise ValueError("Rook cannot move diagonally!")
+        
 
 @dataclass
 class Queen(Piece):
