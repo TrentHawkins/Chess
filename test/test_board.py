@@ -9,7 +9,7 @@ def board_start():
     return Board()
 
 
-def test_movement(board_start:Board):
+def test_movement_single_pawn(board_start:Board):
     cur_square = "a7"
     goto_square = "a6"
     cur = board_start._indices(cur_square)
@@ -21,13 +21,13 @@ def test_movement(board_start:Board):
     assert isinstance(board_start["a6"], Pawn)
 
 
-def test_movement_nope(board_start:Board):
+def test_movement_pawn_mvoes_only_one_square(board_start:Board):
     cur_square = "a2"
     goto_square = "a4"
     assert not board_start.movement(cur_square, goto_square)
 
 
-def test_movement_blocked(board_start:Board):
+def test_movement_rook_is_blocked_by_pawn(board_start:Board):
     cur_square = "a1" # rook is here
     goto_square = "a2" # pawn is here
     cur = board_start._indices(cur_square)
@@ -37,7 +37,7 @@ def test_movement_blocked(board_start:Board):
     assert board_start.check_move_blocked(cur, move)
 
 
-def test_movement_after_moving_blocking_piece(board_start:Board):
+def test_movement_rook_after_moving_blocking_pawn(board_start:Board):
     cur = "a1" # rook is here
     goto_rook = "a2" # pawn is here
     goto_pawn = "a3" # empty
