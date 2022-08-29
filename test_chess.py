@@ -37,7 +37,7 @@ class TestBoard:
 
     def test_square_operations(self):
         """Test that squares can safely be operated on and that operations can be stacked."""
-        from src.board import Vector, Square
+        from src.square import Vector, Square
 
         north = Vector(-1, 0)
         west = Vector(0, -1)

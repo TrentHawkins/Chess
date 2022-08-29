@@ -13,6 +13,8 @@ Chess has 6 types of pieces with predifined rules of movement and worth in-game:
 
 from dataclasses import dataclass
 
+from .square import Vector, Square
+
 
 @dataclass
 class Piece:

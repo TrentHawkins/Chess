@@ -33,7 +33,7 @@ Pawns: both capturing and en-passant are kind of special.
     Capturing logic may be implementable here.
 """
 
-from src.board import Vector
+from src.square import Vector
 
 # straight steps (King)
 north = Vector(-1, 0)
