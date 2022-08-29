@@ -130,7 +130,7 @@ class Rook(Piece):
         return "♜" if self.is_black else "♖"
 
     def check_movement(self, move:Move, piece:Piece | None):
-        return horizontal(move) != 0 ^ vertical(move) != 0
+        return (horizontal(move) != 0) ^ (vertical(move) != 0)
 
     def unit_move(self, move:Move) -> Move:
         if horizontal(move) > 0 and vertical(move) == 0:

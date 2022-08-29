@@ -35,3 +35,25 @@ def test_movement_blocked(board_start:Board):
     move = difference(cur, goto)
     assert isinstance(board_start[cur_square], Rook)
     assert board_start.check_move_blocked(cur, move)
+
+
+def test_movement_after_moving_blocking_piece(board_start:Board):
+    cur = "a1" # rook is here
+    goto_rook = "a2" # pawn is here
+    goto_pawn = "a3" # empty
+    assert board_start.movement(goto_rook, goto_pawn)
+    assert board_start.movement(cur, goto_rook)
+
+
+def test_movement_rook_captures_pawn(board_start:Board):
+    cur = "a1" # rook is here
+    goto_rook = "a7" # pawn is here
+    board_start["a2"] = None # remove friendly pawn so rook can move
+    assert board_start.movement(cur, goto_rook)
+
+
+def test_movement_rook_blocked_by_enemy_pawn(board_start:Board):
+    cur = "a1" # rook is here
+    goto_rook = "a8" # pawn is here
+    board_start["a2"] = None # remove friendly pawn so rook can move
+    assert not board_start.movement(cur, goto_rook)

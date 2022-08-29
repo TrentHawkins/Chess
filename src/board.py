@@ -219,16 +219,18 @@ class Board:
         # need to check if move is blocked from another piece.
         captured = self[goto_square]
         valid = piece.check_movement(move, captured)
+        print(cur_square, valid, move)
         if not valid:
             return False
         blocked = self.check_move_blocked(self._indices(cur_square), move)
+        print(cur_square, valid, blocked)
         if not blocked:
             self[cur_square] = None
             self[goto_square] = piece
         if captured is not None:
             # currently this does nothing.
             self.count_score(captured)
-        
+
         return valid and not blocked
 
     def count_score(self, captured:Piece) -> None:
