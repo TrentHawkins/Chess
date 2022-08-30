@@ -40,18 +40,33 @@ class Piece:
     """A generic chess piece.
 
     Attributes:
-        color: One of two colors, black or white.
-        targets: Squares that a piece has a target. (NOTE: EXPERIMENTAL)
+        color: One of two colors, black or white. Holds direction of the board.
+        value: How much a piece is worth:
+            1: Pawn
+            3: Knight/Bishop
+            5: Rook
+            9: Queen
+            ∞: King
+
+    A few generic rules applied to all pieces:
+        Pinning: If moving a piece will discover a check on your king, the piece is pinned and cannot move.
+        If your king is checked, no other piece can move except for the ones and with only the moves that resolve the check.
     """
+
+    north: ClassVar[Vector] = Vector(-1, 0)
+    south: ClassVar[Vector] = Vector(+1, 0)
+
+    west: ClassVar[Vector] = Vector(0, -1)
+    east: ClassVar[Vector] = Vector(0, +1)
 
 #   Straight steps:
     rizontals: ClassVar[set[Vector]] = set((
-        Vector(-1, 0),
-        Vector(0, -1),
+        west,
+        east,
     ))
     verticals: ClassVar[set[Vector]] = set((
-        Vector(+1, 0),
-        Vector(0, +1),
+        north,
+        south,
     ))
     straights: ClassVar[set[Vector]] = rizontals.union(verticals)
 
@@ -97,35 +112,74 @@ class Piece:
 
 
 class Pawn(Piece):
-    """A pawn."""
+    """A pawn.
+
+    Moves forward a square, unless its first move where it can move two and unless blocked by any piece.
+    It captured forward-diagonally. I can capture en-passant:
+        If an enemy pawn passes yours trying to escape capture, well... it cannot, not for this round.
+    NOTE: That probably means that board will invoke this method multiple times (unti a better way is thought).
+    Upon reaching the end of the board, it is promoted to an officer:
+        - Rook
+        - Bishop
+        - Knight
+        - Queen
+    """
+
+    pawn_step = Piece.south
+
+    steps = Piece.steps.union({
+        pawn_step,  # One step.
+        pawn_step + Piece.west,  # Capturing to the left.
+        pawn_step + Piece.east,  # Capturing to the right.
+    })
 
     value: int = 1
+
+#   Extra flags for the pawn:
+    has_moved: bool = False
 
     def __repr__(self) -> str:
         self.__repr__.__doc__
         return "♟" if self.is_black else "♙"
 
-#   NOTE TO SELF: LOTS OF TEARS
+#   NOTE: Probably a board will invoke this method multiple times (until a better way is thought).
+    def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
+        super().legal_moves.__doc__
+        squares = set()
+        for move in self.steps:
+            if condition(square + move * self.color.value):
+                squares.add(square + move * self.color.value)
+        if not self.has_moved:
+            squares.add(square + (self.pawn_step + self.pawn_step) * self.color.value)
+        return squares
 
 
 @dataclass
-class Meleer(Piece):
-    """ A close ranged piece liek a knight or bishop."""
+class Melee(Piece):
+    """A close ranged piece:
+        - King
+        - Knight (has reach)
+
+    Pawns are special.
+    """
 
     def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
         for move in self.steps:
-            if condition(square):
+            if condition(square + move):
                 squares.add(square + move)
-        return squares  # If empty, its game over.
+        return squares
 
 
 @dataclass
-class King(Meleer):
-    """A king."""
+class King(Melee):
+    """A King.
 
-    steps = Meleer.steps.union(Piece.straights.union(Piece.diagonals))
+    Moves one square in any direction that is not blocked by same side piece or targeted by enemy piece.
+    """
+
+    steps = Melee.steps.union(Piece.straights.union(Piece.diagonals))
 
     def __repr__(self) -> str:
         super().__repr__.__doc__
@@ -133,11 +187,15 @@ class King(Meleer):
 
 
 @dataclass
-class Knight(Meleer):
-    """A knight."""
+class Knight(Melee):
+    """A knight.
+
+    Moves two squares in any direction and one square in a vertical to that direction as one move.
+    It therefore can jump over other pieces. Target square must not be blocked by a same side piece.
+    """
 
 #   Knight moves
-    steps = Meleer.steps.union(diagonal + straight for diagonal, straight in product(Piece.diagonals, Piece.straights))
+    steps = Melee.steps.union(diagonal + straight for diagonal, straight in product(Piece.diagonals, Piece.straights))
     steps = steps.difference(Piece.rizontals.union(Piece.straights))  # remove the non-knight moves
 
     value: int = 3
@@ -148,8 +206,12 @@ class Knight(Meleer):
 
 
 @dataclass
-class Ranger(Piece):
-    """A Rook, Bishop or Queen. (I mean... in `python` you only say things once, right?)"""
+class Range(Piece):
+    """A long range piece:
+        - Rook
+        - Bishop
+        - Queen
+    """
 
     def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         super().legal_moves.__doc__
@@ -157,17 +219,20 @@ class Ranger(Piece):
         for move in self.steps:  # For each direction.
             advanced_square = square + move  # Start looking at advanced squares
             while condition(advanced_square):  # While we don't hit something.
-                squares.add(square)  # Add the damn square to legal destination squares.
+                squares.add(advanced_square)  # Add the damn square to legal destination squares.
                 advanced_square += move  # Advance to the next square in line.
         return squares
 
 
 @dataclass
-class Rook(Ranger):
-    """A rook."""
+class Rook(Range):
+    """A rook.
+
+    Moves anywhere along its rank xor its file, unless blocked by enemy (which captures) or same piece.
+    """
 
 #   Straight lines:
-    steps = Ranger.steps.union(Piece.straights)
+    steps = Range.steps.union(Piece.straights)
 
     value: int = 5
 
@@ -177,11 +242,19 @@ class Rook(Ranger):
 
 
 @dataclass
-class Bishop(Ranger):
-    """A bishop."""
+class Bishop(Range):
+    """A bishop.
+
+    Moves anywhere along a diagonal, unless blocked by enemy (which captures) or same piece.
+    This means that a bishop never leaves the color of the square it is on.
+    A player starts with two bishops:
+        A black-square bishop.
+        A white-square bishop.
+    So both cover the squares of the whole board, and it is the reason the worth more when both on the board.
+    """
 
 #   Diagonal lines:
-    steps = Ranger.steps.union(Piece.diagonals)
+    steps = Range.steps.union(Piece.diagonals)
 
     value: int = 3
 
@@ -191,8 +264,14 @@ class Bishop(Ranger):
 
 
 @dataclass
-class Queen(Rook, Bishop):
-    """A queen."""
+class Queen(Range, King):
+    """A queen.
+
+    Moves both like a rook and bishop, unless blocked by enemy (which captures) or same piece.
+    Can access all squares.
+
+    Inherits the steps of a King but the Range of a ranger. :)
+    """
 
     value: int = 9
 
