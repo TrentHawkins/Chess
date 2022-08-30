@@ -113,3 +113,20 @@ class Square(Vector):
     def __add__(self, other: Vector):
         """Add vector (displacement) to a square."""
         return Square(super().__add__(other))
+
+    @property
+    def condition(self) -> bool:
+        """Agnostic conditions that apply to all squares.
+
+        In particular this contains boundary checks, since they are decipherable from square notation basically.
+        NOTE: This could go to `Board` instead too, I'm just trying to semantically allocate conditioning across objects.
+
+        Returns:
+            If square respects conditions.
+        """
+        return (
+            self.rank >= 0 and
+            self.rank <= 7 and
+            self.file >= 0 and
+            self.file <= 7
+        )
