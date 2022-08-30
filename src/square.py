@@ -12,7 +12,7 @@ Rank = int
 File = int
 
 
-@dataclass
+@dataclass(frozen=True)  # NOTE: That's right, vectors and squares must be immutable.
 class Vector:
     """Integer 2-dimensional vector rerepsenting square displacements on the board.
 
@@ -56,6 +56,7 @@ class Vector:
         )
 
 
+@dataclass(init=False, repr=False, frozen=True)
 class Square(Vector):
     """A square on the chessboard.
 
@@ -68,12 +69,15 @@ class Square(Vector):
     You can operate on squares with squares, but results will be unpredictable unless you know what you are doing.
     """
 
-    index_to_file = {index_: file_ for index_, file_ in zip(range(8), "abcdefgh")}  # translate range index to file in chess
-    file_to_index = {file_: index_ for index_, file_ in zip(range(8), "abcdefgh")}  # translate file in chess to range index
-    index_to_rank = {index_: rank_ for index_, rank_ in zip(range(8), "87654321")}  # translate range index to rank in chess
-    rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}  # translate rank in chess to range index
+    rank_range = "87654321"
+    file_range = "abcdefgh"
 
-    notation_range = re.compile
+    index_to_file = {index_: file_ for index_, file_ in zip(range(8), file_range)}  # translate range index to file in chess
+    file_to_index = {file_: index_ for index_, file_ in zip(range(8), file_range)}  # translate file in chess to range index
+    index_to_rank = {index_: rank_ for index_, rank_ in zip(range(8), rank_range)}  # translate range index to rank in chess
+    rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), rank_range)}  # translate rank in chess to range index
+
+    notation_range = re.compile(f"[{file_range}][{rank_range}]")
 
     def __init__(self, square: str | Vector):
         """Make square.
@@ -83,6 +87,7 @@ class Square(Vector):
         """
     #   Extract rank and file from notation if given in that form.
         if isinstance(square, str):
+            assert Square.notation_range.match(square)
             super().__init__(
                 Square.rank_to_index[square[1]],
                 Square.file_to_index[square[0]],
@@ -108,7 +113,3 @@ class Square(Vector):
     def __add__(self, other: Vector):
         """Add vector (displacement) to a square."""
         return Square(super().__add__(other))
-
-    def __sub__(self, other: Vector):
-        """Add vector (displacement) to a square."""
-        return Square(super().__sub__(other))

@@ -3,7 +3,7 @@
 Referencing with chess algebraic notation is possible.
 """
 
-from .pieces import Piece, Pawn, Bishop, Knight, Rook, Queen, King
+from .pieces import Color, Piece, Pawn, Bishop, Knight, Rook, Queen, King
 from .square import Vector, Square
 
 
@@ -40,44 +40,44 @@ class Board:
         self._board: list[list[Piece | None]] = [[None for _ in range(8)] for _ in range(8)]
 
     #   White pieces on the first rank.
-        self["a1"] = Rook("white")
-        self["b1"] = Knight("white")
-        self["c1"] = Bishop("white")
-        self["d1"] = Queen("white")
-        self["e1"] = King("white")
-        self["f1"] = Bishop("white")
-        self["g1"] = Knight("white")
-        self["h1"] = Rook("white")
+        self["a1"] = Rook(Color.white)
+        self["b1"] = Knight(Color.white)
+        self["c1"] = Bishop(Color.white)
+        self["d1"] = Queen(Color.white)
+        self["e1"] = King(Color.white)
+        self["f1"] = Bishop(Color.white)
+        self["g1"] = Knight(Color.white)
+        self["h1"] = Rook(Color.white)
 
     #   White pawns on the second rank.
-        self["a2"] = Pawn("white")
-        self["b2"] = Pawn("white")
-        self["c2"] = Pawn("white")
-        self["d2"] = Pawn("white")
-        self["e2"] = Pawn("white")
-        self["f2"] = Pawn("white")
-        self["g2"] = Pawn("white")
-        self["h2"] = Pawn("white")
+        self["a2"] = Pawn(Color.white)
+        self["b2"] = Pawn(Color.white)
+        self["c2"] = Pawn(Color.white)
+        self["d2"] = Pawn(Color.white)
+        self["e2"] = Pawn(Color.white)
+        self["f2"] = Pawn(Color.white)
+        self["g2"] = Pawn(Color.white)
+        self["h2"] = Pawn(Color.white)
 
     #   Black pawns on the seventh rank.
-        self["a8"] = Rook("black")
-        self["b8"] = Knight("black")
-        self["c8"] = Bishop("black")
-        self["d8"] = Queen("black")
-        self["e8"] = King("black")
-        self["f8"] = Bishop("black")
-        self["g8"] = Knight("black")
-        self["h8"] = Rook("black")
+        self["a8"] = Rook(Color.black)
+        self["b8"] = Knight(Color.black)
+        self["c8"] = Bishop(Color.black)
+        self["d8"] = Queen(Color.black)
+        self["e8"] = King(Color.black)
+        self["f8"] = Bishop(Color.black)
+        self["g8"] = Knight(Color.black)
+        self["h8"] = Rook(Color.black)
 
     #   Black pieces on the eighth rank.
-        self["a7"] = Pawn("black")
-        self["b7"] = Pawn("black")
-        self["c7"] = Pawn("black")
-        self["d7"] = Pawn("black")
-        self["e7"] = Pawn("black")
-        self["f7"] = Pawn("black")
-        self["g7"] = Pawn("black")
-        self["h7"] = Pawn("black")
+        self["a7"] = Pawn(Color.black)
+        self["b7"] = Pawn(Color.black)
+        self["c7"] = Pawn(Color.black)
+        self["d7"] = Pawn(Color.black)
+        self["e7"] = Pawn(Color.black)
+        self["f7"] = Pawn(Color.black)
+        self["g7"] = Pawn(Color.black)
+        self["h7"] = Pawn(Color.black)
 
     def __repr__(self) -> str:
         """Represent the board in proper direction and use the representation of each piece.

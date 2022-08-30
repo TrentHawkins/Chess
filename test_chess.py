@@ -23,7 +23,7 @@ class TestBoard:
         """Test initial state of the board."""
         from src.board import Board
 
-        assert str(Board()) == initial_board_state
+        assert repr(Board()) == initial_board_state
 
     def test_square(self):
         """Test piece referencing on the board."""
