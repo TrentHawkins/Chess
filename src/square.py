@@ -5,7 +5,6 @@ A different type is used for displacements on squares since they are also semant
 
 
 import re
-
 from dataclasses import dataclass
 
 Rank = int
@@ -100,7 +99,7 @@ class Square(Vector):
             )
 
     def __repr__(self):
-        """Represent square in chess notaion.
+        """Represent square in chess notation.
 
         Returns:
             The rank and file of square in chess notation.

@@ -3,8 +3,8 @@
 Referencing with chess algebraic notation is possible.
 """
 
-from .pieces import Color, Piece, Pawn, Bishop, Knight, Rook, Queen, King
-from .square import Vector, Square
+from .pieces import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
+from .square import Square, Vector
 
 
 class Board:
@@ -20,11 +20,6 @@ class Board:
         Item at [0][7] is referenced as ["h8"].
         Item at [7][0] is referenced as ["a1"].
     """
-
-    index_to_file = {index_: file_ for index_, file_ in zip(range(8), "abcdefgh")}  # translate range index to file in chess
-    file_to_index = {file_: index_ for index_, file_ in zip(range(8), "abcdefgh")}  # translate file in chess to range index
-    index_to_rank = {index_: rank_ for index_, rank_ in zip(range(8), "87654321")}  # translate range index to rank in chess
-    rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}  # translate rank in chess to range index
 
     def __init__(self):
         """Initialize a chessboard with a new game congifuration."""
@@ -79,9 +74,9 @@ class Board:
         return (
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n" +
             "\n".join(
-                f"▐\033[7m{self.index_to_rank[index]}\033[27m\033[4m▌" +
+                f"▐\033[7m{Square.index_to_rank[index]}\033[27m\033[4m▌" +
                 "│".join(str(piece) for piece in rank) +
-                f"▐\033[24m\033[7m{self.index_to_rank[index]}\033[0m▌"
+                f"▐\033[24m\033[7m{Square.index_to_rank[index]}\033[0m▌"
                 for index, rank in enumerate(self._board)
             ) +
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n\n"

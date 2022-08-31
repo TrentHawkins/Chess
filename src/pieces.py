@@ -22,10 +22,10 @@ Trailing '_' means indefinite.
 
 from dataclasses import dataclass
 from enum import Enum
-from itertools import product, combinations
+from itertools import combinations, product
 from typing import Callable, ClassVar
 
-from .square import Vector, Square
+from .square import Square, Vector
 
 
 class Color(Enum):
