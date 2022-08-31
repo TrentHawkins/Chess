@@ -93,13 +93,12 @@ class Piece:
         return " "  # An unspecified piece is a ghost piece.
 
 #   NOTE: Remember that target resolution is still unresolved.
-    def legal_moves(self, square: Square, condition: Callable[[Square, Vector], bool]) -> set[Square]:
+    def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         f"""Generate all legal moves a {self.__class__.__name__} can apriori make.
 
         Args:
             square: Square on which piece is placed.
                 Default is no square, in which case displacements are not resolved into squares and generators not unfold.
-            condition: A condition that depends on both a square and a move.
 
         Returns:
             A list of all possible moves.
@@ -136,11 +135,11 @@ class Pawn(Piece):
         return "♟" if self.is_black else "♙"
 
 #   NOTE: Probably a board will invoke this method multiple times (until a better way is thought).
-    def legal_moves(self, square: Square, condition: Callable[[Square, Vector], bool]) -> set[Square]:
+    def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
         for step in self.steps:
-            if condition(square, step * self.color.value):
+            if condition(square + step * self.color.value):
                 squares.add(square + step * self.color.value)
         return squares
 
@@ -154,11 +153,11 @@ class Melee(Piece):
     Pawns are special.
     """
 
-    def legal_moves(self, square: Square, condition: Callable[[Square, Vector], bool]) -> set[Square]:
+    def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
         for step in self.steps:
-            if condition(square, step):
+            if condition(square + step):
                 squares.add(square + step)
         return squares
 
@@ -204,14 +203,14 @@ class Range(Piece):
         - Queen
     """
 
-    def legal_moves(self, square: Square, condition: Callable[[Square, Vector], bool]) -> set[Square]:
+    def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
-        for step in self.steps:  # For each direction.
-            advanced_square = square  # Start looking at advanced squares
-            while condition(square, step):  # While we don't hit something.
-                advanced_square += step  # Advance to the next square in line.
+        for move in self.steps:  # For each direction.
+            advanced_square = square + move  # Start looking at advanced squares
+            while condition(advanced_square):  # While we don't hit something.
                 squares.add(advanced_square)  # Add the damn square to legal destination squares.
+                advanced_square += move  # Advance to the next square in line.
         return squares
 
 
