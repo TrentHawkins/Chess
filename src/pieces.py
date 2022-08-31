@@ -22,8 +22,8 @@ Trailing '_' means indefinite.
 
 from dataclasses import dataclass
 from enum import Enum
-from itertools import product, cycle
-from typing import Callable, ClassVar, Iterable
+from itertools import product, combinations
+from typing import Callable, ClassVar
 
 from .square import Vector, Square
 
@@ -53,30 +53,25 @@ class Piece:
         If your king is checked, no other piece can move except for the ones and with only the moves that resolve the check.
     """
 
-    north: ClassVar[Vector] = Vector(-1, 0)
-    south: ClassVar[Vector] = Vector(+1, 0)
+    center: ClassVar[Vector] = Vector(0, 0)  # no movement
 
-    west: ClassVar[Vector] = Vector(0, -1)
-    east: ClassVar[Vector] = Vector(0, +1)
+    north: ClassVar[Vector] = Vector(-1, 0)  # up
+    south: ClassVar[Vector] = Vector(+1, 0)  # down
+
+    west: ClassVar[Vector] = Vector(0, -1)  # left
+    east: ClassVar[Vector] = Vector(0, +1)  # right
 
 #   Straight steps:
-    rizontals: ClassVar[set[Vector]] = set((
-        west,
-        east,
-    ))
-    verticals: ClassVar[set[Vector]] = set((
-        north,
-        south,
-    ))
-    straights: ClassVar[set[Vector]] = rizontals.union(verticals)
+    straights: ClassVar[set[Vector]] = {
+        north, west,
+        south, east,
+    }
 
 #   Diagonal steps:
-    diagonals: ClassVar[set[Vector]] = set((rizontal + vertical for rizontal, vertical in product(
-        rizontals,
-        verticals,
-    )))
+    diagonals: ClassVar[set[Vector]] = \
+        {straight0 + straight1 for straight0, straight1 in combinations(straights, 2)} - {center}
 
-    steps: ClassVar[set[Vector]] = set()  # a set to be filled by various subclasses
+    steps: ClassVar[set[Vector]] = set()
 
     color: Color
 
@@ -108,11 +103,11 @@ class Piece:
         Returns:
             A list of all possible moves.
         """
-        return set()  # A ghost piece cannot move.
+        return {square + step for step in self.steps}  # A ghost piece cannot move.
 
 
 class Pawn(Piece):
-    """A pawn.
+    """A Pawn.
 
     Moves forward a square, unless its first move where it can move two and unless blocked by any piece.
     It captured forward-diagonally. I can capture en-passant:
@@ -125,18 +120,15 @@ class Pawn(Piece):
         - Queen
     """
 
-    pawn_step = Piece.south
-
-    steps = Piece.steps.union({
-        pawn_step,  # One step.
-        pawn_step + Piece.west,  # Capturing to the left.
-        pawn_step + Piece.east,  # Capturing to the right.
-    })
+#   NOTE: Only one direction is necessary, the `Color` sign will handle the rest.
+    steps: ClassVar[set[Vector]] = {
+        Piece.south,  # One step.
+        Piece.south + Piece.south,  # Two step.
+        Piece.south + Piece.west,  # Capturing to the left.
+        Piece.south + Piece.east,  # Capturing to the right.
+    }
 
     value: int = 1
-
-#   Extra flags for the pawn:
-    has_moved: bool = False
 
     def __repr__(self) -> str:
         self.__repr__.__doc__
@@ -146,11 +138,9 @@ class Pawn(Piece):
     def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
-        for move in self.steps:
-            if condition(square + move * self.color.value):
-                squares.add(square + move * self.color.value)
-        if not self.has_moved:
-            squares.add(square + (self.pawn_step + self.pawn_step) * self.color.value)
+        for step in self.steps:
+            if condition(square + step * self.color.value):
+                squares.add(square + step * self.color.value)
         return squares
 
 
@@ -166,9 +156,9 @@ class Melee(Piece):
     def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
-        for move in self.steps:
-            if condition(square + move):
-                squares.add(square + move)
+        for step in self.steps:
+            if condition(square + step):
+                squares.add(square + step)
         return squares
 
 
@@ -179,7 +169,7 @@ class King(Melee):
     Moves one square in any direction that is not blocked by same side piece or targeted by enemy piece.
     """
 
-    steps = Melee.steps.union(Piece.straights.union(Piece.diagonals))
+    steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
 
     def __repr__(self) -> str:
         super().__repr__.__doc__
@@ -195,8 +185,8 @@ class Knight(Melee):
     """
 
 #   Knight moves
-    steps = Melee.steps.union(diagonal + straight for diagonal, straight in product(Piece.diagonals, Piece.straights))
-    steps = steps.difference(Piece.rizontals.union(Piece.straights))  # remove the non-knight moves
+    steps: ClassVar[set[Vector]] = \
+        {diagonal + straight for diagonal, straight in product(Piece.diagonals, Piece.straights)} - Piece.straights
 
     value: int = 3
 
@@ -232,7 +222,7 @@ class Rook(Range):
     """
 
 #   Straight lines:
-    steps = Range.steps.union(Piece.straights)
+    steps: ClassVar[set[Vector]] = Piece.straights
 
     value: int = 5
 
@@ -254,7 +244,7 @@ class Bishop(Range):
     """
 
 #   Diagonal lines:
-    steps = Range.steps.union(Piece.diagonals)
+    steps: ClassVar[set[Vector]] = Piece.diagonals
 
     value: int = 3
 

@@ -104,8 +104,7 @@ class Board:
             piece: The piece to be placed on the square.
         """
         if square:
-            if isinstance(square, str):
-                square = Square(square)
+            square = Square(square)
             self._board[square.rank][square.file] = piece
 
     def __getitem__(self, square: Square | str | None) -> Piece | None:
@@ -118,8 +117,7 @@ class Board:
             The piece on the given square.
         """
         if square:
-            if isinstance(square, str):
-                square = Square(square)
+            square = Square(square)
             return self._board[square.rank][square.file]
 
     def __delitem__(self, square: Square | str | None):
@@ -129,8 +127,7 @@ class Board:
             square: The rank and file of the square on which to remove a piece (if any).
         """
         if square:
-            if isinstance(square, str):
-                square = Square(square)
+            square = Square(square)
             self._board[square.rank][square.file] = None
 
     def __contains__(self, piece: Piece | None) -> bool:

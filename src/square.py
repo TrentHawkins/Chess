@@ -114,8 +114,7 @@ class Square(Vector):
         """Add vector (displacement) to a square."""
         return Square(super().__add__(other))
 
-    @property
-    def condition(self) -> bool:
+    def is_in_board(self) -> bool:
         """Agnostic conditions that apply to all squares.
 
         In particular this contains boundary checks, since they are decipherable from square notation basically.
@@ -124,9 +123,4 @@ class Square(Vector):
         Returns:
             If square respects conditions.
         """
-        return (
-            self.rank >= 0 and
-            self.rank <= 7 and
-            self.file >= 0 and
-            self.file <= 7
-        )
+        return 0 <= self.rank < 8 and 0 <= self.file < 8
