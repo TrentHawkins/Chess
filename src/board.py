@@ -76,10 +76,8 @@ class Board:
             "\n".join(
                 f"▐\033[7m{Square.index_to_rank[index]}\033[27m\033[4m▌" +
                 "│".join(str(piece) for piece in rank) +
-                f"▐\033[24m\033[7m{Square.index_to_rank[index]}\033[0m▌"
-                for index, rank in enumerate(self._board)
-            ) +
-            "\n▐\033[7m  A B C D E F G H  \033[0m▌\n\n"
+                f"▐\033[24m\033[7m{Square.index_to_rank[index]}\033[0m▌" for index, rank in enumerate(self._board)
+            ) + "\n▐\033[7m  A B C D E F G H  \033[0m▌\n\n"
         ).replace("None", " ")
 
     def __setitem__(self, square: Square | str | None, piece: Piece | None):

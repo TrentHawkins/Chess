@@ -55,7 +55,7 @@ class Vector:
         )
 
 
-@dataclass(init=False, repr=False, frozen=True)
+@dataclass(frozen=True)
 class Square(Vector):
     """A square on the chessboard.
 
