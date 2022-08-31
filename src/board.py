@@ -3,14 +3,8 @@
 Referencing with chess algebraic notation is possible.
 """
 
-from .pieces import Piece, Pawn, Bishop, Knight, Rook, Queen, King
-
-
-Rank = int
-File = int
-
-Indices = tuple[Rank, File]
-Square = str  # square is file+rank
+from .pieces import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
+from .square import Square, Vector
 
 
 class Board:
@@ -27,78 +21,49 @@ class Board:
         Item at [7][0] is referenced as ["a1"].
     """
 
-    index_to_file = {index_: file_ for index_, file_ in zip(range(8), "abcdefgh")}  # translate range index to file in chess
-    file_to_index = {file_: index_ for index_, file_ in zip(range(8), "abcdefgh")}  # translate file in chess to range index
-    index_to_rank = {index_: rank_ for index_, rank_ in zip(range(8), "87654321")}  # translate range index to rank in chess
-    rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}  # translate rank in chess to range index
-
-    @classmethod
-    def _indices(cls, square: Square) -> Indices:
-        """Provide the array indices for a given square.
-
-        Args:
-            square: The rank and file.
-
-        Returns:
-            Indices.
-        """
-        return cls.rank_to_index[square[1]], cls.file_to_index[square[0]]
-
-    @classmethod
-    def _square(cls, indices: Indices) -> Square:
-        """Provide the square notation of given array indices.
-
-        Args:
-            square: The rank and file of the given square.
-
-        Returns:
-            The square in chess notation.
-        """
-        return cls.index_to_file[indices[1]]+cls.index_to_rank[indices[0]]
-
     def __init__(self):
         """Initialize a chessboard with a new game congifuration."""
         self._board: list[list[Piece | None]] = [[None for _ in range(8)] for _ in range(8)]
 
     #   White pieces on the first rank.
-        self["a1"] = Rook("white")
-        self["b1"] = Knight("white")
-        self["c1"] = Bishop("white")
-        self["d1"] = Queen("white")
-        self["e1"] = King("white")
-        self["f1"] = Bishop("white")
-        self["g1"] = Knight("white")
-        self["h1"] = Rook("white")
+        self["a1"] = Rook(Color.white)
+        self["b1"] = Knight(Color.white)
+        self["c1"] = Bishop(Color.white)
+        self["d1"] = Queen(Color.white)
+        self["e1"] = King(Color.white)
+        self["f1"] = Bishop(Color.white)
+        self["g1"] = Knight(Color.white)
+        self["h1"] = Rook(Color.white)
 
     #   White pawns on the second rank.
-        self["a2"] = Pawn("white")
-        self["b2"] = Pawn("white")
-        self["c2"] = Pawn("white")
-        self["d2"] = Pawn("white")
-        self["e2"] = Pawn("white")
-        self["f2"] = Pawn("white")
-        self["g2"] = Pawn("white")
-        self["h2"] = Pawn("white")
+        self["a2"] = Pawn(Color.white)
+        self["b2"] = Pawn(Color.white)
+        self["c2"] = Pawn(Color.white)
+        self["d2"] = Pawn(Color.white)
+        self["e2"] = Pawn(Color.white)
+        self["f2"] = Pawn(Color.white)
+        self["g2"] = Pawn(Color.white)
+        self["h2"] = Pawn(Color.white)
 
     #   Black pawns on the seventh rank.
-        self["a8"] = Rook("black")
-        self["b8"] = Knight("black")
-        self["c8"] = Bishop("black")
-        self["d8"] = Queen("black")
-        self["e8"] = King("black")
-        self["f8"] = Bishop("black")
-        self["g8"] = Knight("black")
-        self["h8"] = Rook("black")
+        self["a8"] = Rook(Color.black)
+        self["b8"] = Knight(Color.black)
+        self["c8"] = Bishop(Color.black)
+        self["d8"] = Queen(Color.black)
+        self["e8"] = King(Color.black)
+        self["f8"] = Bishop(Color.black)
+        self["g8"] = Knight(Color.black)
+        self["h8"] = Rook(Color.black)
 
     #   Black pieces on the eighth rank.
-        self["a7"] = Pawn("black")
-        self["b7"] = Pawn("black")
-        self["c7"] = Pawn("black")
-        self["d7"] = Pawn("black")
-        self["e7"] = Pawn("black")
-        self["f7"] = Pawn("black")
-        self["g7"] = Pawn("black")
-        self["h7"] = Pawn("black")
+        self["a7"] = Pawn(Color.black)
+        self["b7"] = Pawn(Color.black)
+        self["c7"] = Pawn(Color.black)
+        self["d7"] = Pawn(Color.black)
+        self["e7"] = Pawn(Color.black)
+        self["f7"] = Pawn(Color.black)
+        self["g7"] = Pawn(Color.black)
+        self["h7"] = Pawn(Color.black)
 
     def __repr__(self) -> str:
         """Represent the board in proper direction and use the representation of each piece.
@@ -109,15 +74,15 @@ class Board:
         return (
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n" +
             "\n".join(
-                f"▐\033[7m{self.index_to_rank[index]}\033[27m\033[4m▌" +
+                f"▐\033[7m{Square.index_to_rank[index]}\033[27m\033[4m▌" +
                 "│".join(str(piece) for piece in rank) +
-                f"▐\033[24m\033[7m{self.index_to_rank[index]}\033[0m▌"
+                f"▐\033[24m\033[7m{Square.index_to_rank[index]}\033[0m▌"
                 for index, rank in enumerate(self._board)
             ) +
             "\n▐\033[7m  A B C D E F G H  \033[0m▌\n\n"
         ).replace("None", " ")
 
-    def __setitem__(self, square: Square | Indices | None, piece: Piece | None):
+    def __setitem__(self, square: Square | str | None, piece: Piece | None):
         """Add a piece to a square.
 
         Args:
@@ -125,10 +90,10 @@ class Board:
             piece: The piece to be placed on the square.
         """
         if square:
-            i, j = self._indices(square) if isinstance(square, Square) else square
-            self._board[i][j] = piece
+            square = Square(square)
+            self._board[square.rank][square.file] = piece
 
-    def __getitem__(self, square: Square | Indices | None) -> Piece | None:
+    def __getitem__(self, square: Square | str | None) -> Piece | None:
         """Get the piece of a given square.
 
         Args:
@@ -138,18 +103,18 @@ class Board:
             The piece on the given square.
         """
         if square:
-            i, j = self._indices(square) if isinstance(square, Square) else square
-            return self._board[i][j]
+            square = Square(square)
+            return self._board[square.rank][square.file]
 
-    def __delitem__(self, square: Square | Indices | None):
+    def __delitem__(self, square: Square | str | None):
         """Remove the piece of a given square.
 
         Args:
             square: The rank and file of the square on which to remove a piece (if any).
         """
         if square:
-            i, j = self._indices(square) if isinstance(square, Square) else square
-            self._board[i][j] = None
+            square = Square(square)
+            self._board[square.rank][square.file] = None
 
     def __contains__(self, piece: Piece | None) -> bool:
         """Check if a piece is on the board.
@@ -162,7 +127,7 @@ class Board:
         """
         return any(piece in rank for rank in self._board)
 
-    def square_of(self, piece: Piece | None, algebraic_notation: bool = True) -> Square | Indices | None:
+    def square_of(self, piece: Piece | None) -> Square | None:
         """Return the square of a specific piece.
 
         Args:
@@ -171,7 +136,7 @@ class Board:
         Returns:
             The square of the piece in chess notation or indices or None if it is not on the board.
         """
-        for i, rank in enumerate(self._board):
-            for j, square in enumerate(rank):
-                if square is piece:
-                    return self._square((i, j)) if algebraic_notation else (i, j)
+        for rank, board_rank in enumerate(self._board):
+            for file, board_square in enumerate(board_rank):
+                if board_square is piece:
+                    return Square(Vector(rank, file))  # HACK: I do not like that I have to chain constructors like this.
