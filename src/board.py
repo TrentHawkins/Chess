@@ -3,7 +3,7 @@
 Referencing with chess algebraic notation is possible.
 """
 
-from .pieces import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
+from .piece import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
 from .square import Square, Vector
 
 
