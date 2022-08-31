@@ -67,13 +67,13 @@ class Piece:
         ↑ + ↓ = · center (removed)
     """
 
-    center: ClassVar[Vector] = Vector(0, 0)  # ·↖↗↘↙
+    center: ClassVar[Vector] = Vector(0, 0)  # · no movement
 
-    north: ClassVar[Vector] = Vector(-1, 0)  # ↑
-    south: ClassVar[Vector] = Vector(+1, 0)  # ↓
+    north: ClassVar[Vector] = Vector(-1, 0)  # ↑ up
+    south: ClassVar[Vector] = Vector(+1, 0)  # ↓ down
 
-    west: ClassVar[Vector] = Vector(0, -1)  # ←
-    east: ClassVar[Vector] = Vector(0, +1)  # →
+    west: ClassVar[Vector] = Vector(0, -1)  # ← left
+    east: ClassVar[Vector] = Vector(0, +1)  # → right
 
 #   Straight steps:
     straights: ClassVar[set[Vector]] = {
@@ -113,6 +113,7 @@ class Piece:
         Args:
             square: Square on which piece is placed.
                 Default is no square, in which case displacements are not resolved into squares and generators not unfold.
+            condition: A condition that depends on a square, usually a target square.
 
         Returns:
             A list of all possible moves.
