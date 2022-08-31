@@ -322,7 +322,7 @@ class Bishop(Range):
 
 
 @dataclass
-class Queen(Range, King):
+class Queen(Range):
     """A queen.
 
     Moves both like a rook and bishop, unless blocked by enemy (which captures) or same piece.
@@ -340,6 +340,8 @@ class Queen(Range, King):
         ↖ north-west
         ↙ south-west
     """
+
+    steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
 
     value: int = 9
 
