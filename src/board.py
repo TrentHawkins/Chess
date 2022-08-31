@@ -26,15 +26,6 @@ class Board:
     index_to_rank = {index_: rank_ for index_, rank_ in zip(range(8), "87654321")}  # translate range index to rank in chess
     rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), "87654321")}  # translate rank in chess to range index
 
-    @classmethod
-    def _square(cls, square: Square | str):
-        """Return square object from string format if such is given.
-
-        Args:
-            square: Can be an object or a string in chess notation.
-        """
-        return square if isinstance(square, Square) else Square(square)
-
     def __init__(self):
         """Initialize a chessboard with a new game congifuration."""
         self._board: list[list[Piece | None]] = [[None for _ in range(8)] for _ in range(8)]
