@@ -78,20 +78,38 @@ class Square(Vector):
 
     notation_range = re.compile(f"[{file_range}][{rank_range}]")
 
+    def __new__(cls, square: str | Vector):
+        """Abort if attempted square is illegal.
+
+        This is used to make `Square` objects self-correcting upon behavior.
+        Failure of creation will be its own validity check.
+
+        Args:
+            square: A square in notation form or a vector (assuming the board origin is top-left in the latter case).
+
+        Returns:
+            `None` if square specification is illegal.
+        """
+        try:
+            if isinstance(square, str):
+                assert Square.notation_range.match(square)
+            if isinstance(square, Vector):
+                assert 0 <= square.rank < 8 and 0 <= square.file < 8
+            return super(Square, cls).__new__(cls)
+        except AssertionError:
+            return None
+
     def __init__(self, square: str | Vector):
         """Make square.
 
         Args:
             square: A square in notation form or a vector (assuming the board origin is top-left in the latter case).
         """
-    #   Extract rank and file from notation if given in that form.
         if isinstance(square, str):
-            assert Square.notation_range.match(square)
             super().__init__(
                 Square.rank_to_index[square[1]],
                 Square.file_to_index[square[0]],
             )
-    #   Trivially use the super-constructor otherwise (assuming a `Vector` object).
         else:
             super().__init__(
                 square.rank,
@@ -112,14 +130,3 @@ class Square(Vector):
     def __add__(self, other: Vector):
         """Add vector (displacement) to a square."""
         return Square(super().__add__(other))
-
-    def is_in_board(self) -> bool:
-        """Agnostic conditions that apply to all squares.
-
-        In particular this contains boundary checks, since they are decipherable from square notation basically.
-        NOTE: This could go to `Board` instead too, I'm just trying to semantically allocate conditioning across objects.
-
-        Returns:
-            If square respects conditions.
-        """
-        return 0 <= self.rank < 8 and 0 <= self.file < 8

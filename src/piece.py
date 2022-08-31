@@ -167,8 +167,9 @@ class Pawn(Piece):
         super().legal_moves.__doc__
         squares = set()
         for step in self.steps:
-            if condition(square + step * self.color.value):
-                squares.add(square + step * self.color.value)
+            square_step = square + step * self.color.value
+            if square_step is not None and condition(square_step):
+                squares.add(square_step)
         return squares
 
 
@@ -185,8 +186,9 @@ class Melee(Piece):
         super().legal_moves.__doc__
         squares = set()
         for step in self.steps:
-            if condition(square + step):
-                squares.add(square + step)
+            square_step = square + step
+            if square_step is not None and condition(square_step):
+                squares.add(square_step)
         return squares
 
 
@@ -263,11 +265,11 @@ class Range(Piece):
     def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
-        for move in self.steps:  # For each direction.
-            advanced_square = square + move  # Start looking at advanced squares
-            while condition(advanced_square):  # While we don't hit something.
-                squares.add(advanced_square)  # Add the damn square to legal destination squares.
-                advanced_square += move  # Advance to the next square in line.
+        for step in self.steps:  # For each direction.
+            square_step = square + step  # Start looking at advanced squares
+            while square_step is not None and condition(square_step):  # While we don't hit something.
+                squares.add(square_step)  # Add the damn square to legal destination squares.
+                square_step += step  # Advance to the next square in line.
         return squares
 
 
