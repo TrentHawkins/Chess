@@ -41,7 +41,7 @@ class TestSquare:
 
     def test_square_operations(self):
         """Test that squares can safely be operated on and that operations can be stacked."""
-        from src.square import Vector, Square
+        from src.square import Square, Vector
 
         assert Square("e4") + Vector(-1, 0) == Square("e5")
         assert Square("e4") + Vector(0, -1) == Square("d4")
@@ -54,8 +54,8 @@ class TestPiece:
 
     def test_legal_moves(self):
         """Test whether the pieces generate proper legal moves. One example for each piece."""
+        from src.pieces import Bishop, Color, King, Knight, Pawn, Queen, Rook
         from src.square import Square
-        from src.pieces import Color, Pawn, King, Knight, Rook, Bishop, Queen
 
         assert Pawn(Color.white).legal_moves(Square("h2"), Square.is_in_board) == {
             Square("g3"),  # TODO: No capturing logic yet
