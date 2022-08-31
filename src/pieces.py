@@ -51,15 +51,29 @@ class Piece:
     A few generic rules applied to all pieces:
         Pinning: If moving a piece will discover a check on your king, the piece is pinned and cannot move.
         If your king is checked, no other piece can move except for the ones and with only the moves that resolve the check.
+
+    Straight steps:
+        ↑ north
+        ← west
+        ↓ south
+        → east
+
+    Diagonal steps (via combinations of straight steps):
+        → + ← = · center (removed)
+        → + ↑ = ↗ north-east
+        → + ↓ = ↘ south-east
+        ← + ↑ = ↖ north-west
+        ← + ↓ = ↙ south-west
+        ↑ + ↓ = · center (removed)
     """
 
-    center: ClassVar[Vector] = Vector(0, 0)  # no movement
+    center: ClassVar[Vector] = Vector(0, 0)  # ·↖↗↘↙
 
-    north: ClassVar[Vector] = Vector(-1, 0)  # up
-    south: ClassVar[Vector] = Vector(+1, 0)  # down
+    north: ClassVar[Vector] = Vector(-1, 0)  # ↑
+    south: ClassVar[Vector] = Vector(+1, 0)  # ↓
 
-    west: ClassVar[Vector] = Vector(0, -1)  # left
-    east: ClassVar[Vector] = Vector(0, +1)  # right
+    west: ClassVar[Vector] = Vector(0, -1)  # ←
+    east: ClassVar[Vector] = Vector(0, +1)  # →
 
 #   Straight steps:
     straights: ClassVar[set[Vector]] = {
@@ -118,14 +132,27 @@ class Pawn(Piece):
         - Bishop
         - Knight
         - Queen
+
+    Pawn steps:
+        black:
+            ↓ one step
+            ↓ + ↓ two step
+            ↓ + ← = ↙ capture west
+            ↓ + → = ↘ capture east
+        white:
+            ↑ one step
+            ↑ + ↑ two step
+            ↑ + ← = ↖ capture west
+            ↑ + → = ↗ capture east
     """
 
 #   NOTE: Only one direction is necessary, the `Color` sign will handle the rest.
+#   Pawn moves:
     steps: ClassVar[set[Vector]] = {
         Piece.south,  # One step.
         Piece.south + Piece.south,  # Two step.
-        Piece.south + Piece.west,  # Capturing to the left.
-        Piece.south + Piece.east,  # Capturing to the right.
+        Piece.south + Piece.west,  # Capturing to the west.
+        Piece.south + Piece.east,  # Capturing to the east.
     }
 
     value: int = 1
@@ -167,8 +194,19 @@ class King(Melee):
     """A King.
 
     Moves one square in any direction that is not blocked by same side piece or targeted by enemy piece.
+
+    King steps:
+        ↑ north
+        ← west
+        ↓ south
+        → east
+        ↗ north-east
+        ↘ south-east
+        ↖ north-west
+        ↙ south-west
     """
 
+#   King moves:
     steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
 
     def __repr__(self) -> str:
@@ -182,9 +220,27 @@ class Knight(Melee):
 
     Moves two squares in any direction and one square in a vertical to that direction as one move.
     It therefore can jump over other pieces. Target square must not be blocked by a same side piece.
+
+    Knight steps (via product of diagonal steps with straigh steps:
+        ↗ + ↑ north-north-east
+        ↗ + ← = ↑ north (removed)
+        ↗ + ↓ = → east (removed)
+        ↗ + → north-east-east
+        ↘ + ↑ = → east (removed)
+        ↘ + ← = ↓ south (removed)
+        ↘ + ↓ south-south-east
+        ↘ + → south-east-east
+        ↖ + ↑ north-north-west
+        ↖ + ← north-west-west
+        ↖ + ↓ = ← west (removed)
+        ↖ + → = ↑ north (removed)
+        ↙ + ↑ = ← west (removed)
+        ↙ + ← south-west-west
+        ↙ + ↓ south-south-west
+        ↙ + → = ↓ south (removed)
     """
 
-#   Knight moves
+#   Knight moves:
     steps: ClassVar[set[Vector]] = \
         {diagonal + straight for diagonal, straight in product(Piece.diagonals, Piece.straights)} - Piece.straights
 
@@ -219,6 +275,12 @@ class Rook(Range):
     """A rook.
 
     Moves anywhere along its rank xor its file, unless blocked by enemy (which captures) or same piece.
+
+    Rook steps:
+        ↑ north
+        ← west
+        ↓ south
+        → east
     """
 
 #   Straight lines:
@@ -241,6 +303,12 @@ class Bishop(Range):
         A black-square bishop.
         A white-square bishop.
     So both cover the squares of the whole board, and it is the reason the worth more when both on the board.
+
+    Bishop steps:
+        ↗ north-east
+        ↘ south-east
+        ↖ north-west
+        ↙ south-west
     """
 
 #   Diagonal lines:
@@ -260,7 +328,17 @@ class Queen(Range, King):
     Moves both like a rook and bishop, unless blocked by enemy (which captures) or same piece.
     Can access all squares.
 
-    Inherits the steps of a King but the Range of a ranger. :)
+    Inherits the steps of a King but the movement of Range.
+
+    Queen steps:
+        ↑ north
+        ← west
+        ↓ south
+        → east
+        ↗ north-east
+        ↘ south-east
+        ↖ north-west
+        ↙ south-west
     """
 
     value: int = 9
