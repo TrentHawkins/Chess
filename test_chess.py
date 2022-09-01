@@ -30,10 +30,18 @@ class TestBoard:
         from src.board import Board
 
         board = Board()
-
         for rank in board._board:
             for piece in rank:
                 assert board[board.square_of(piece)] is piece
+
+    def test_board_conditions(self):
+        """Test the various logical conditions imposed at board level."""
+        from src.board import Board
+        board = Board()
+
+        assert board["e2"].targets(board["e2"]) is False
+        assert board["e2"].targets(board["e4"]) is False
+        assert board["e2"].targets(board["e7"]) is True
 
 
 class TestSquare:

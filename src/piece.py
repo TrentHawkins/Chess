@@ -98,6 +98,22 @@ class Piece:
         """
         return self.color == Color.black
 
+    def targets(self, other) -> bool:
+        """Check weather `target` is a foe of `source`.
+
+        NOTE: this can be done with `Piece` objects instead of `Square` ones.
+
+        Args:
+            source: The source square.
+            source: The target square.
+
+        Returns:
+            True if `target` square has a foe of whatever is on `source` square.
+        """
+        if isinstance(self, self.__class__) and isinstance(other, self.__class__):
+            return self.color != other.color
+        return False
+
     def __repr__(self) -> str:
         f"""Represent a {self.__class__.__name__}.
 
