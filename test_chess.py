@@ -42,13 +42,13 @@ class TestBoard:
 
         assert source is not None
 
-        assert source.foe(board["e2"]) is False
-        assert source.foe(board["e4"]) is False
-        assert source.foe(board["e7"]) is True
+        assert source != board["e2"] is False
+        assert source != board["e4"] is False
+        assert source != board["e7"] is True
 
-        assert source.friend(board["e2"]) is True
-        assert source.friend(board["e4"]) is False
-        assert source.friend(board["e7"]) is False
+        assert source == board["e2"] is True
+        assert source == board["e4"] is False
+        assert source == board["e7"] is False
 
 
 class TestSquare:

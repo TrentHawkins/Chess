@@ -98,7 +98,7 @@ class Piece:
         """
         return self.color == Color.black
 
-    def foe(self, other) -> bool:
+    def __ne__(self, other):
         """Check weather `target` is a foe of `source`.
 
         NOTE: this can be done with `Piece` objects instead of `Square` ones.
@@ -114,7 +114,7 @@ class Piece:
             return self.color != other.color
         return False
 
-    def friend(self, other) -> bool:
+    def __eq__(self, other):
         """Check weather `target` is a friend of `source`.
 
         NOTE: this can be done with `Piece` objects instead of `Square` ones.
