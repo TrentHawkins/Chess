@@ -147,7 +147,6 @@ class Pawn(Piece):
             ↑ + → = ↗ capture east
     """
 
-#   NOTE: Only one direction is necessary, the `Color` sign will handle the rest.
 #   Pawn moves:
     steps: ClassVar[set[Vector]] = {
         Piece.south,  # One step.
@@ -165,10 +164,11 @@ class Pawn(Piece):
 #   NOTE: Probably a board will invoke this method multiple times (until a better way is thought).
     def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         super().legal_moves.__doc__
+        steps = {step * self.color.value for step in self.steps}
         squares = set()
         for step in self.steps:
             square_step = square + step * self.color.value
-            if square_step is not None and condition(square_step):
+            if square_step and condition(square_step):
                 squares.add(square_step)
         return squares
 
@@ -187,7 +187,7 @@ class Melee(Piece):
         squares = set()
         for step in self.steps:
             square_step = square + step
-            if square_step is not None and condition(square_step):
+            if square_step and condition(square_step):
                 squares.add(square_step)
         return squares
 
@@ -267,7 +267,7 @@ class Range(Piece):
         squares = set()
         for step in self.steps:  # For each direction.
             square_step = square + step  # Start looking at advanced squares
-            while square_step is not None and condition(square_step):  # While we don't hit something.
+            while square_step and condition(square_step):  # While we don't hit something.
                 squares.add(square_step)  # Add the damn square to legal destination squares.
                 square_step += step  # Advance to the next square in line.
         return squares
