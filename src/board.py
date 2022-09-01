@@ -149,7 +149,7 @@ class Board:
 
     
     def _make_condition(self, piece: Piece) -> Callable[[Square], tuple[bool, Piece]]:
-        """Create a condition function
+        """Create a condition function.
         """
         def condition(target_square: Square) -> tuple[bool, Piece]:
             other_piece = None
@@ -162,13 +162,14 @@ class Board:
         return condition
         
     
-    def list_moves(self, selected_square: Square) -> list[tuple[Square, Piece]]:
+    def list_moves(self, selected_square: Square) -> set[tuple[Square, Piece]]:
+        """returns legal moves, applying a condition, together with any captured piece.
+        """
         piece = self[selected_square]
-        captured = False
         condition = self._make_condition(self[selected_square])
-        moves = []
+        moves = set()
         for target_square in piece.legal_moves(selected_square, condition):
             other_piece = self[target_square]
-            moves.append(target_square)
+            moves.add((target_square, other_piece))
 
         return moves

@@ -32,7 +32,7 @@ class Chess:
                 break
             print("Invalid selection.")
         move_selection = {
-            i: move for i, move in enumerate(self._board.list_moves(selected_square))
+            i: move for i, (move, _) in enumerate(self._board.list_moves(selected_square))
         }
         if len(move_selection) == 0:
             return (0, 0), True
@@ -52,7 +52,7 @@ class Chess:
         target_square = Square(move_selection[choice])
         other_piece = self._move(piece, selected_square, target_square)
         if other_piece is not None:
-            return (other_piece.value, 0), False if color == Color.white else (0, other_piece.value), False
+            return ((other_piece.value, 0), False) if color == Color.white else ((0, other_piece.value), False)
         return (0, 0), False
 
     def run(self) -> tuple[Score, Color]:
@@ -96,8 +96,7 @@ class Chess:
             any enemy piece that is captured because of the move.
         """
         other_piece = self._board[target_square]
-        del self._board[start_square]
-        self._board[target_square] = piece
+        self._board[start_square], self._board[target_square] = None, piece
 
         return other_piece
 

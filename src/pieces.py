@@ -106,6 +106,9 @@ class Piece:
         """
         return " "  # An unspecified piece is a ghost piece.
 
+    def __hash__(self):
+        return hash(self.__class__.__name__)
+
 #   NOTE: Remember that target resolution is still unresolved.
     def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         f"""Generate all legal moves a {self.__class__.__name__} can apriori make.
@@ -271,8 +274,10 @@ class Range(Piece):
         for move in self.steps:  # For each direction.
             advanced_square = square + move  # Start looking at advanced squares
             advance, captured = condition(advanced_square)
-            while advance and captured is None:  # While we don't hit something.
+            while advance:  # While we don't hit something.
                 squares.add(advanced_square)  # Add the damn square to legal destination squares.
+                if captured:
+                    break
                 advanced_square += move  # Advance to the next square in line.
                 advance, captured = condition(advanced_square)
         return squares
