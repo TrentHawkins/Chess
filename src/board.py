@@ -173,13 +173,13 @@ class Board:
         
     
     def list_moves(self, selected_square: Square) -> set[Square]:
-        """Returns legal moves, applying a condition, together with any captured piece.
+        """Provides context to determine legal moves of a chess piece using the condition function.
         
         Args:
             selected_square: the square selected by the user, which contains a piece to move.
         
         Returns:
-            all the legal moves together with any captured piece.
+            all the legal moves of the selected piece.
         """
         piece = self[selected_square]
         condition = self._make_condition(self[selected_square])
