@@ -35,7 +35,7 @@ class Color(Enum):
     black = +1
 
 
-@dataclass
+@dataclass(frozen=True)
 class Piece:
     """A generic chess piece.
 
@@ -173,7 +173,7 @@ class Pawn(Piece):
         return squares
 
 
-@dataclass
+@dataclass(frozen=True)
 class Melee(Piece):
     """A close ranged piece:
         - King
@@ -192,7 +192,7 @@ class Melee(Piece):
         return squares
 
 
-@dataclass
+@dataclass(frozen=True)
 class King(Melee):
     """A King.
 
@@ -217,7 +217,7 @@ class King(Melee):
         return "♚" if self.is_black else "♔"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Knight(Melee):
     """A knight.
 
@@ -254,7 +254,7 @@ class Knight(Melee):
         return "♞" if self.is_black else "♘"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Range(Piece):
     """A long range piece:
         - Rook
@@ -273,7 +273,7 @@ class Range(Piece):
         return squares
 
 
-@dataclass
+@dataclass(frozen=True)
 class Rook(Range):
     """A rook.
 
@@ -296,7 +296,7 @@ class Rook(Range):
         return "♜" if self.is_black else "♖"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Bishop(Range):
     """A bishop.
 
@@ -324,7 +324,7 @@ class Bishop(Range):
         return "♝" if self.is_black else "♗"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Queen(Range):
     """A queen.
 
