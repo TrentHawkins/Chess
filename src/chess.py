@@ -111,7 +111,6 @@ class Chess:
 
         return other_piece
 
-
     def _print_options(self, move_selection: dict[int, Square]) -> None:
         """Print movement options to the screen.
         

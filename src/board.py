@@ -147,7 +147,6 @@ class Board:
                 if board_square is piece:
                     return Square(Vector(rank, file))  # HACK: I do not like that I have to chain constructors like this.
 
-    
     def _make_condition(self, piece: Piece) -> Callable[[Square], tuple[bool, Piece]]:
         """Create a condition function. The conditions take care of the following cases:
         - if the piece moves outside of the board, it discards the move
@@ -171,7 +170,6 @@ class Board:
 
         return condition
         
-    
     def list_moves(self, selected_square: Square) -> set[Square]:
         """Provides context to determine legal moves of a chess piece using the condition function.
         
