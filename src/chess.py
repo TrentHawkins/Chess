@@ -34,7 +34,7 @@ class Chess:
                 break
             print("Invalid selection.")
         move_selection = {
-            i: move for i, (move, _) in enumerate(self._board.list_moves(selected_square))
+            i: move for i, move in enumerate(self._board.list_moves(selected_square))
         }
         if len(move_selection) == 0:
             return (0, 0), True

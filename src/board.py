@@ -172,7 +172,7 @@ class Board:
         return condition
         
     
-    def list_moves(self, selected_square: Square) -> set[tuple[Square, Piece]]:
+    def list_moves(self, selected_square: Square) -> set[Square]:
         """Returns legal moves, applying a condition, together with any captured piece.
         
         Args:
@@ -185,7 +185,6 @@ class Board:
         condition = self._make_condition(self[selected_square])
         moves = set()
         for target_square in piece.legal_moves(selected_square, condition):
-            other_piece = self[target_square]
-            moves.add((target_square, other_piece))
+            moves.add(target_square)
 
         return moves
