@@ -107,7 +107,7 @@ class Piece:
         return " "  # An unspecified piece is a ghost piece.
 
     def __hash__(self):
-        return hash(self.__class__.__name__)
+        return hash("Piece")
 
 #   NOTE: Remember that target resolution is still unresolved.
     def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
@@ -166,6 +166,9 @@ class Pawn(Piece):
         self.__repr__.__doc__
         return "♟" if self.is_black else "♙"
 
+    def __hash__(self) -> int:
+        return hash("Pawn")
+
 #   NOTE: Probably a board will invoke this method multiple times (until a better way is thought).
     def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         super().legal_moves.__doc__
@@ -222,6 +225,9 @@ class King(Melee):
         super().__repr__.__doc__
         return "♚" if self.is_black else "♔"
 
+    def __hash__(self) -> int:
+        return hash("King")
+
 
 @dataclass
 class Knight(Melee):
@@ -258,6 +264,9 @@ class Knight(Melee):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return "♞" if self.is_black else "♘"
+
+    def __hash__(self) -> int:
+        return hash("Knight")
 
 
 @dataclass
@@ -305,6 +314,9 @@ class Rook(Range):
         super().__repr__.__doc__
         return "♜" if self.is_black else "♖"
 
+    def __hash__(self) -> int:
+        return hash("Rook")
+
 
 @dataclass
 class Bishop(Range):
@@ -333,6 +345,8 @@ class Bishop(Range):
         super().__repr__.__doc__
         return "♝" if self.is_black else "♗"
 
+    def __hash__(self) -> int:
+        return hash("Bishop")
 
 @dataclass
 class Queen(Range):
@@ -361,3 +375,6 @@ class Queen(Range):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return "♛" if self.is_black else "♕"
+
+    def __hash__(self) -> int:
+        return hash("Queen")
