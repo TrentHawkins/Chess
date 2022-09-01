@@ -89,15 +89,6 @@ class Piece:
 
     color: Color
 
-    @property
-    def is_black(self):
-        """Binary switch for color, since it is either black or white.
-
-        Returns:
-            Whether piece is black or not.
-        """
-        return self.color == Color.black
-
     def __repr__(self) -> str:
         f"""Represent a {self.__class__.__name__}.
 
@@ -192,7 +183,10 @@ class Pawn(Piece):
 
     def __repr__(self) -> str:
         self.__repr__.__doc__
-        return "♟" if self.is_black else "♙"
+        return {
+            Color.white: "♙",
+            Color.black: "♟",
+        }[self.color]
 
 #   NOTE: Probably a board will invoke this method multiple times (until a better way is thought).
     def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
@@ -246,7 +240,10 @@ class King(Melee):
 
     def __repr__(self) -> str:
         super().__repr__.__doc__
-        return "♚" if self.is_black else "♔"
+        return {
+            Color.white: "♔",
+            Color.black: "♚",
+        }[self.color]
 
 
 @dataclass(frozen=True)
@@ -283,7 +280,10 @@ class Knight(Melee):
 
     def __repr__(self) -> str:
         super().__repr__.__doc__
-        return "♞" if self.is_black else "♘"
+        return {
+            Color.white: "♘",
+            Color.black: "♞",
+        }[self.color]
 
 
 @dataclass(frozen=True)
@@ -325,7 +325,10 @@ class Rook(Range):
 
     def __repr__(self) -> str:
         super().__repr__.__doc__
-        return "♜" if self.is_black else "♖"
+        return {
+            Color.white: "♖",
+            Color.black: "♜",
+        }[self.color]
 
 
 @dataclass(frozen=True)
@@ -353,7 +356,10 @@ class Bishop(Range):
 
     def __repr__(self) -> str:
         super().__repr__.__doc__
-        return "♝" if self.is_black else "♗"
+        return {
+            Color.white: "♗",
+            Color.black: "♝",
+        }[self.color]
 
 
 @dataclass(frozen=True)
@@ -382,4 +388,7 @@ class Queen(Range):
 
     def __repr__(self) -> str:
         super().__repr__.__doc__
-        return "♛" if self.is_black else "♕"
+        return {
+            Color.white: "♕",
+            Color.black: "♛",
+        }[self.color]
