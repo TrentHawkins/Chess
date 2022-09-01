@@ -35,7 +35,7 @@ class Color(Enum):
     black = +1
 
 
-@dataclass
+@dataclass(frozen=True)
 class Piece:
     """A generic chess piece.
 
@@ -106,9 +106,6 @@ class Piece:
         """
         return " "  # An unspecified piece is a ghost piece.
 
-    def __hash__(self):
-        return hash("Piece")
-
 #   NOTE: Remember that target resolution is still unresolved.
     def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         f"""Generate all legal moves a {self.__class__.__name__} can apriori make.
@@ -124,6 +121,7 @@ class Piece:
         return {square + step for step in self.steps}  # A ghost piece cannot move.
 
 
+@dataclass(frozen=True)
 class Pawn(Piece):
     """A Pawn.
 
@@ -166,9 +164,6 @@ class Pawn(Piece):
         self.__repr__.__doc__
         return "♟" if self.is_black else "♙"
 
-    def __hash__(self) -> int:
-        return hash("Pawn")
-
 #   NOTE: Probably a board will invoke this method multiple times (until a better way is thought).
     def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         super().legal_moves.__doc__
@@ -182,7 +177,7 @@ class Pawn(Piece):
         return squares
 
 
-@dataclass
+@dataclass(frozen=True)
 class Melee(Piece):
     """A close ranged piece:
         - King
@@ -201,7 +196,7 @@ class Melee(Piece):
         return squares
 
 
-@dataclass
+@dataclass(frozen=True)
 class King(Melee):
     """A King.
 
@@ -225,11 +220,8 @@ class King(Melee):
         super().__repr__.__doc__
         return "♚" if self.is_black else "♔"
 
-    def __hash__(self) -> int:
-        return hash("King")
 
-
-@dataclass
+@dataclass(frozen=True)
 class Knight(Melee):
     """A knight.
 
@@ -265,11 +257,8 @@ class Knight(Melee):
         super().__repr__.__doc__
         return "♞" if self.is_black else "♘"
 
-    def __hash__(self) -> int:
-        return hash("Knight")
 
-
-@dataclass
+@dataclass(frozen=True)
 class Range(Piece):
     """A long range piece:
         - Rook
@@ -292,7 +281,7 @@ class Range(Piece):
         return squares
 
 
-@dataclass
+@dataclass(frozen=True)
 class Rook(Range):
     """A rook.
 
@@ -314,11 +303,8 @@ class Rook(Range):
         super().__repr__.__doc__
         return "♜" if self.is_black else "♖"
 
-    def __hash__(self) -> int:
-        return hash("Rook")
 
-
-@dataclass
+@dataclass(frozen=True)
 class Bishop(Range):
     """A bishop.
 
@@ -345,10 +331,8 @@ class Bishop(Range):
         super().__repr__.__doc__
         return "♝" if self.is_black else "♗"
 
-    def __hash__(self) -> int:
-        return hash("Bishop")
 
-@dataclass
+@dataclass(frozen=True)
 class Queen(Range):
     """A queen.
 
@@ -375,6 +359,3 @@ class Queen(Range):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return "♛" if self.is_black else "♕"
-
-    def __hash__(self) -> int:
-        return hash("Queen")
