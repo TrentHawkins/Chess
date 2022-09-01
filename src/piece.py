@@ -98,24 +98,16 @@ class Piece:
         """
         return self.color == Color.black
 
-    def __ne__(self, other):
-        """Check weather `target` is a foe of `source`.
-
-        NOTE: this can be done with `Piece` objects instead of `Square` ones.
-
-        Args:
-            source: The source piece.
-            source: The target piece to check allegiance of.
+    def __repr__(self) -> str:
+        f"""Represent a {self.__class__.__name__}.
 
         Returns:
-            True if `target` square has a foe of whatever is on `source` square.
+            The representation of a {self.__class__.__name__}.
         """
-        if self and other:
-            return self.color != other.color
-        return False
+        return " "  # An unspecified piece is a ghost piece.
 
-    def __eq__(self, other):
-        """Check weather `target` is a friend of `source`.
+    def has_friend(self, other):
+        """Check weather `target` is a foe of `source`.
 
         NOTE: this can be done with `Piece` objects instead of `Square` ones.
 
@@ -130,13 +122,21 @@ class Piece:
             return self.color == other.color
         return False
 
-    def __repr__(self) -> str:
-        f"""Represent a {self.__class__.__name__}.
+    def has_foe(self, other):
+        """Check weather `target` is a friend of `source`.
+
+        NOTE: this can be done with `Piece` objects instead of `Square` ones.
+
+        Args:
+            source: The source piece.
+            source: The target piece to check allegiance of.
 
         Returns:
-            The representation of a {self.__class__.__name__}.
+            True if `target` square has a foe of whatever is on `source` square.
         """
-        return " "  # An unspecified piece is a ghost piece.
+        if self and other:
+            return self.color != other.color
+        return False
 
 #   NOTE: Remember that target resolution is still unresolved.
     def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
@@ -153,6 +153,7 @@ class Piece:
         return {square + step for step in self.steps}  # A ghost piece cannot move.
 
 
+@dataclass(frozen=True)
 class Pawn(Piece):
     """A Pawn.
 
@@ -196,7 +197,6 @@ class Pawn(Piece):
 #   NOTE: Probably a board will invoke this method multiple times (until a better way is thought).
     def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
         super().legal_moves.__doc__
-        steps = {step * self.color.value for step in self.steps}
         squares = set()
         for step in self.steps:
             square_step = square + step * self.color.value

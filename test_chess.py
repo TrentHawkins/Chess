@@ -37,18 +37,22 @@ class TestBoard:
     def test_board_conditions(self):
         """Test the various logical conditions imposed at board level."""
         from src.board import Board
+
         board = Board()
-        source = board["e2"]
 
-        assert source is not None
+        source = board["h1"]
+        friend = board["h2"]
+        foe = board["h8"]
 
-        assert source != board["e2"] is False
-        assert source != board["e4"] is False
-        assert source != board["e7"] is True
+    #   Pylance, stop whining already!
+        assert source
+        assert friend
+        assert foe
 
-        assert source == board["e2"] is True
-        assert source == board["e4"] is False
-        assert source == board["e7"] is False
+        assert source.has_friend(friend)
+        assert not source.has_friend(foe)
+        assert not source.has_foe(friend)
+        assert source.has_foe(foe)
 
 
 class TestSquare:
