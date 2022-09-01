@@ -4,8 +4,9 @@ Referencing with chess algebraic notation is possible.
 """
 
 from typing import Callable
-from src.pieces import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
-from src.square import Square, Vector
+
+from .pieces import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
+from .square import Square, Vector
 
 
 class Board:
