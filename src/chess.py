@@ -17,8 +17,10 @@ class Chess:
 
     def _take_turns(self, color: Color) -> tuple[Score, Checkmate]:
         """A player's turn, where he selects a piece to move and a target square to move to.
+
         Args:
-            color: the color of the player
+            color: the color of the player.
+
         Returns:
             a tuple of the current score and whether the game has ended with checkmate.
         """
@@ -45,7 +47,11 @@ class Chess:
                     print(f"- Option {i}: {target_square} capturing {other_piece}.")
                 else:
                     print(f"- Option {i}: {target_square}")
-            choice = int(input("Choose target square from the above options: "))
+            try:
+                choice = int(input("Choose target square from the above options: "))
+            except ValueError:
+                print("Please enter option number, not the square itself.")
+                continue
             if choice not in move_selection:
                 print("Invalid option.")
                 choice = None
@@ -57,6 +63,7 @@ class Chess:
 
     def run(self) -> tuple[Score, Color]:
         """Start the game of chess, it finishes when a checkmate occurs.
+
         Returns:
             the final score of the game and the color of the winner.
         """
@@ -76,9 +83,11 @@ class Chess:
     @staticmethod
     def _update_score(score: Score, diff_score: tuple[int, int]) -> Score:
         """Update the score after a move was made.
+
         Args:
-            score: the previous score before the move
-            diff_score: how much the score changed
+            score: the previous score before the move.
+            diff_score: how much the score changed.
+
         Returns:
             the new score.
         """
@@ -87,11 +96,13 @@ class Chess:
         return score_white + diff_white, score_black + diff_black
 
     def _move(self, piece: Piece, start_square: Square, target_square: Square) -> Piece:
-        """Move a piece on the board, returning any enemy piece captured
+        """Move a piece on the board, returning any enemy piece captured.
+
         Args:
             piece: the piece to move
             start_square: the starting position of the piece.
             target_square: the position the piece will move to.
+
         Returns:
             any enemy piece that is captured because of the move.
         """

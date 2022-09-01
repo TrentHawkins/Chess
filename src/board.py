@@ -149,7 +149,17 @@ class Board:
 
     
     def _make_condition(self, piece: Piece) -> Callable[[Square], tuple[bool, Piece]]:
-        """Create a condition function.
+        """Create a condition function. The conditions take care of the following cases:
+        - if the piece moves outside of the board, it discards the move
+        - if the piece is of the same color, it discards the move
+        It also returns the piece that may exist there to check if it can be captured.
+        This happens at the calling function. 
+
+        Args:
+            piece: the piece that moves
+
+        Returns:
+            whether the move is blocked and any piece that was captured.
         """
         def condition(target_square: Square) -> tuple[bool, Piece]:
             other_piece = None
@@ -163,7 +173,13 @@ class Board:
         
     
     def list_moves(self, selected_square: Square) -> set[tuple[Square, Piece]]:
-        """returns legal moves, applying a condition, together with any captured piece.
+        """Returns legal moves, applying a condition, together with any captured piece.
+        
+        Args:
+            selected_square: the square selected by the user, which contains a piece to move.
+        
+        Returns:
+            all the legal moves together with any captured piece.
         """
         piece = self[selected_square]
         condition = self._make_condition(self[selected_square])
