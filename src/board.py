@@ -5,8 +5,8 @@ Referencing with chess algebraic notation is possible.
 
 from typing import Callable
 
-from .pieces import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
-from .square import Square, Vector
+from pieces import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
+from square import Square, Vector
 
 
 class Board:
@@ -106,6 +106,10 @@ class Board:
         """
         if square:
             square = Square(square)
+            if square.rank < 0 or square.file < 0:
+                raise ValueError("Squares have only positive rank and file.")
+            if square.rank > 7 or square.file > 7:
+                raise ValueError("Squares must be inside the board.")
             return self._board[square.rank][square.file]
 
     def __delitem__(self, square: Square | str | None):
@@ -144,31 +148,27 @@ class Board:
                     return Square(Vector(rank, file))  # HACK: I do not like that I have to chain constructors like this.
 
     
-    def _make_condition(self, piece: Piece, captured: bool) -> Callable[[Square], bool]:
+    def _make_condition(self, piece: Piece) -> Callable[[Square], tuple[bool, Piece]]:
         """Create a condition function
         """
-        def condition(target_square: Square) -> bool:
+        def condition(target_square: Square) -> tuple[bool, Piece]:
             other_piece = None
-            if captured:
-                return False
             try:
                 other_piece = self[target_square]
-            except IndexError:
-                return False
-            return other_piece is None or piece.color != other_piece.color
+            except ValueError:
+                return False, None
+            return other_piece is None or piece.color != other_piece.color, other_piece
+
         return condition
         
     
     def list_moves(self, selected_square: Square) -> list[tuple[Square, Piece]]:
         piece = self[selected_square]
         captured = False
-        condition = self._make_condition(self[selected_square], captured)
+        condition = self._make_condition(self[selected_square])
         moves = []
         for target_square in piece.legal_moves(selected_square, condition):
             other_piece = self[target_square]
-            if other_piece is not None and other_piece.color != piece.color:
-                captured = True
-                condition = self._make_condition(piece, captured)
             moves.append(target_square)
 
         return moves

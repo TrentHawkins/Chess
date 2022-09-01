@@ -25,7 +25,7 @@ from enum import Enum
 from itertools import combinations, product
 from typing import Callable, ClassVar
 
-from .square import Square, Vector
+from square import Square, Vector
 
 
 class Color(Enum):
@@ -157,6 +157,7 @@ class Pawn(Piece):
     }
 
     value: int = 1
+    first_move: bool = True
 
     def __repr__(self) -> str:
         self.__repr__.__doc__
@@ -167,7 +168,10 @@ class Pawn(Piece):
         super().legal_moves.__doc__
         squares = set()
         for step in self.steps:
-            if condition(square + step * self.color.value):
+            advance, captured = condition(square + step * self.color.value)
+            if advance:
+                if not captured and (step == Piece.south + Piece.west or step == Piece.south + Piece.east):
+                    continue
                 squares.add(square + step * self.color.value)
         return squares
 
@@ -181,11 +185,12 @@ class Melee(Piece):
     Pawns are special.
     """
 
-    def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
+    def legal_moves(self, square: Square, condition: Callable[[Square], tuple[bool, Piece]]) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
         for step in self.steps:
-            if condition(square + step):
+            advance, _ = condition(square + step)
+            if advance:
                 squares.add(square + step)
         return squares
 
@@ -265,9 +270,11 @@ class Range(Piece):
         squares = set()
         for move in self.steps:  # For each direction.
             advanced_square = square + move  # Start looking at advanced squares
-            while condition(advanced_square):  # While we don't hit something.
+            advance, captured = condition(advanced_square)
+            while advance and captured is None:  # While we don't hit something.
                 squares.add(advanced_square)  # Add the damn square to legal destination squares.
                 advanced_square += move  # Advance to the next square in line.
+                advance, captured = condition(advanced_square)
         return squares
 
 

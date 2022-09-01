@@ -1,7 +1,7 @@
 """A game of chess."""
-from .board import Board
-from .pieces import Color, Piece
-from .square import Square
+from board import Board
+from pieces import Color, Piece
+from square import Square
 
 
 Score = tuple[int, int]
