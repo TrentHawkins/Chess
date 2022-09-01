@@ -27,26 +27,25 @@ class Chess:
         piece = None
         selected_square = None
         print(self._board)
+        # will loop until all a proper square is selected.
         while True:
             selected_square = Square(input("Choose a piece to move: "))
             piece = self._board[selected_square]
             if piece is not None and piece.color == color:
                 break
-            print("Invalid selection.")
+            print("Invalid square selection.")
         move_selection = {
             i: move for i, move in enumerate(self._board.list_moves(selected_square))
         }
+        # if there are no selections, game is over.
+        # TODO: fix this, it's should be true only for the King.
+        # this needs work, since it should backtrack to a new selection.
         if len(move_selection) == 0:
             return (0, 0), True
         
         choice:int | None = None
         while choice is None:
-            for i, target_square in move_selection.items():
-                other_piece = self._board[target_square]
-                if other_piece is not None:
-                    print(f"- Option {i}: {target_square} capturing {other_piece}.")
-                else:
-                    print(f"- Option {i}: {target_square}")
+            self._print_options(move_selection)
             try:
                 choice = int(input("Choose target square from the above options: "))
             except ValueError:
@@ -55,6 +54,7 @@ class Chess:
             if choice not in move_selection:
                 print("Invalid option.")
                 choice = None
+
         target_square = Square(move_selection[choice])
         other_piece = self._move(piece, selected_square, target_square)
         if other_piece is not None:
@@ -110,6 +110,23 @@ class Chess:
         self._board[start_square], self._board[target_square] = None, piece
 
         return other_piece
+
+
+    def _print_options(self, move_selection: dict[int, Square]) -> None:
+        """Print movement options to the screen.
+        
+        Args:
+            move_selection: the moves to be printed.
+
+        Returns:
+            Nothing, only prints to screen.
+        """
+        for i, target_square in move_selection.items():
+            other_piece = self._board[target_square]
+            if other_piece is not None:
+                print(f"- Option {i}: {target_square} capturing {other_piece}.")
+            else:
+                print(f"- Option {i}: {target_square}")
 
 
 if __name__ == "__main__":
