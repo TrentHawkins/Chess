@@ -140,3 +140,9 @@ class TestPiece:
             Square("h5"),  # TODO: No piece blocking yet
         #   Square("i6"),  # out of bounds
         }
+
+
+
+class TestChessGame:
+    def test_start(self):
+        ...

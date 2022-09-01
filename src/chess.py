@@ -1,4 +1,11 @@
 """A game of chess."""
+from src.board import Board
+from src.pieces import Color, Piece
+from src.square import Square
+
+
+Score = tuple[int, int]
+Checkmate = bool
 
 
 class Chess:
@@ -6,4 +13,96 @@ class Chess:
 
     def __init__(self):
         """Start a chess game."""
-        ...
+        self._board = Board()
+
+    def _take_turns(self, color: Color) -> tuple[Score, Checkmate]:
+        """A player's turn, where he selects a piece to move and a target square to move to.
+        Args:
+            color: the color of the player
+        Returns:
+            a tuple of the current score and whether the game has ended with checkmate.
+        """
+        piece = None
+        selected_square = None
+        print(self._board)
+        while True:
+            selected_square = Square(input("Choose a piece to move: "))
+            piece = self._board[selected_square]
+            if piece is not None and piece.color == color:
+                break
+            print("Invalid selection.")
+        move_selection = {
+            i: move for i, move in enumerate(self._board.list_moves(selected_square))
+        }
+        if len(move_selection) == 0:
+            return (0, 0), True
+        
+        choice:int | None = None
+        while choice is None:
+            for i, target_square in move_selection.items():
+                other_piece = self._board[target_square]
+                if other_piece is not None:
+                    print(f"- Option {i}: {target_square} capturing {other_piece}.")
+                else:
+                    print(f"- Option {i}: {target_square}")
+            choice = int(input("Choose target square from the above options: "))
+            if choice not in move_selection:
+                print("Invalid option.")
+                choice = None
+        target_square = Square(move_selection[choice])
+        other_piece = self._move(piece, selected_square, target_square)
+        if other_piece is not None:
+            return (other_piece.value, 0), False if color == Color.white else (0, other_piece.value), False
+        return (0, 0), False
+
+    def run(self) -> tuple[Score, Color]:
+        """Start the game of chess, it finishes when a checkmate occurs.
+        Returns:
+            the final score of the game and the color of the winner.
+        """
+        game_over = False
+        color = Color.white
+        score = (0, 0)
+        while not game_over:
+            diff_score, checkmate = self._take_turns(color)
+            score = self._update_score(score, diff_score)
+            color = Color.white if color == Color.black else Color.black
+            if checkmate:
+                game_over = True
+                winner = color
+            
+        return score, winner
+
+    @staticmethod
+    def _update_score(score: Score, diff_score: tuple[int, int]) -> Score:
+        """Update the score after a move was made.
+        Args:
+            score: the previous score before the move
+            diff_score: how much the score changed
+        Returns:
+            the new score.
+        """
+        score_white, score_black = score
+        diff_white, diff_black = diff_score
+        return score_white + diff_white, score_black + diff_black
+
+    def _move(self, piece: Piece, start_square: Square, target_square: Square) -> Piece:
+        """Move a piece on the board, returning any enemy piece captured
+        Args:
+            piece: the piece to move
+            start_square: the starting position of the piece.
+            target_square: the position the piece will move to.
+        Returns:
+            any enemy piece that is captured because of the move.
+        """
+        other_piece = self._board[target_square]
+        del self._board[start_square]
+        self._board[target_square] = piece
+
+        return other_piece
+
+
+if __name__ == "__main__":
+    game = Chess()
+    score, winner = game.run()
+    print(score, winner)

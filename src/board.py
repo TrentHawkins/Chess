@@ -3,8 +3,9 @@
 Referencing with chess algebraic notation is possible.
 """
 
-from .pieces import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
-from .square import Square, Vector
+from typing import Callable
+from src.pieces import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
+from src.square import Square, Vector
 
 
 class Board:
@@ -140,3 +141,33 @@ class Board:
             for file, board_square in enumerate(board_rank):
                 if board_square is piece:
                     return Square(Vector(rank, file))  # HACK: I do not like that I have to chain constructors like this.
+
+    
+    def _make_condition(self, piece: Piece, captured: bool) -> Callable[[Square], bool]:
+        """Create a condition function
+        """
+        def condition(target_square: Square) -> bool:
+            other_piece = None
+            if captured:
+                return False
+            try:
+                other_piece = self[target_square]
+            except IndexError:
+                return False
+            return other_piece is None or piece.color != other_piece.color
+        return condition
+        
+    
+    def list_moves(self, selected_square: Square) -> list[tuple[Square, Piece]]:
+        piece = self[selected_square]
+        captured = False
+        condition = self._make_condition(self[selected_square], captured)
+        moves = []
+        for target_square in piece.legal_moves(selected_square, condition):
+            other_piece = self[target_square]
+            if other_piece is not None and other_piece.color != piece.color:
+                captured = True
+                condition = self._make_condition(piece, captured)
+            moves.append(target_square)
+
+        return moves
