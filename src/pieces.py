@@ -158,7 +158,6 @@ class Pawn(Piece):
     }
 
     value: int = 1
-    first_move: bool = True
 
     def __repr__(self) -> str:
         self.__repr__.__doc__
