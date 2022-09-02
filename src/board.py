@@ -201,6 +201,31 @@ class Board:
 
         return condition
 
+    @_make_condition.register
+    def _(self, piece: King, square: Square) -> Callable[[Square], tuple[bool, Piece]]:
+        """Create a condition function. The conditions take care of the following cases:
+        - if the piece moves outside of the board, it discards the move
+        - if the piece is of the same color, it discards the move
+        It also returns the piece that may exist there to check if it can be captured.
+        This happens at the calling function. 
+
+        Args:
+            piece: the piece that moves
+
+        Returns:
+            whether the move is blocked and any piece that was captured.
+        """
+        def condition(target_square: Square) -> tuple[bool, Piece]:
+            other_piece = None
+            try:
+                other_piece = self[target_square]
+            except ValueError:
+                return False, None
+            # should check if neighboring pieces threaten adjacent squares.
+            return other_piece is None or piece.color != other_piece.color, other_piece
+
+        return condition
+
     def list_moves(self, selected_square: Square) -> set[Square]:
         """Provides context to determine legal moves of a chess piece using the condition function.
         

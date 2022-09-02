@@ -2,7 +2,7 @@
 from typing import Callable
 
 from .board import Board
-from .pieces import Color, Piece
+from .pieces import Color, Piece, King
 from .square import Square
 
 
@@ -27,22 +27,26 @@ class Chess:
         Returns:
             a tuple of the current score and whether the game has ended with checkmate.
         """
-        piece = None
-        selected_square = None
+        piece: Piece | None = None
+        selected_square: Square | None = None
+        move_selection: set[Square] | None = None
+
         print(self._board)
         # will loop until all a proper square is selected.
         while True:
             selected_square = Square(self._input("Choose a piece to move: "))
             piece = self._board[selected_square]
+            move_selection = self._board.list_moves(selected_square)
+            # winning condition, does not work properly.
+            if not move_selection and isinstance(piece, King):
+                print(f"King cannot move, checkmate.")
+                return (0, 0), True
+            if not move_selection:
+                print(f"No moves available for {piece} at {selected_square}.")
+                continue
             if piece is not None and piece.color == color:
                 break
             print("Invalid square selection.")
-        move_selection = self._board.list_moves(selected_square)
-        # if there are no selections, game is over.
-        # TODO: fix this, it's should be true only for the King.
-        # this needs work, since it should backtrack to a new selection.
-        if len(move_selection) == 0:
-            return (0, 0), True
         
         choice:int | None = None
         while choice is None:
