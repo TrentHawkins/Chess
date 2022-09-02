@@ -90,14 +90,14 @@ class Square(Vector):
         Returns:
             `None` if square specification is illegal.
         """
-        try:
-            if isinstance(square, str):
-                assert Square.notation_range.match(square)
-            if isinstance(square, Vector):
-                assert 0 <= square.rank < 8 and 0 <= square.file < 8
-            return super(Square, cls).__new__(cls)
-        except AssertionError:
-            return None
+        valid = False
+        if isinstance(square, str):
+            valid = Square.notation_range.match(square)
+        elif isinstance(square, Vector):
+            valid = square.rank in range(8) and square.file in range(8)
+        if valid:
+            return super().__new__(cls)
+        return None
 
     def __init__(self, square: str | Vector):
         """Make square.
