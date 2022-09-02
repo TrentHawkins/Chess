@@ -6,7 +6,7 @@ Referencing with chess algebraic notation is possible.
 from functools import singledispatchmethod
 from typing import Callable
 
-from .pieces import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
+from .piece import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
 from .square import Square, Vector
 
 

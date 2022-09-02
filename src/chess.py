@@ -2,7 +2,7 @@
 from typing import Callable
 
 from .board import Board
-from .pieces import Color, Piece, King
+from .piece import Color, Piece, King
 from .square import Square
 
 
