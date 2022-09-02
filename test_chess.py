@@ -25,15 +25,6 @@ class TestBoard:
 
         assert repr(Board()) == initial_board_state
 
-    def test_square_of(self):
-        """Test piece referencing on the board."""
-        from src.board import Board
-
-        board = Board()
-        for rank in board._board:
-            for piece in rank:
-                assert board[board.square_of(piece)] is piece
-
     def test_board_conditions(self):
         """Test the various logical conditions imposed at board level."""
         from src.board import Board

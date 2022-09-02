@@ -78,7 +78,7 @@ class Square(Vector):
 
     notation_range = re.compile(f"[{file_range}][{rank_range}]")
 
-    def __new__(cls, square: str | Vector):
+    def __new__(cls, square: Vector | str):
         """Abort if attempted square is illegal.
 
         This is used to make `Square` objects self-correcting upon behavior.
@@ -91,10 +91,10 @@ class Square(Vector):
             `None` if square specification is illegal.
         """
         valid = False
-        if isinstance(square, str):
-            valid = Square.notation_range.match(square)
-        elif isinstance(square, Vector):
+        if isinstance(square, Vector):
             valid = square.rank in range(8) and square.file in range(8)
+        elif isinstance(square, str):
+            valid = Square.notation_range.match(square)
         if valid:
             return super().__new__(cls)
         return None

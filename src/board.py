@@ -80,18 +80,19 @@ class Board:
             ) + "\n▐\033[7m  A B C D E F G H  \033[0m▌\n\n"
         ).replace("None", " ")
 
-    def __setitem__(self, square: Square | str | None, piece: Piece | None):
+    def __setitem__(self, square: Square | str, piece: Piece | None):
         """Add a piece to a square.
 
         Args:
             square: The rank and file of the square.
             piece: The piece to be placed on the square.
         """
-        if square:
-            square = Square(square)
-            self._board[square.rank][square.file] = piece
+        square = Square(square)
+        if piece is not None:
+            piece.square = square
+        self._board[square.rank][square.file] = piece
 
-    def __getitem__(self, square: Square | str | None) -> Piece | None:
+    def __getitem__(self, square: Square | str) -> Piece | None:
         """Get the piece of a given square.
 
         Args:
@@ -100,19 +101,20 @@ class Board:
         Returns:
             The piece on the given square.
         """
-        if square:
-            square = Square(square)
-            return self._board[square.rank][square.file]
+        square = Square(square)
+        return self._board[square.rank][square.file]
 
-    def __delitem__(self, square: Square | str | None):
+    def __delitem__(self, square: Square | str):
         """Remove the piece of a given square.
 
         Args:
             square: The rank and file of the square on which to remove a piece (if any).
         """
-        if square:
-            square = Square(square)
-            self._board[square.rank][square.file] = None
+        square = Square(square)
+        piece = self._board[square.rank][square.file]
+        if piece is not None:
+            piece.square = None
+        self._board[square.rank][square.file] = None
 
     def __contains__(self, piece: Piece | None) -> bool:
         """Check if a piece is on the board.
@@ -124,17 +126,3 @@ class Board:
             If piece is in board.
         """
         return any(piece in rank for rank in self._board)
-
-    def square_of(self, piece: Piece | None) -> Square | None:
-        """Return the square of a specific piece.
-
-        Args:
-            piece: Piece object to fetch the square of.
-
-        Returns:
-            The square of the piece in chess notation or indices or None if it is not on the board.
-        """
-        for rank, board_rank in enumerate(self._board):
-            for file, board_square in enumerate(board_rank):
-                if board_square is piece:
-                    return Square(Vector(rank, file))  # HACK: I do not like that I have to chain constructors like this.

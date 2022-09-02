@@ -23,7 +23,7 @@ Trailing '_' means indefinite.
 from dataclasses import dataclass
 from enum import Enum
 from itertools import combinations, product
-from typing import Callable, ClassVar
+from typing import Callable, ClassVar, Optional
 
 from .square import Square, Vector
 
@@ -35,7 +35,7 @@ class Color(Enum):
     black = +1
 
 
-@dataclass(frozen=True)
+@dataclass
 class Piece:
     """A generic chess piece.
 
@@ -88,6 +88,7 @@ class Piece:
     steps: ClassVar[set[Vector]] = set()
 
     color: Color
+    square: Optional[Square] = None
 
     def __repr__(self) -> str:
         f"""Represent a {self.__class__.__name__}.
@@ -144,7 +145,7 @@ class Piece:
         return {square + step for step in self.steps}  # A ghost piece cannot move.
 
 
-@dataclass(frozen=True)
+@dataclass
 class Pawn(Piece):
     """A Pawn.
 
@@ -199,7 +200,7 @@ class Pawn(Piece):
         return squares
 
 
-@dataclass(frozen=True)
+@dataclass
 class Melee(Piece):
     """A close ranged piece:
         - King
@@ -218,7 +219,7 @@ class Melee(Piece):
         return squares
 
 
-@dataclass(frozen=True)
+@dataclass
 class King(Melee):
     """A King.
 
@@ -246,7 +247,7 @@ class King(Melee):
         }[self.color]
 
 
-@dataclass(frozen=True)
+@dataclass
 class Knight(Melee):
     """A knight.
 
@@ -286,7 +287,7 @@ class Knight(Melee):
         }[self.color]
 
 
-@dataclass(frozen=True)
+@dataclass
 class Range(Piece):
     """A long range piece:
         - Rook
@@ -305,7 +306,7 @@ class Range(Piece):
         return squares
 
 
-@dataclass(frozen=True)
+@dataclass
 class Rook(Range):
     """A rook.
 
@@ -331,7 +332,7 @@ class Rook(Range):
         }[self.color]
 
 
-@dataclass(frozen=True)
+@dataclass
 class Bishop(Range):
     """A bishop.
 
@@ -362,7 +363,7 @@ class Bishop(Range):
         }[self.color]
 
 
-@dataclass(frozen=True)
+@dataclass
 class Queen(Range):
     """A queen.
 
