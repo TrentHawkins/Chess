@@ -1,5 +1,7 @@
 """Unit tests for the Chess project."""
 
+from collections.abc import Generator
+
 
 initial_board_state = """
 ▐\033[7m  A B C D E F G H  \033[0m▌
@@ -14,6 +16,20 @@ initial_board_state = """
 ▐\033[7m  A B C D E F G H  \033[0m▌
 
 """
+
+
+class MockInput:
+    def __init__(self, xs:list[str]):
+        self._xs = [None, *xs]
+        self._g = self._make_generator()
+        next(self._g)
+
+    def _make_generator(self) -> Generator[str, None, str]:
+        for x in self._xs:
+            _ = yield x
+
+    def __call__(self, text:str) -> str:
+        return self._g.send(text)
 
 
 class TestBoard:
