@@ -1,7 +1,9 @@
 """A game of chess."""
-from .board import Board
-from .pieces import Color, Piece
-from .square import Square
+from typing import Callable
+
+from board import Board
+from pieces import Color, Piece
+from square import Square
 
 
 Score = tuple[int, int]
@@ -11,9 +13,10 @@ Checkmate = bool
 class Chess:
     """A chess game."""
 
-    def __init__(self):
+    def __init__(self, input_: Callable[[], str]=input):
         """Start a chess game."""
         self._board = Board()
+        self._input = input_
 
     def _take_turns(self, color: Color) -> tuple[Score, Checkmate]:
         """A player's turn, where he selects a piece to move and a target square to move to.
@@ -29,7 +32,7 @@ class Chess:
         print(self._board)
         # will loop until all a proper square is selected.
         while True:
-            selected_square = Square(input("Choose a piece to move: "))
+            selected_square = Square(self._input("Choose a piece to move: "))
             piece = self._board[selected_square]
             if piece is not None and piece.color == color:
                 break

@@ -25,7 +25,7 @@ from enum import Enum
 from itertools import combinations, product
 from typing import Callable, ClassVar
 
-from .square import Square, Vector
+from square import Square, Vector
 
 
 class Color(Enum):
