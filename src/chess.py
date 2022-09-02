@@ -1,9 +1,9 @@
 """A game of chess."""
 from typing import Callable
 
-from board import Board
-from pieces import Color, Piece
-from square import Square
+from .board import Board
+from .pieces import Color, Piece
+from .square import Square
 
 
 Score = tuple[int, int]

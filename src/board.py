@@ -6,8 +6,8 @@ Referencing with chess algebraic notation is possible.
 from functools import singledispatchmethod
 from typing import Callable
 
-from pieces import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
-from square import Square, Vector
+from .pieces import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
+from .square import Square, Vector
 
 
 class Board:
@@ -149,7 +149,7 @@ class Board:
                     return Square(Vector(rank, file))  # HACK: I do not like that I have to chain constructors like this.
 
     @singledispatchmethod
-    def _make_condition(self, piece: Piece) -> Callable[[Square], tuple[bool, Piece]]:
+    def _make_condition(self, piece: Piece, square: Square) -> Callable[[Square], tuple[bool, Piece]]:
         """Create a condition function. The conditions take care of the following cases:
         - if the piece moves outside of the board, it discards the move
         - if the piece is of the same color, it discards the move
@@ -173,7 +173,7 @@ class Board:
         return condition
         
     @_make_condition.register
-    def _(self, piece:Pawn) -> Callable[[Square], tuple[bool, Piece]]:
+    def _(self, piece: Pawn, square: Square) -> Callable[[Square], tuple[bool, Piece]]:
         """Create a condition function. The conditions take care of the following cases:
         - if the piece moves outside of the board, it discards the move
         - if the piece is of the same color, it discards the move
@@ -188,9 +188,14 @@ class Board:
         """
         def condition(target_square: Square) -> tuple[bool, Piece]:
             other_piece = None
+            move = target_square - square
             try:
                 other_piece = self[target_square]
             except ValueError:
+                return False, None
+            if abs(move.rank) == 2 and square.rank != 6 and not piece.is_black:
+                return False, None
+            elif abs(move.rank) == 2 and square.rank != 1 and piece.is_black:
                 return False, None
             return other_piece is None or piece.color != other_piece.color, other_piece
 
@@ -206,7 +211,7 @@ class Board:
             all the legal moves of the selected piece.
         """
         piece = self[selected_square]
-        condition = self._make_condition(self[selected_square])
+        condition = self._make_condition(piece, selected_square)
         moves = set()
         for target_square in piece.legal_moves(selected_square, condition):
             moves.add(target_square)
