@@ -127,9 +127,3 @@ class Chess:
                 print(f"- Option: {target_square} capturing {other_piece}.")
             else:
                 print(f"- Option: {target_square}")
-
-
-if __name__ == "__main__":
-    game = Chess()
-    score, winner = game.run()
-    print(score, winner)
