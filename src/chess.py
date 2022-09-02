@@ -34,9 +34,7 @@ class Chess:
             if piece is not None and piece.color == color:
                 break
             print("Invalid square selection.")
-        move_selection = {
-            i: move for i, move in enumerate(self._board.list_moves(selected_square))
-        }
+        move_selection = self._board.list_moves(selected_square)
         # if there are no selections, game is over.
         # TODO: fix this, it's should be true only for the King.
         # this needs work, since it should backtrack to a new selection.
@@ -46,16 +44,12 @@ class Chess:
         choice:int | None = None
         while choice is None:
             self._print_options(move_selection)
-            try:
-                choice = int(input("Choose target square from the above options: "))
-            except ValueError:
-                print("Please enter option number, not the square itself.")
-                continue
-            if choice not in move_selection:
+            choice = input("Choose target square from the above options: ")
+            if Square(choice) not in move_selection:
                 print("Invalid option.")
                 choice = None
 
-        target_square = Square(move_selection[choice])
+        target_square = Square(choice)
         other_piece = self._move(piece, selected_square, target_square)
         if other_piece is not None:
             return ((other_piece.value, 0), False) if color == Color.white else ((0, other_piece.value), False)
@@ -111,7 +105,7 @@ class Chess:
 
         return other_piece
 
-    def _print_options(self, move_selection: dict[int, Square]) -> None:
+    def _print_options(self, move_selection: set[Square]) -> None:
         """Print movement options to the screen.
         
         Args:
@@ -120,12 +114,12 @@ class Chess:
         Returns:
             Nothing, only prints to screen.
         """
-        for i, target_square in move_selection.items():
+        for target_square in move_selection:
             other_piece = self._board[target_square]
             if other_piece is not None:
-                print(f"- Option {i}: {target_square} capturing {other_piece}.")
+                print(f"- Option: {target_square} capturing {other_piece}.")
             else:
-                print(f"- Option {i}: {target_square}")
+                print(f"- Option: {target_square}")
 
 
 if __name__ == "__main__":
