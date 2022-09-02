@@ -54,7 +54,7 @@ class TestPiece:
 
     def test_legal_moves(self):
         """Test whether the pieces generate proper legal moves. One example for each piece."""
-        from src.pieces import Bishop, Color, King, Knight, Pawn, Queen, Rook
+        from src.piece import Bishop, Color, King, Knight, Pawn, Queen, Rook
         from src.square import Square
 
         assert Pawn(Color.white).legal_moves(Square("h2"), Square.is_in_board) == {
