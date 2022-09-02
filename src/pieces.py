@@ -172,6 +172,8 @@ class Pawn(Piece):
             if advance:
                 if not captured and (step == Piece.south + Piece.west or step == Piece.south + Piece.east):
                     continue
+                if captured and (step == Piece.north or Piece.south):
+                    continue
                 squares.add(square + step * self.color.value)
         return squares
 
