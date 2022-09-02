@@ -13,7 +13,7 @@ Checkmate = bool
 class Chess:
     """A chess game."""
 
-    def __init__(self, input_: Callable[[], str]=input):
+    def __init__(self, input_: Callable[[str], str]=input):
         """Start a chess game."""
         self._board = Board()
         self._input = input_
