@@ -1,5 +1,7 @@
 """Unit tests for the Chess project."""
 
+from unittest import TestCase
+
 
 initial_board_state = """
 ▐\033[7m  A B C D E F G H  \033[0m▌
@@ -16,7 +18,7 @@ initial_board_state = """
 """
 
 
-class TestBoard:
+class TestBoard(TestCase):
     """Unit tests for the board."""
 
     def test_board(self):
@@ -55,7 +57,7 @@ class TestBoard:
         assert source.has_foe(foe)
 
 
-class TestSquare:
+class TestSquare(TestCase):
     """Unit tests exclusive to the squares."""
 
     def test_square_operations(self):
@@ -68,7 +70,7 @@ class TestSquare:
         assert Square("e4") + Vector(0, +1) == Square("f4")
 
 
-class TestPiece:
+class TestPiece(TestCase):
     """Unit tests for pieces."""
 
     def test_legal_moves(self):
