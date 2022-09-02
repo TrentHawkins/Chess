@@ -130,8 +130,20 @@ class Piece:
             return self.color != other.color
         return False
 
-#   NOTE: Remember that target resolution is still unresolved.
-    def legal_moves(self, condition: Callable[[Square], bool]) -> set[Square]:
+    def condition(self, target: Square) -> bool:
+        """Special conditions pertaining the particular piece type and source square.
+
+        This method is to be lazily-defined in board, access to current piece data makes it appropriate to sign it in here.
+
+        Args:
+            target: The source square is `self.square`.
+
+        Returns:
+            Whether the specific condition are met.
+        """
+        return self.square is not None  # The most basic condition if for a piece to be on a legal square.
+
+    def legal_moves(self) -> set[Square]:
         f"""Generate all legal moves a {self.__class__.__name__} can apriori make.
 
         Args:
@@ -189,13 +201,14 @@ class Pawn(Piece):
             Color.black: "♟",
         }[self.color]
 
-    def legal_moves(self, condition: Callable[[Square], bool]) -> set[Square]:
+    def legal_moves(self) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
         for step in self.steps:
-            square_step = self.square + step * self.color.value if self.square is not None else None
-            if square_step and condition(square_step):
-                squares.add(square_step)
+            if self.square is not None:
+                square_step = self.square + step * self.color.value
+                if square_step is not None and self.condition(square_step):
+                    squares.add(square_step)
         return squares
 
 
@@ -208,13 +221,14 @@ class Melee(Piece):
     Pawns are special.
     """
 
-    def legal_moves(self, condition: Callable[[Square], bool]) -> set[Square]:
+    def legal_moves(self) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
         for step in self.steps:  # For each direction.
-            square_step = self.square + step if self.square is not None else None  # Start looking at advanced squares
-            if square_step is not None and condition(square_step):  # If we don't hit something.
-                squares.add(square_step)  # Add the damn square to legal destination squares.
+            if self.square is not None:
+                square_step = self.square + step  # Start looking at advanced squares
+                if square_step is not None and self.condition(square_step):  # If we don't hit something.
+                    squares.add(square_step)  # Add the damn square to legal destination squares.
         return squares
 
 
@@ -294,14 +308,15 @@ class Range(Piece):
         - Queen
     """
 
-    def legal_moves(self, condition: Callable[[Square], bool]) -> set[Square]:
+    def legal_moves(self) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
         for step in self.steps:  # For each direction.
-            square_step = self.square + step if self.square is not None else None  # Start looking at advanced squares
-            while square_step is not None and condition(square_step):  # While we don't hit something.
-                squares.add(square_step)  # Add the damn square to legal destination squares.
-                square_step += step  # Advance to the next square in line.
+            if self.square is not None:
+                square_step = self.square + step  # Start looking at advanced squares
+                while square_step is not None and self.condition(square_step):  # While we don't hit something.
+                    squares.add(square_step)  # Add the damn square to legal destination squares.
+                    square_step += step  # Advance to the next square in line.
         return squares
 
 
