@@ -153,6 +153,7 @@ class Board:
         """Create a condition function. The conditions take care of the following cases:
         - if the piece moves outside of the board, it discards the move
         - if the piece is of the same color, it discards the move
+
         It also returns the piece that may exist there to check if it can be captured.
         This happens at the calling function. 
 
@@ -177,6 +178,7 @@ class Board:
         """Create a condition function. The conditions take care of the following cases:
         - if the piece moves outside of the board, it discards the move
         - if the piece is of the same color, it discards the move
+
         It also returns the piece that may exist there to check if it can be captured.
         This happens at the calling function. 
 
@@ -206,6 +208,7 @@ class Board:
         """Create a condition function. The conditions take care of the following cases:
         - if the piece moves outside of the board, it discards the move
         - if the piece is of the same color, it discards the move
+
         It also returns the piece that may exist there to check if it can be captured.
         This happens at the calling function. 
 
