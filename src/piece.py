@@ -107,7 +107,7 @@ class Piece:
         return " "  # An unspecified piece is a ghost piece.
 
 #   NOTE: Remember that target resolution is still unresolved.
-    def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
+    def legal_moves(self, square: Square, condition: Callable[[Square], tuple[bool, "Piece"]]) -> set[Square]:
         f"""Generate all legal moves a {self.__class__.__name__} can apriori make.
 
         Args:
@@ -164,7 +164,7 @@ class Pawn(Piece):
         return "♟" if self.is_black else "♙"
 
 #   NOTE: Probably a board will invoke this method multiple times (until a better way is thought).
-    def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
+    def legal_moves(self, square: Square, condition: Callable[[Square], tuple[bool, Piece]]) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
         for step in self.steps:

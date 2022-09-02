@@ -134,6 +134,9 @@ class Board:
         """
         return any(piece in rank for rank in self._board)
 
+    def __eq__(self, other: "Board") -> bool:
+        return self._board == other._board
+
     def square_of(self, piece: Piece | None) -> Square | None:
         """Return the square of a specific piece.
 
@@ -199,7 +202,7 @@ class Board:
                 return False, None
             elif abs(move.rank) == 2 and square.rank != 1 and piece.is_black:
                 return False, None
-            return other_piece is None or piece.color != other_piece.color, other_piece
+            return (other_piece is None or piece.color != other_piece.color), other_piece
 
         return condition
 

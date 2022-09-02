@@ -2,7 +2,7 @@
 from typing import Callable
 
 from .board import Board
-from .piece import Color, Piece, King
+from .piece import Color, Piece, King, Pawn, Queen, Rook, Knight, Bishop
 from .square import Square
 
 
@@ -10,13 +10,26 @@ Score = tuple[int, int]
 Checkmate = bool
 
 
+def default_ending(board: Board):
+    starting_board = Board()
+    return board == starting_board
+
+
 class Chess:
     """A chess game."""
 
-    def __init__(self, input_: Callable[[str], str]=input):
+    pawn_upgrade = {
+        "Queen": Queen,
+        "Rook": Rook,
+        "Knight": Knight,
+        "Bishop": Bishop
+    }
+
+    def __init__(self, input_: Callable[[str], str]=input, ending_condition: Callable[[Board], bool]=default_ending) -> None:
         """Start a chess game."""
         self._board = Board()
         self._input = input_
+        self._ending_condtion = ending_condition
 
     def _take_turns(self, color: Color) -> tuple[Score, Checkmate]:
         """A player's turn, where he selects a piece to move and a target square to move to.
@@ -27,20 +40,18 @@ class Chess:
         Returns:
             a tuple of the current score and whether the game has ended with checkmate.
         """
+        if self._ending_condtion(self._board):
+            return (0, 0), True
+
         piece: Piece | None = None
         selected_square: Square | None = None
         move_selection: set[Square] | None = None
-
         print(self._board)
         # will loop until all a proper square is selected.
         while True:
             selected_square = Square(self._input("Choose a piece to move: "))
             piece = self._board[selected_square]
             move_selection = self._board.list_moves(selected_square)
-            # winning condition, does not work properly.
-            if not move_selection and isinstance(piece, King):
-                print(f"King cannot move, checkmate.")
-                return (0, 0), True
             if not move_selection:
                 print(f"No moves available for {piece} at {selected_square}.")
                 continue
@@ -48,18 +59,22 @@ class Chess:
                 break
             print("Invalid square selection.")
         
+        # select target square from legal moves.
         choice:int | None = None
         while choice is None:
             self._print_options(move_selection)
-            choice = input("Choose target square from the above options: ")
+            choice = self._input("Choose target square from the above options: ")
             if Square(choice) not in move_selection:
                 print("Invalid option.")
                 choice = None
 
+        # apply chosen move and return score and that the game continues.
         target_square = Square(choice)
         other_piece = self._move(piece, selected_square, target_square)
+        self._special_event(piece, target_square)
         if other_piece is not None:
             return ((other_piece.value, 0), False) if color == Color.white else ((0, other_piece.value), False)
+        # just a move to ane empty square
         return (0, 0), False
 
     def run(self) -> tuple[Score, Color]:
@@ -111,6 +126,23 @@ class Chess:
         self._board[start_square], self._board[target_square] = None, piece
 
         return other_piece
+
+    def _special_event(self, piece: Piece, square: Square) -> None:
+        """Handles special events, such as a pawn reaching the end of the board and transforming.
+        """
+        if isinstance(piece, Pawn) and square.rank in {0, 7} :
+            new_piece: str | None = None
+            while True:
+                print("A pawn has reached the end of the board.")
+                for to_choose in self.pawn_upgrade:
+                    print(f"- Option: {to_choose}")
+                new_piece = self._input("Please choose pawn upgrade: ")
+                if new_piece not in self.pawn_upgrade:
+                    print("Invalid choice, please try again.")
+                else:
+                    break
+            self._board[square] = self.pawn_upgrade[new_piece](piece.color)
+
 
     def _print_options(self, move_selection: set[Square]) -> None:
         """Print movement options to the screen.
