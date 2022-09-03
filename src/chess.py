@@ -11,15 +11,27 @@ Checkmate = bool
 
 
 def default_ending(board: Board, color: Color) -> Checkmate:
+    """Dummy condition that immedietely terminates the game.
+    """
     starting_board = Board()
     return board == starting_board
 
 def normal_ending(board: Board, color: Color) -> Checkmate:
+    """Ends when the king has no way to escape.
+
+    Args:
+        board: the current board state
+        color: the active player's color
+    
+    Returns:
+        Whether the game is over or not.
+    """
     square = board.square_of_king(color)
     moves = board.list_moves(square)
     # Conditions
     # - king is threatened and has no moves
     # - king is the only piece on the board, is not threatened but has no moves.
+    # - score victory?
     # - king is threatened, has moves but they are all threatened
     enemy_pieces = board.all_enemy_pieces(Color.white if color == Color.black else Color.black)
     threatened = any(square in board.list_moves(enemy) for enemy in enemy_pieces)

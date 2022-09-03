@@ -3,7 +3,6 @@
 Referencing with chess algebraic notation is possible.
 """
 
-import enum
 from functools import singledispatchmethod
 from typing import Callable
 
@@ -153,12 +152,28 @@ class Board:
                     return Square(Vector(rank, file))  # HACK: I do not like that I have to chain constructors like this.
 
     def square_of_king(self, color: Color) -> King:
+        """Find where the king is located.
+
+        Args:
+           color: the king piece's color
+        
+        Returns:
+            The king piece.
+        """
         for rank, board_rank in enumerate(self._board):
             for file, board_square in enumerate(board_rank):
                 if isinstance(board_square, King) and board_square.color == color:
                     return Square(Vector(rank, file))
 
     def all_enemy_pieces(self, color: Color) -> list[Piece]:
+        """Find all the enemy placements on the board.
+
+        Args:
+            color: the color of the enemy
+
+        Returns:
+            a list of the squares of all enemy pieces.
+        """
         pieces: list[Piece] = []
         for rank, board_rank in enumerate(self._board):
             for file, board_square in enumerate(board_rank):
