@@ -169,15 +169,46 @@ class TestChessGame:
         mock_input = MockInput(["d2", "d3"])
         return mock_input
 
-    def test_start(self, game_sequence):
+    @fixture
+    def game_sequence_two_turns(self):
+        mock_input = MockInput(["d2", "d3", "e7", "e5"])
+        return mock_input
+
+    def test_one_turn(self, game_sequence):
         from src.chess import Chess
         from src.board import Board
+        from src.piece import Color
         
         board_after_step = Board()
         board_after_step["d2"], board_after_step["d3"] = None, board_after_step["d2"]
-        def ending(board: Board) -> bool:
+        def ending(board: Board, color) -> bool:
             return board_after_step == board
 
         game = Chess(input_=game_sequence, ending_condition=ending)
         game.run()
         assert game._board == board_after_step
+
+    def test_two_turns(self, game_sequence_two_turns):
+        from src.chess import Chess
+        from src.board import Board
+        from src.piece import Color
+
+        board_after_steps = Board()
+        board_after_steps["d2"], board_after_steps["d3"] = None, board_after_steps["d2"]
+        board_after_steps["e7"], board_after_steps["e5"] = None, board_after_steps["e7"]
+
+        def ending(board: Board, color: Color) -> bool:
+            return board_after_steps == board
+
+        game = Chess(input_=game_sequence_two_turns, ending_condition=ending)
+        game.run()
+        assert game._board == board_after_steps
+
+    def test_fools_mate(self):
+        from src.chess import Chess
+        from src.piece import Color
+
+        game_sequence = MockInput(["f2", "f3", "e7", "e5", "g2", "g4", "d8", "h4", "e1"])
+        game = Chess(input_=game_sequence)
+        _, color = game.run()
+        assert color == Color.black

@@ -10,10 +10,24 @@ Score = tuple[int, int]
 Checkmate = bool
 
 
-def default_ending(board: Board):
+def default_ending(board: Board, color: Color) -> bool:
     starting_board = Board()
     return board == starting_board
 
+def normal_ending(board: Board, color: Color) -> bool:
+    square = board.square_of_king(color)
+    moves = board.list_moves(square)
+    # Conditions
+    # - king is threatened and has no moves
+    # - king is the only piece on the board, is not threatened but has no moves.
+    # - king is threatened, has moves but they are all threatened
+    enemy_pieces = board.all_enemy_pieces(Color.white if color == Color.black else Color.black)
+    threatened = any(square in board.list_moves(enemy) for enemy in enemy_pieces)
+    not_blocked = [move for move in moves if all(move not in board.list_moves(enemy) for enemy in enemy_pieces)]
+    if threatened and not not_blocked:
+        return True
+    
+    return False
 
 class Chess:
     """A chess game."""
@@ -25,7 +39,7 @@ class Chess:
         "Bishop": Bishop
     }
 
-    def __init__(self, input_: Callable[[str], str]=input, ending_condition: Callable[[Board], bool]=default_ending) -> None:
+    def __init__(self, input_: Callable[[str], str]=input, ending_condition: Callable[[Board, Color], bool]=normal_ending) -> None:
         """Start a chess game."""
         self._board = Board()
         self._input = input_
@@ -40,7 +54,7 @@ class Chess:
         Returns:
             a tuple of the current score and whether the game has ended with checkmate.
         """
-        if self._ending_condtion(self._board):
+        if self._ending_condtion(self._board, color):
             return (0, 0), True
 
         piece: Piece | None = None

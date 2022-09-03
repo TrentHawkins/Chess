@@ -3,6 +3,7 @@
 Referencing with chess algebraic notation is possible.
 """
 
+import enum
 from functools import singledispatchmethod
 from typing import Callable
 
@@ -150,6 +151,22 @@ class Board:
             for file, board_square in enumerate(board_rank):
                 if board_square is piece:
                     return Square(Vector(rank, file))  # HACK: I do not like that I have to chain constructors like this.
+
+    def square_of_king(self, color: Color) -> King:
+        for rank, board_rank in enumerate(self._board):
+            for file, board_square in enumerate(board_rank):
+                if isinstance(board_square, King) and board_square.color == color:
+                    return Square(Vector(rank, file))
+
+    def all_enemy_pieces(self, color: Color) -> list[Piece]:
+        pieces: list[Piece] = []
+        for rank, board_rank in enumerate(self._board):
+            for file, board_square in enumerate(board_rank):
+                if board_square is not None and board_square.color == color:
+                    square = Square(Vector(rank, file))
+                    pieces.append(square)
+        return pieces
+
 
     @singledispatchmethod
     def _make_condition(self, piece: Piece, square: Square) -> Callable[[Square], tuple[bool, Piece]]:
