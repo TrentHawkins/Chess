@@ -11,7 +11,7 @@ Checkmate = bool
 
 
 def default_ending(board: Board, color: Color) -> Checkmate:
-    """Dummy condition that immedietely terminates the game.
+    """Dummy condition that immediately terminates the game.
     """
     starting_board = Board()
     return board == starting_board
@@ -36,10 +36,8 @@ def normal_ending(board: Board, color: Color) -> Checkmate:
     enemy_pieces = board.all_enemy_pieces(Color.white if color == Color.black else Color.black)
     threatened = any(square in board.list_moves(enemy) for enemy in enemy_pieces)
     not_blocked = [move for move in moves if all(move not in board.list_moves(enemy) for enemy in enemy_pieces)]
-    if threatened and not not_blocked:
-        return True
-    
-    return False
+
+    return threatened and not not_blocked
 
 class Chess:
     """A chess game."""
@@ -86,7 +84,7 @@ class Chess:
             print("Invalid square selection.")
         
         # select target square from legal moves.
-        choice:int | None = None
+        choice: int | None = None
         while choice is None:
             self._print_options(move_selection)
             choice = self._input("Choose target square from the above options: ")
@@ -100,7 +98,7 @@ class Chess:
         self._special_event(piece, target_square)
         if other_piece is not None:
             return ((other_piece.value, 0), False) if color == Color.white else ((0, other_piece.value), False)
-        # just a move to ane empty square
+        # just a move to an empty square
         return (0, 0), False
 
     def run(self) -> tuple[Score, Color]:
