@@ -232,7 +232,7 @@ class Board:
                 return False, None
             if abs(move.rank) == 2 and square.rank != 6 and not piece.is_black:
                 return False, None
-            elif abs(move.rank) == 2 and square.rank != 1 and piece.is_black:
+            if abs(move.rank) == 2 and square.rank != 1 and piece.is_black:
                 return False, None
             return (other_piece is None or piece.color != other_piece.color), other_piece
 

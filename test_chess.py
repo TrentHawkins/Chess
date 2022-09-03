@@ -1,7 +1,6 @@
 """Unit tests for the Chess project."""
 
 from collections.abc import Generator
-from time import monotonic
 from pytest import fixture
 
 
@@ -177,7 +176,6 @@ class TestChessGame:
     def test_one_turn(self, game_sequence):
         from src.chess import Chess
         from src.board import Board
-        from src.piece import Color
         
         board_after_step = Board()
         board_after_step["d2"], board_after_step["d3"] = None, board_after_step["d2"]
