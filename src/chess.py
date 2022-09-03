@@ -10,11 +10,11 @@ Score = tuple[int, int]
 Checkmate = bool
 
 
-def default_ending(board: Board, color: Color) -> bool:
+def default_ending(board: Board, color: Color) -> Checkmate:
     starting_board = Board()
     return board == starting_board
 
-def normal_ending(board: Board, color: Color) -> bool:
+def normal_ending(board: Board, color: Color) -> Checkmate:
     square = board.square_of_king(color)
     moves = board.list_moves(square)
     # Conditions
