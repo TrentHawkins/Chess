@@ -90,8 +90,10 @@ class Board:
             piece: The piece to be placed on the square.
         """
         square = Square(square)
+
         if piece is not None:
             piece.square = square
+
         self._board[square.rank][square.file] = piece
 
     def __getitem__(self, square: Square | str) -> Piece | None:
@@ -104,6 +106,7 @@ class Board:
             The piece on the given square.
         """
         square = Square(square)
+
         return self._board[square.rank][square.file]
 
     def __delitem__(self, square: Square | str):
@@ -114,8 +117,10 @@ class Board:
         """
         square = Square(square)
         piece = self._board[square.rank][square.file]
+
         if piece is not None:
             piece.square = None
+
         self._board[square.rank][square.file] = None
 
     def __contains__(self, piece: Piece | None) -> bool:

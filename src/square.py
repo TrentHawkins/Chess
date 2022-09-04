@@ -92,6 +92,7 @@ class Square(Vector):
         match square:
             case Vector(rank, file):
                 return super().__new__(cls) if rank in range(8) and file in range(8) else None
+
             case str():
                 return super().__new__(cls) if Square.notation_range.match(square) else None
 
@@ -104,6 +105,7 @@ class Square(Vector):
         match square:
             case Vector(rank, file):
                 super().__init__(rank, file)
+
             case str():
                 super().__init__(
                     Square.rank_to_index[square[1]],
