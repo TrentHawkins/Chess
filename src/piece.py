@@ -10,14 +10,7 @@ Chess has 6 types of pieces with predifined rules of movement and worth in-game:
     Queen: Moves both like a rook and bishop. Worth 9.
     King: Moves one square in any direction. Worth N/A (you loose the king it's game over).
 
-Variable annotations:
-    n: north
-    w: west
-    s: south
-    e: east
-
-Concatenation of aforementioned annotations means combination of directions (see self-documenting code).
-Trailing '_' means indefinite.
+Here you will find the implementation of pawns as they are a special type of pieces.
 """
 
 from dataclasses import dataclass
@@ -49,7 +42,7 @@ class Piece:
         steps: Default move patterns characteristic for each piece.
 
     Attributes:
-        color: One of two colors, black or white. Holds direction of the board.
+        orientation: One of two colors, black or white. Holds direction respective to the board.
         square: Where on (any) board is it (as far as rules go).
 
     A few generic rules applied to all pieces:
@@ -71,34 +64,28 @@ class Piece:
         ↑ + ↓ = · center (removed)
     """
 
-    center: ClassVar[Vector] = Vector(0, 0)  # · no movement
-
-    north: ClassVar[Vector] = Vector(-1, 0)  # ↑ up
-    south: ClassVar[Vector] = Vector(+1, 0)  # ↓ down
-
-    west: ClassVar[Vector] = Vector(0, -1)  # ← left
-    east: ClassVar[Vector] = Vector(0, +1)  # → right
-
 #   Straight steps:
     straights: ClassVar[set[Vector]] = {
-        north, west,
-        south, east,
+        Vector(-1, 0),
+        Vector(0, -1),
+        Vector(+1, 0),
+        Vector(0, +1),
     }
 
 #   Diagonal steps:
     diagonals: ClassVar[set[Vector]] = \
-        {straight0 + straight1 for straight0, straight1 in combinations(straights, 2)} - {center}
+        {straight0 + straight1 for straight0, straight1 in combinations(straights, 2)} - {Vector(0, 0)}
 
     steps: ClassVar[set[Vector]] = set()
 
-    def __init__(self, color_name: str, square: Optional[Square] = None):
+    def __init__(self, color: str, square: Optional[Square] = None):
         f"""Give a {self.__class__.__name__} a color and a square.
 
         Args:
             color_name: Either "white" or "black"
             square: Location on a board (which board is irrelevant).
         """
-        self.orientation = Orientation[color_name]
+        self.orientation = Orientation[color]
         self.square = square
 
     def __repr__(self) -> str:
@@ -122,7 +109,8 @@ class Piece:
             True if `target` square has a foe of whatever is on `source` square.
         """
         if self and other:
-            return self.orientation == other.color
+            return self.orientation == other.orientation
+
         return False
 
     def has_foe(self, other):
@@ -138,7 +126,8 @@ class Piece:
             True if `target` square has a foe of whatever is on `source` square.
         """
         if self and other:
-            return self.orientation != other.color
+            return self.orientation != other.orientation
+
         return False
 
     def condition(self, target: Square) -> bool:
@@ -154,8 +143,39 @@ class Piece:
         """
         return self.square is not None  # The most basic condition if for a piece to be on a legal square.
 
-    def legal_moves(self) -> set[Square]:
+#   NOTE: The king might be prove to be problematic, as it has an extra condition of blocked movement, squares that are checked.
+    def moves(self) -> tuple[set[Square], set[Square]]:
         f"""Generate all legal moves a {self.__class__.__name__} can apriori make.
+
+        2 sets are returned, one for empty squares the piece can move to and one for potential target squares.
+        The logic is to unify movement blocking logic, and basically differentiate blocks by type.
+        Only target squares may mutate into viable move squares.
+
+        Example:
+            Suppose there is a rook at "h1" and a pawn at "h6". The rook can move freely up to "h5".
+            If the pawn at "h6" is friednly this is it. If it is foe, then rook on "h1" can capture pawn on "h6".
+            Instead of differentiating scenario early,
+            apply a global blocking movement policy and add blockers to potential targets instead, to be trimmed by color.
+
+        Example with block resolution:
+            Suppose there is a white pawn at "e4" and two black pawns at "d5" and "e5" respectively.
+            Upon checking the white pawn for legal moves,
+                squares will be blocked if any piece is found in them
+                targets will be blocked if an enemy piece is not found in them.
+
+        The reason is that, no matter how a piece moves,
+        target resolution happens only at the trailing end of its move pattern.
+        Therefore, if target squares do not contain an enemy, the piece cannot go there,
+        because target are created when the trigger for blocking squares is activated.
+        See implementation of `Range(Piece)` for an illustrative application of this logic.
+
+        Pawns:
+            This logic is extensible to pawns as well.
+            Their diagonals will be checked with and only with enemy pieces, as it should.
+            The front of a pawn will be checked if blocked normally. No color check is needed, if blocked, that is it.
+
+        Why does the latter not affect other pieces?
+        Because the trailing end of all movements is always a target square for all pieces.
 
         Args:
             square: Square on which piece is placed.
@@ -163,9 +183,12 @@ class Piece:
             condition: A condition that depends on a square, usually a target square.
 
         Returns:
-            A list of all possible moves.
+            2 sets of moves:
+                squares: any empty potential square the piece can move to
+                targets: any potential square in squares that the piece can target another piece
         """
-        return set()  # A ghost piece cannot move.
+        squares, targets = set(), set()
+        return squares, targets  # A ghost piece cannot move or capture.
 
 
 @dataclass(init=False, repr=False)
@@ -199,12 +222,15 @@ class Pawn(Piece):
     value: ClassVar[int] = 1
 
 #   Pawn moves:
-    steps: ClassVar[set[Vector]] = {
-        Piece.south,  # One step.
-        Piece.south + Piece.south,  # Two step.
-        Piece.south + Piece.west,  # Capturing to the west.
-        Piece.south + Piece.east,  # Capturing to the east.
+    step: ClassVar[Vector] = Vector(+1, 0)  # One step.
+    captures: ClassVar[set[Vector]] = {
+        Vector(+1, -1),  # Capturing to the west.
+        Vector(+1, +1),  # Capturing to the east.
     }
+
+#   Pawn flags:
+    has_moved: bool = False
+    promoted: bool = False
 
     def __repr__(self) -> str:
         self.__repr__.__doc__
@@ -213,39 +239,56 @@ class Pawn(Piece):
             "black": "♟",
         }[self.orientation.name]
 
-    def legal_moves(self) -> set[Square]:
-        super().legal_moves.__doc__
-        squares = set()
-        for step in self.steps:
-            if self.square is not None:
-                square_step = self.square + step * self.orientation
-                if square_step is not None and self.condition(square_step):
-                    squares.add(square_step)
-        return squares
+    def moves(self) -> tuple[set[Square], set[Square]]:
+        super().moves.__doc__
+        squares, targets = super().moves()
+
+        if self.square is not None:  # If pawn is on a board,
+            for step in self.captures:  # For all target squares (diagonally with respect to pawn),
+                target = self.square + step * self.orientation  # Get target,
+
+                if target is not None:  # If said target is inside board limits,
+                    targets.add(target)  # Add said target to pawn.
+
+            square = self.square + self.step * self.orientation  # Get forward square,
+
+            if square is None:  # If said square is outside board limits,
+                self.promoted = True  # The pawn is promoted, assuming it falls outside because it can only move forward.
+
+            else:  # Otherwise,
+                squares.add(square)  # Add said square to possible moves,
+
+                if not self.has_moved:  # If the pawn is in its starting position,
+                    squares.add(square + self.step * self.orientation)  # Add the next forward square to possible moves too.
+
+        return squares, targets
 
 
 @dataclass(init=False, repr=False)
-class Melee(Piece):
+class Meleed(Piece):
     """A close ranged piece:
         - King
         - Knight (has reach)
 
-    Pawns are special.
+    For a meeled piece (pawns are special) all squares are target squares.
     """
 
-    def legal_moves(self) -> set[Square]:
-        super().legal_moves.__doc__
-        squares = set()
-        for step in self.steps:  # For each direction.
-            if self.square is not None:
-                square_step = self.square + step  # Start looking at advanced squares
-                if square_step is not None and self.condition(square_step):  # If we don't hit something.
-                    squares.add(square_step)  # Add the damn square to legal destination squares.
-        return squares
+    def moves(self) -> tuple[set[Square], set[Square]]:
+        super().moves.__doc__
+        squares, targets = super().moves()
+
+        if self.square is not None:  # If meleed piece is on a board,
+            for step in self.steps:  # For all target squares,
+                target = self.square + step  # Get target,
+
+                if target is not None and self.condition(target):  # If said target is inside board limits,
+                    targets.add(target)  # Add said target to meleed piece.
+
+        return squares, targets
 
 
 @dataclass(init=False, repr=False)
-class King(Melee):
+class King(Meleed):
     """A King.
 
     Moves one square in any direction that is not blocked by same side piece or targeted by enemy piece.
@@ -273,7 +316,7 @@ class King(Melee):
 
 
 @dataclass(init=False, repr=False)
-class Knight(Melee):
+class Knight(Meleed):
     """A knight.
 
     Moves two squares in any direction and one square in a vertical to that direction as one move.
@@ -314,27 +357,33 @@ class Knight(Melee):
 
 
 @dataclass(init=False, repr=False)
-class Range(Piece):
+class Ranged(Piece):
     """A long range piece:
         - Rook
         - Bishop
         - Queen
     """
 
-    def legal_moves(self) -> set[Square]:
-        super().legal_moves.__doc__
-        squares = set()
-        for step in self.steps:  # For each direction.
-            if self.square is not None:
-                square_step = self.square + step  # Start looking at advanced squares
-                while square_step is not None and self.condition(square_step):  # While we don't hit something.
-                    squares.add(square_step)  # Add the damn square to legal destination squares.
-                    square_step += step  # Advance to the next square in line.
-        return squares
+    def moves(self) -> tuple[set[Square], set[Square]]:
+        super().moves.__doc__
+        squares, targets = super().moves()
+
+        if self.square is not None:  # If ranged piece is on a board,
+            for step in self.steps:  # For all legal directions,
+                square = self.square + step  # Get next square in direction,
+
+                while square is not None and self.condition(square):  # If said square is inside board limits,
+                    squares.add(square)  # Add said square to ranged piece.
+                    square += step  # Advance to the next square in said direction.
+
+                if square is not None:  # NOTE: This check will become relevant as soon as condition is defined too.
+                    targets.add(square)  # Do not forget to add trailing square to targets.
+
+        return squares, targets
 
 
 @dataclass(init=False, repr=False)
-class Rook(Range):
+class Rook(Ranged):
     """A rook.
 
     Moves anywhere along its rank xor its file, unless blocked by enemy (which captures) or same piece.
@@ -361,7 +410,7 @@ class Rook(Range):
 
 
 @dataclass(init=False, repr=False)
-class Bishop(Range):
+class Bishop(Ranged):
     """A bishop.
 
     Moves anywhere along a diagonal, unless blocked by enemy (which captures) or same piece.
@@ -393,7 +442,7 @@ class Bishop(Range):
 
 
 @dataclass(init=False, repr=False)
-class Queen(Range):
+class Queen(Ranged):
     """A queen.
 
     Moves both like a rook and bishop, unless blocked by enemy (which captures) or same piece.
