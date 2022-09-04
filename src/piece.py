@@ -2,7 +2,8 @@
 
 Chess has 6 types of pieces with predifined rules of movement and worth in-game:
     Pawn: Moves one step forward, unless first move, where it may move two squares forward.
-        Captures diagonally. Can en-pasant. Can be promoted to a higher value piece at the end of a player's board. Worth 1.
+        Captures diagonally. Can en-pasant.
+        Can be promoted to a higher value piece at the end of a player's board. Worth 1.
     Bishop: Moves along diagonals. Worth 3. WOrth 3+ when in pairs of two or in an open game.
     Knights: Moves 2 squares in one directions and 1 in a vertical to that direction).
         Can jump over other pieces. Worth 3. Worth 3+ in closed games.
@@ -50,7 +51,8 @@ class Piece:
 
     A few generic rules applied to all pieces:
         Pinning: If moving a piece will discover a check on your king, the piece is pinned and cannot move.
-        If your king is checked, no other piece can move except for the ones and with only the moves that resolve the check.
+        If your king is checked, no other piece can move,
+        except for the ones and with only the moves that resolve the check.
 
     Straight steps:
         ↑ north
@@ -112,7 +114,8 @@ class Piece:
 
         Args:
             square: Square on which piece is placed.
-                Default is no square, in which case displacements are not resolved into squares and generators not unfold.
+                Default is no square, in which case displacements are
+                not resolved into squares and generators not unfold.
             condition: A condition that depends on a square, usually a target square.
 
         Returns:

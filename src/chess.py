@@ -11,18 +11,18 @@ Checkmate = bool
 
 
 def default_ending(board: Board, color: Color) -> Checkmate:
-    """Dummy condition that immediately terminates the game.
-    """
+    """Insert dummy condition that immediately terminates the game."""
     starting_board = Board()
     return board == starting_board
 
+
 def normal_ending(board: Board, color: Color) -> Checkmate:
-    """Ends when the king has no way to escape.
+    """End when the king has no way to escape.
 
     Args:
         board: the current board state
         color: the active player's color
-    
+
     Returns:
         Whether the game is over or not.
     """
@@ -33,11 +33,16 @@ def normal_ending(board: Board, color: Color) -> Checkmate:
     # - king is the only piece on the board, is not threatened but has no moves.
     # - score victory?
     # - king is threatened, has moves but they are all threatened
-    enemy_pieces = board.all_enemy_pieces(Color.white if color == Color.black else Color.black)
-    threatened = any(square in board.list_moves(enemy) for enemy in enemy_pieces)
-    not_blocked = [move for move in moves if all(move not in board.list_moves(enemy) for enemy in enemy_pieces)]
+    # - move another pawn to save the king.
+    enemy_pieces = board.all_enemy_pieces(
+        Color.white if color == Color.black else Color.black)
+    threatened = any(square in board.list_moves(enemy)
+                     for enemy in enemy_pieces)
+    not_blocked = [move for move in moves
+                   if all(move not in board.list_moves(enemy) for enemy in enemy_pieces)]
 
     return threatened and not not_blocked
+
 
 class Chess:
     """A chess game."""
@@ -49,14 +54,15 @@ class Chess:
         "Bishop": Bishop
     }
 
-    def __init__(self, input_: Callable[[str], str]=input, ending_condition: Callable[[Board, Color], bool]=normal_ending) -> None:
+    def __init__(self, input_: Callable[[str], str] = input,
+                 ending_condition: Callable[[Board, Color], bool] = normal_ending) -> None:
         """Start a chess game."""
         self._board = Board()
         self._input = input_
-        self._ending_condtion = ending_condition
+        self._ending_condition = ending_condition
 
     def _take_turns(self, color: Color) -> tuple[Score, Checkmate]:
-        """A player's turn, where he selects a piece to move and a target square to move to.
+        """Take a player's turn, where he selects a piece to move and a target square to move to.
 
         Args:
             color: the color of the player.
@@ -64,7 +70,7 @@ class Chess:
         Returns:
             a tuple of the current score and whether the game has ended with checkmate.
         """
-        if self._ending_condtion(self._board, color):
+        if self._ending_condition(self._board, color):
             return (0, 0), True
 
         piece: Piece | None = None
@@ -82,7 +88,7 @@ class Chess:
             if piece is not None and piece.color == color:
                 break
             print("Invalid square selection.")
-        
+
         # select target square from legal moves.
         choice: int | None = None
         while choice is None:
@@ -117,7 +123,7 @@ class Chess:
             if checkmate:
                 game_over = True
                 winner = color
-            
+
         return score, winner
 
     @staticmethod
@@ -152,9 +158,8 @@ class Chess:
         return other_piece
 
     def _special_event(self, piece: Piece, square: Square) -> None:
-        """Handles special events, such as a pawn reaching the end of the board and transforming.
-        """
-        if isinstance(piece, Pawn) and square.rank in {0, 7} :
+        """Handle special events, such as a pawn reaching the end of the board and transforming."""
+        if isinstance(piece, Pawn) and square.rank in {0, 7}:
             new_piece: str | None = None
             while True:
                 print("A pawn has reached the end of the board.")
@@ -167,10 +172,9 @@ class Chess:
                     break
             self._board[square] = self.pawn_upgrade[new_piece](piece.color)
 
-
     def _print_options(self, move_selection: set[Square]) -> None:
         """Print movement options to the screen.
-        
+
         Args:
             move_selection: the moves to be printed.
 

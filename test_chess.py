@@ -20,7 +20,10 @@ initial_board_state = """
 
 
 class MockInput:
-    def __init__(self, xs:list[str]):
+    """Mocks the input_ stream to the chess game."""
+
+    def __init__(self, xs: list[str]) -> None:
+        """Initialize MockInput with a list of selections."""
         self._xs = [None, *xs]
         self._g = self._make_generator()
         next(self._g)
@@ -29,7 +32,8 @@ class MockInput:
         for x in self._xs:
             _ = yield x
 
-    def __call__(self, text:str) -> str:
+    def __call__(self, text: str) -> str:
+        """Make MockInput a callable that returns the items in the list."""
         return self._g.send(text)
 
 
@@ -73,21 +77,18 @@ class TestPiece:
         """Test whether the pieces generate proper legal moves. One example for each piece."""
         from src.piece import Bishop, Color, King, Knight, Pawn, Queen, Rook
         from src.square import Square
-        
-        condition = lambda sq: (sq.is_in_board(), None)
+
+        def condition(sq: Square) -> tuple[bool, None]:
+            return sq.is_in_board(), None
+
         assert Pawn(Color.white).legal_moves(Square("h2"), condition) == {
-            # Square("g3"),  # TODO: No capturing logic yet in Stratos code, this works in mine.
             Square("h3"),
-        #   Square("i3"),  # out of bounds
             Square("h4"),
         }
         assert King(Color.white).legal_moves(Square("e1"), condition) == {
             Square("e2"),  # TODO: No piece blocking yet
             Square("d2"),  # TODO: No piece blocking yet
             Square("d1"),  # TODO: No piece blocking yet
-        #   Square("d0"),  # out of bounds
-        #   Square("e0"),  # out of bounds
-        #   Square("f0"),  # out of bounds
             Square("f1"),  # TODO: No piece blocking yet
             Square("f2"),  # TODO: No piece blocking yet
             Square("e2"),  # TODO: No piece blocking yet
@@ -96,9 +97,6 @@ class TestPiece:
             Square("h3"),
             Square("f3"),
             Square("e2"),  # TODO: No piece blocking yet
-        #   Square("e0"),
-        #   Square("i0"),
-        #   Square("i2"),
         }
         assert Rook(Color.white).legal_moves(Square("h1"), condition) == {
             Square("h2"),  # TODO: No piece blocking yet
@@ -115,8 +113,6 @@ class TestPiece:
             Square("c1"),  # TODO: No piece blocking yet
             Square("b1"),  # TODO: No piece blocking yet
             Square("a1"),  # TODO: No piece blocking yet
-        #   Square("h0"),  # out of bounds
-        #   Square("i1"),  # out of bounds
         }
         assert Bishop(Color.white).legal_moves(Square("f1"), condition) == {
             Square("e2"),  # TODO: No piece blocking yet
@@ -124,11 +120,8 @@ class TestPiece:
             Square("c4"),  # TODO: No piece blocking yet
             Square("b5"),  # TODO: No piece blocking yet
             Square("a6"),  # TODO: No piece blocking yet
-        #   Square("e0"),  # out of bounds
-        #   Square("g0"),  # out of bounds
             Square("g2"),  # TODO: No piece blocking yet
             Square("h3"),  # TODO: No piece blocking yet
-        #   Square("i4"),  # out of bounds
         }
         assert Queen(Color.white).legal_moves(Square("d1"), condition) == {
             Square("d2"),  # TODO: No piece blocking yet
@@ -144,41 +137,30 @@ class TestPiece:
             Square("c1"),  # TODO: No piece blocking yet
             Square("b1"),  # TODO: No piece blocking yet
             Square("a1"),  # TODO: No piece blocking yet
-        #   Square("c0"),  # out of bounds
-        #   Square("d0"),  # out of bounds
-        #   Square("e0"),  # out of bounds
             Square("e1"),  # TODO: No piece blocking yet
             Square("f1"),  # TODO: No piece blocking yet
             Square("g1"),  # TODO: No piece blocking yet
             Square("h1"),  # TODO: No piece blocking yet
-        #   Square("i1"),  # out of bounds
             Square("e2"),  # TODO: No piece blocking yet
             Square("f3"),  # TODO: No piece blocking yet
             Square("g4"),  # TODO: No piece blocking yet
             Square("h5"),  # TODO: No piece blocking yet
-        #   Square("i6"),  # out of bounds
         }
 
 
-
 class TestChessGame:
+    """Test a chess game object."""
 
-    @fixture
-    def game_sequence(self):
-        mock_input = MockInput(["d2", "d3"])
-        return mock_input
-
-    @fixture
-    def game_sequence_two_turns(self):
-        mock_input = MockInput(["d2", "d3", "e7", "e5"])
-        return mock_input
-
-    def test_one_turn(self, game_sequence):
+    def test_one_turn(self):
+        """Take one turn, just the white player."""
         from src.chess import Chess
         from src.board import Board
-        
+
+        game_sequence = MockInput(["d2", "d3"])
+
         board_after_step = Board()
         board_after_step["d2"], board_after_step["d3"] = None, board_after_step["d2"]
+
         def ending(board: Board, color) -> bool:
             return board_after_step == board
 
@@ -187,9 +169,12 @@ class TestChessGame:
         assert game._board == board_after_step
 
     def test_two_turns(self, game_sequence_two_turns):
+        """Play two turns, one white one black."""
         from src.chess import Chess
         from src.board import Board
         from src.piece import Color
+
+        game_sequence = MockInput(["d2", "d3", "e7", "e5"])
 
         board_after_steps = Board()
         board_after_steps["d2"], board_after_steps["d3"] = None, board_after_steps["d2"]
@@ -198,11 +183,12 @@ class TestChessGame:
         def ending(board: Board, color: Color) -> bool:
             return board_after_steps == board
 
-        game = Chess(input_=game_sequence_two_turns, ending_condition=ending)
+        game = Chess(input_=game_sequence, ending_condition=ending)
         game.run()
         assert game._board == board_after_steps
 
     def test_fools_mate(self):
+        """Finish game by fool's mate."""
         from src.chess import Chess
         from src.piece import Color
 
