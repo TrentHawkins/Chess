@@ -90,31 +90,26 @@ class Square(Vector):
         Returns:
             `None` if square specification is illegal.
         """
-        valid = False
-        if isinstance(square, Vector):
-            valid = square.rank in range(8) and square.file in range(8)
-        elif isinstance(square, str):
-            valid = Square.notation_range.match(square)
-        if valid:
-            return super().__new__(cls)
-        return None
+        match square:
+            case Vector(rank, file):
+                return super().__new__(cls) if rank in range(8) and file in range(8) else None
+            case str():
+                return super().__new__(cls) if Square.notation_range.match(square) else None
 
-    def __init__(self, square: str | Vector):
+    def __init__(self, square: Vector | str):
         """Make square.
 
         Args:
             square: A square in notation form or a vector (assuming the board origin is top-left in the latter case).
         """
-        if isinstance(square, str):
-            super().__init__(
-                Square.rank_to_index[square[1]],
-                Square.file_to_index[square[0]],
-            )
-        else:
-            super().__init__(
-                square.rank,
-                square.file,
-            )
+        match square:
+            case Vector(rank, file):
+                super().__init__(rank, file)
+            case str():
+                super().__init__(
+                    Square.rank_to_index[square[1]],
+                    Square.file_to_index[square[0]],
+                )
 
     def __repr__(self):
         """Represent square in chess notation.
