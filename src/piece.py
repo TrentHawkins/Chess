@@ -2,7 +2,8 @@
 
 Chess has 6 types of pieces with predifined rules of movement and worth in-game:
     Pawn: Moves one step forward, unless first move, where it may move two squares forward.
-        Captures diagonally. Can en-pasant. Can be promoted to a higher value piece at the end of a player's board. Worth 1.
+        Captures diagonally. Can en-pasant.
+        Can be promoted to a higher value piece at the end of a player's board. Worth 1.
     Bishop: Moves along diagonals. Worth 3. WOrth 3+ when in pairs of two or in an open game.
     Knights: Moves 2 squares in one directions and 1 in a vertical to that direction).
         Can jump over other pieces. Worth 3. Worth 3+ in closed games.
@@ -35,7 +36,7 @@ class Color(Enum):
     black = +1
 
 
-@dataclass
+@dataclass(frozen=True)
 class Piece:
     """A generic chess piece.
 
@@ -50,7 +51,8 @@ class Piece:
 
     A few generic rules applied to all pieces:
         Pinning: If moving a piece will discover a check on your king, the piece is pinned and cannot move.
-        If your king is checked, no other piece can move except for the ones and with only the moves that resolve the check.
+        If your king is checked, no other piece can move,
+        except for the ones and with only the moves that resolve the check.
 
     Straight steps:
         ↑ north
@@ -107,12 +109,13 @@ class Piece:
         return " "  # An unspecified piece is a ghost piece.
 
 #   NOTE: Remember that target resolution is still unresolved.
-    def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
+    def legal_moves(self, square: Square, condition: Callable[[Square], tuple[bool, "Piece"]]) -> set[Square]:
         f"""Generate all legal moves a {self.__class__.__name__} can apriori make.
 
         Args:
             square: Square on which piece is placed.
-                Default is no square, in which case displacements are not resolved into squares and generators not unfold.
+                Default is no square, in which case displacements are
+                not resolved into squares and generators not unfold.
             condition: A condition that depends on a square, usually a target square.
 
         Returns:
@@ -121,6 +124,7 @@ class Piece:
         return {square + step for step in self.steps}  # A ghost piece cannot move.
 
 
+@dataclass(frozen=True)
 class Pawn(Piece):
     """A Pawn.
 
@@ -163,16 +167,21 @@ class Pawn(Piece):
         return "♟" if self.is_black else "♙"
 
 #   NOTE: Probably a board will invoke this method multiple times (until a better way is thought).
-    def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
+    def legal_moves(self, square: Square, condition: Callable[[Square], tuple[bool, Piece]]) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
         for step in self.steps:
-            if condition(square + step * self.color.value):
+            advance, captured = condition(square + step * self.color.value)
+            if advance:
+                if not captured and (step == Piece.south + Piece.west or step == Piece.south + Piece.east):
+                    continue
+                if captured and (step == Piece.north or step == Piece.south):
+                    continue
                 squares.add(square + step * self.color.value)
         return squares
 
 
-@dataclass
+@dataclass(frozen=True)
 class Melee(Piece):
     """A close ranged piece:
         - King
@@ -181,16 +190,17 @@ class Melee(Piece):
     Pawns are special.
     """
 
-    def legal_moves(self, square: Square, condition: Callable[[Square], bool]) -> set[Square]:
+    def legal_moves(self, square: Square, condition: Callable[[Square], tuple[bool, Piece]]) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
         for step in self.steps:
-            if condition(square + step):
+            advance, _ = condition(square + step)
+            if advance:
                 squares.add(square + step)
         return squares
 
 
-@dataclass
+@dataclass(frozen=True)
 class King(Melee):
     """A King.
 
@@ -215,7 +225,7 @@ class King(Melee):
         return "♚" if self.is_black else "♔"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Knight(Melee):
     """A knight.
 
@@ -252,7 +262,7 @@ class Knight(Melee):
         return "♞" if self.is_black else "♘"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Range(Piece):
     """A long range piece:
         - Rook
@@ -265,13 +275,17 @@ class Range(Piece):
         squares = set()
         for move in self.steps:  # For each direction.
             advanced_square = square + move  # Start looking at advanced squares
-            while condition(advanced_square):  # While we don't hit something.
+            advance, captured = condition(advanced_square)
+            while advance:  # While we don't hit something.
                 squares.add(advanced_square)  # Add the damn square to legal destination squares.
+                if captured:
+                    break
                 advanced_square += move  # Advance to the next square in line.
+                advance, captured = condition(advanced_square)
         return squares
 
 
-@dataclass
+@dataclass(frozen=True)
 class Rook(Range):
     """A rook.
 
@@ -294,7 +308,7 @@ class Rook(Range):
         return "♜" if self.is_black else "♖"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Bishop(Range):
     """A bishop.
 
@@ -322,7 +336,7 @@ class Bishop(Range):
         return "♝" if self.is_black else "♗"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Queen(Range):
     """A queen.
 

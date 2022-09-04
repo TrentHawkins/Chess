@@ -3,7 +3,10 @@
 Referencing with chess algebraic notation is possible.
 """
 
-from .pieces import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
+from functools import singledispatchmethod
+from typing import Callable
+
+from .piece import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
 from .square import Square, Vector
 
 
@@ -11,8 +14,10 @@ class Board:
     """A Chessboard.
 
     Pieces can be assigned, obtained or removed by referencing squares with chess algebraic notation.
-    The notation consists of a letter ('A' through 'H') for the file (column) of a square and a number (1-8) for the rank (row).
-    The convention here is to match `index+1` to file for columns (inner lists) and `8-index` for rows (reverse row referencing).
+    The notation consists of a letter ('A' through 'H') for the file (column) of a square and
+    a number (1-8) for the rank (row).
+    The convention here is to match `index+1` to file for columns (inner lists) and
+    `8-index` for rows (reverse row referencing).
 
     Examples:
         Item at [2][3] is referenced as ["d6"].
@@ -104,6 +109,10 @@ class Board:
         """
         if square:
             square = Square(square)
+            if square.rank < 0 or square.file < 0:
+                raise ValueError("Squares have only positive rank and file.")
+            if square.rank > 7 or square.file > 7:
+                raise ValueError("Squares must be inside the board.")
             return self._board[square.rank][square.file]
 
     def __delitem__(self, square: Square | str | None):
@@ -127,6 +136,10 @@ class Board:
         """
         return any(piece in rank for rank in self._board)
 
+    def __eq__(self, other: "Board") -> bool:
+        """Check whether too boards are equal."""
+        return self._board == other._board
+
     def square_of(self, piece: Piece | None) -> Square | None:
         """Return the square of a specific piece.
 
@@ -139,4 +152,136 @@ class Board:
         for rank, board_rank in enumerate(self._board):
             for file, board_square in enumerate(board_rank):
                 if board_square is piece:
-                    return Square(Vector(rank, file))  # HACK: I do not like that I have to chain constructors like this.
+                    return Square(Vector(rank, file))
+
+    def square_of_king(self, color: Color) -> King:
+        """Find where the king is located.
+
+        Args:
+           color: the king piece's color
+
+        Returns:
+            The king piece.
+        """
+        for rank, board_rank in enumerate(self._board):
+            for file, board_square in enumerate(board_rank):
+                if isinstance(board_square, King) and board_square.color == color:
+                    return Square(Vector(rank, file))
+
+    def all_enemy_pieces(self, color: Color) -> list[Piece]:
+        """Find all the enemy placements on the board.
+
+        Args:
+            color: the color of the enemy
+
+        Returns:
+            a list of the squares of all enemy pieces.
+        """
+        pieces: list[Piece] = []
+        for rank, board_rank in enumerate(self._board):
+            for file, board_square in enumerate(board_rank):
+                if board_square is not None and board_square.color == color:
+                    square = Square(Vector(rank, file))
+                    pieces.append(square)
+        return pieces
+
+    @singledispatchmethod
+    def _make_condition(self, piece: Piece, square: Square) -> Callable[[Square], tuple[bool, Piece]]:
+        """Create a condition function. The conditions take care of the following cases.
+
+        - if the piece moves outside of the board, it discards the move
+        - if the piece is of the same color, it discards the move
+
+        It also returns the piece that may exist there to check if it can be captured.
+        This happens at the calling function.
+
+        Args:
+            piece: the piece that moves
+
+        Returns:
+            whether the move is blocked and any piece that was captured.
+        """
+        def condition(target_square: Square) -> tuple[bool, Piece]:
+            other_piece = None
+            try:
+                other_piece = self[target_square]
+            except ValueError:
+                return False, None
+            return other_piece is None or piece.color != other_piece.color, other_piece
+
+        return condition
+
+    @_make_condition.register
+    def _(self, piece: Pawn, square: Square) -> Callable[[Square], tuple[bool, Piece]]:
+        """Create a condition function. The conditions take care of the following cases.
+
+        - if the piece moves outside of the board, it discards the move
+        - if the piece is of the same color, it discards the move
+
+        It also returns the piece that may exist there to check if it can be captured.
+        This happens at the calling function.
+
+        Args:
+            piece: the piece that moves
+
+        Returns:
+            whether the move is blocked and any piece that was captured.
+        """
+        def condition(target_square: Square) -> tuple[bool, Piece]:
+            other_piece = None
+            move = target_square - square
+            try:
+                other_piece = self[target_square]
+            except ValueError:
+                return False, None
+            if abs(move.rank) == 2 and square.rank != 6 and not piece.is_black:
+                return False, None
+            if abs(move.rank) == 2 and square.rank != 1 and piece.is_black:
+                return False, None
+            return (other_piece is None or piece.color != other_piece.color), other_piece
+
+        return condition
+
+    @_make_condition.register
+    def _(self, piece: King, square: Square) -> Callable[[Square], tuple[bool, Piece]]:
+        """Create a condition function. The conditions take care of the following cases.
+
+        - if the piece moves outside of the board, it discards the move
+        - if the piece is of the same color, it discards the move
+
+        It also returns the piece that may exist there to check if it can be captured.
+        This happens at the calling function.
+
+        Args:
+            piece: the piece that moves
+
+        Returns:
+            whether the move is blocked and any piece that was captured.
+        """
+        def condition(target_square: Square) -> tuple[bool, Piece]:
+            other_piece = None
+            try:
+                other_piece = self[target_square]
+            except ValueError:
+                return False, None
+            # should check if neighboring pieces threaten adjacent squares.
+            return other_piece is None or piece.color != other_piece.color, other_piece
+
+        return condition
+
+    def list_moves(self, selected_square: Square) -> set[Square]:
+        """Provide context to determine legal moves of a chess piece using the condition function.
+
+        Args:
+            selected_square: the square selected by the user, which contains a piece to move.
+
+        Returns:
+            all the legal moves of the selected piece.
+        """
+        piece = self[selected_square]
+        condition = self._make_condition(piece, selected_square)
+        moves = set()
+        for target_square in piece.legal_moves(selected_square, condition):
+            moves.add(target_square)
+
+        return moves
