@@ -46,7 +46,6 @@ class Vector:
             self.file - other.file,
         )
 
-#   NOTE: This may be unnecessary.
     def __mul__(self, times: int):
         """Vector multiplication with an factor."""
         return Vector(

@@ -207,7 +207,7 @@ class Pawn(Piece):
         squares = set()
         for step in self.steps:
             if self.square is not None:
-                square_step = self.square + step * self.color.value
+                square_step = self.square + step * self.color
                 if square_step is not None and self.condition(square_step):
                     squares.add(square_step)
         return squares
