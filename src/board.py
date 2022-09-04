@@ -3,9 +3,10 @@
 Referencing with chess algebraic notation is possible.
 """
 
-from functools import singledispatchmethod
-
-from .piece import Bishop, King, Knight, Pawn, Piece, Queen, Rook
+from .piece import Piece
+from .pieces.meleed import King, Knight
+from .pieces.ranged import Bishop, Queen, Rook
+from .pieces.special import Pawn
 from .square import Square
 
 
