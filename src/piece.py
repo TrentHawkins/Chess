@@ -21,18 +21,18 @@ Trailing '_' means indefinite.
 """
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import IntEnum
 from itertools import combinations, product
-from typing import Callable, ClassVar, Optional
+from typing import ClassVar, Optional
 
 from .square import Square, Vector
 
 
-class Color(Enum):
+class Color(IntEnum):
     """Annotate direction on the board with the corresponding color."""
 
-    white = -1
-    black = +1
+    WHITE = -1
+    BLACK = +1
 
 
 @dataclass
@@ -87,6 +87,7 @@ class Piece:
 
     steps: ClassVar[set[Vector]] = set()
 
+#   ATTRIBUTES
     color: Color
     square: Optional[Square] = None
 
@@ -197,8 +198,8 @@ class Pawn(Piece):
     def __repr__(self) -> str:
         self.__repr__.__doc__
         return {
-            Color.white: "♙",
-            Color.black: "♟",
+            Color.WHITE: "♙",
+            Color.BLACK: "♟",
         }[self.color]
 
     def legal_moves(self) -> set[Square]:
@@ -255,8 +256,8 @@ class King(Melee):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.white: "♔",
-            Color.black: "♚",
+            Color.WHITE: "♔",
+            Color.BLACK: "♚",
         }[self.color]
 
 
@@ -295,8 +296,8 @@ class Knight(Melee):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.white: "♘",
-            Color.black: "♞",
+            Color.WHITE: "♘",
+            Color.BLACK: "♞",
         }[self.color]
 
 
@@ -341,8 +342,8 @@ class Rook(Range):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.white: "♖",
-            Color.black: "♜",
+            Color.WHITE: "♖",
+            Color.BLACK: "♜",
         }[self.color]
 
 
@@ -372,8 +373,8 @@ class Bishop(Range):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.white: "♗",
-            Color.black: "♝",
+            Color.WHITE: "♗",
+            Color.BLACK: "♝",
         }[self.color]
 
 
@@ -404,6 +405,6 @@ class Queen(Range):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.white: "♕",
-            Color.black: "♛",
+            Color.WHITE: "♕",
+            Color.BLACK: "♛",
         }[self.color]
