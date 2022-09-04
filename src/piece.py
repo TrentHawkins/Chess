@@ -31,22 +31,26 @@ from .square import Square, Vector
 class Color(IntEnum):
     """Annotate direction on the board with the corresponding color."""
 
-    WHITE = -1
-    BLACK = +1
+    white = -1
+    black = +1
 
 
-@dataclass
+@dataclass(init=False, repr=False)
 class Piece:
     """A generic chess piece.
 
-    Attributes:
-        color: One of two colors, black or white. Holds direction of the board.
+    Class Attributes:
         value: How much a piece is worth:
             1: Pawn
             3: Knight/Bishop
             5: Rook
             9: Queen
             ∞: King
+        steps: Default move patterns characteristic for each piece.
+
+    Attributes:
+        color: One of two colors, black or white. Holds direction of the board.
+        square: Where on (any) board is it (as far as rules go).
 
     A few generic rules applied to all pieces:
         Pinning: If moving a piece will discover a check on your king, the piece is pinned and cannot move.
@@ -87,9 +91,14 @@ class Piece:
 
     steps: ClassVar[set[Vector]] = set()
 
-#   ATTRIBUTES
-    color: Color
-    square: Optional[Square] = None
+    def __init__(self, color: str, square: Optional[Square] = None):
+        f"""Give a {self.__class__.__name__} a color and a square.
+
+        Args:
+            square: Location on a board (which board is irrelevant).
+        """
+        self.color = Color[color]
+        self.square = square
 
     def __repr__(self) -> str:
         f"""Represent a {self.__class__.__name__}.
@@ -158,7 +167,7 @@ class Piece:
         return set()  # A ghost piece cannot move.
 
 
-@dataclass
+@dataclass(init=False, repr=False)
 class Pawn(Piece):
     """A Pawn.
 
@@ -185,6 +194,9 @@ class Pawn(Piece):
             ↑ + → = ↗ capture east
     """
 
+#   Pawn value:
+    value: ClassVar[int] = 1
+
 #   Pawn moves:
     steps: ClassVar[set[Vector]] = {
         Piece.south,  # One step.
@@ -193,13 +205,11 @@ class Pawn(Piece):
         Piece.south + Piece.east,  # Capturing to the east.
     }
 
-    value: int = 1
-
     def __repr__(self) -> str:
         self.__repr__.__doc__
         return {
-            Color.WHITE: "♙",
-            Color.BLACK: "♟",
+            Color.white: "♙",
+            Color.black: "♟",
         }[self.color]
 
     def legal_moves(self) -> set[Square]:
@@ -213,7 +223,7 @@ class Pawn(Piece):
         return squares
 
 
-@dataclass
+@dataclass(init=False, repr=False)
 class Melee(Piece):
     """A close ranged piece:
         - King
@@ -233,7 +243,7 @@ class Melee(Piece):
         return squares
 
 
-@dataclass
+@dataclass(init=False, repr=False)
 class King(Melee):
     """A King.
 
@@ -256,12 +266,12 @@ class King(Melee):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.WHITE: "♔",
-            Color.BLACK: "♚",
+            Color.white: "♔",
+            Color.black: "♚",
         }[self.color]
 
 
-@dataclass
+@dataclass(init=False, repr=False)
 class Knight(Melee):
     """A knight.
 
@@ -287,21 +297,22 @@ class Knight(Melee):
         ↙ + → = ↓ south (removed)
     """
 
+#   Knight value:
+    value: ClassVar[int] = 3
+
 #   Knight moves:
     steps: ClassVar[set[Vector]] = \
         {diagonal + straight for diagonal, straight in product(Piece.diagonals, Piece.straights)} - Piece.straights
 
-    value: int = 3
-
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.WHITE: "♘",
-            Color.BLACK: "♞",
+            Color.white: "♘",
+            Color.black: "♞",
         }[self.color]
 
 
-@dataclass
+@dataclass(init=False, repr=False)
 class Range(Piece):
     """A long range piece:
         - Rook
@@ -321,7 +332,7 @@ class Range(Piece):
         return squares
 
 
-@dataclass
+@dataclass(init=False, repr=False)
 class Rook(Range):
     """A rook.
 
@@ -334,20 +345,21 @@ class Rook(Range):
         → east
     """
 
+#   Knight value:
+    value: ClassVar[int] = 5
+
 #   Straight lines:
     steps: ClassVar[set[Vector]] = Piece.straights
-
-    value: int = 5
 
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.WHITE: "♖",
-            Color.BLACK: "♜",
+            Color.white: "♖",
+            Color.black: "♜",
         }[self.color]
 
 
-@dataclass
+@dataclass(init=False, repr=False)
 class Bishop(Range):
     """A bishop.
 
@@ -365,20 +377,21 @@ class Bishop(Range):
         ↙ south-west
     """
 
+#   Knight value:
+    value: ClassVar[int] = 3
+
 #   Diagonal lines:
     steps: ClassVar[set[Vector]] = Piece.diagonals
-
-    value: int = 3
 
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.WHITE: "♗",
-            Color.BLACK: "♝",
+            Color.white: "♗",
+            Color.black: "♝",
         }[self.color]
 
 
-@dataclass
+@dataclass(init=False, repr=False)
 class Queen(Range):
     """A queen.
 
@@ -398,13 +411,15 @@ class Queen(Range):
         ↙ south-west
     """
 
-    steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
+#   Knight value:
+    value: ClassVar[int] = 9
 
-    value: int = 9
+#   Queen lines:
+    steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
 
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.WHITE: "♕",
-            Color.BLACK: "♛",
+            Color.white: "♕",
+            Color.black: "♛",
         }[self.color]

@@ -67,13 +67,13 @@ class TestPiece:
         from src.piece import Bishop, Color, King, Knight, Pawn, Queen, Rook
         from src.square import Square
 
-        assert Pawn(Color.WHITE, Square("h2")).legal_moves() == {
+        assert Pawn("white", Square("h2")).legal_moves() == {
             Square("g3"),  # TODO: No capturing logic yet
             Square("h3"),
         #   Square("i3"),  # out of bounds
             Square("h4"),
         }
-        assert King(Color.WHITE, Square("e1")).legal_moves() == {
+        assert King("white", Square("e1")).legal_moves() == {
             Square("e2"),  # TODO: No piece blocking yet
             Square("d2"),  # TODO: No piece blocking yet
             Square("d1"),  # TODO: No piece blocking yet
@@ -84,7 +84,7 @@ class TestPiece:
             Square("f2"),  # TODO: No piece blocking yet
             Square("e2"),  # TODO: No piece blocking yet
         }
-        assert Knight(Color.WHITE, Square("g1")).legal_moves() == {
+        assert Knight("white", Square("g1")).legal_moves() == {
             Square("h3"),
             Square("f3"),
             Square("e2"),  # TODO: No piece blocking yet
@@ -92,7 +92,7 @@ class TestPiece:
         #   Square("i0"),
         #   Square("i2"),
         }
-        assert Rook(Color.WHITE, Square("h1")).legal_moves() == {
+        assert Rook("white", Square("h1")).legal_moves() == {
             Square("h2"),  # TODO: No piece blocking yet
             Square("h3"),  # TODO: No piece blocking yet
             Square("h4"),  # TODO: No piece blocking yet
@@ -110,7 +110,7 @@ class TestPiece:
         #   Square("h0"),  # out of bounds
         #   Square("i1"),  # out of bounds
         }
-        assert Bishop(Color.WHITE, Square("f1")).legal_moves() == {
+        assert Bishop("white", Square("f1")).legal_moves() == {
             Square("e2"),  # TODO: No piece blocking yet
             Square("d3"),  # TODO: No piece blocking yet
             Square("c4"),  # TODO: No piece blocking yet
@@ -122,7 +122,7 @@ class TestPiece:
             Square("h3"),  # TODO: No piece blocking yet
         #   Square("i4"),  # out of bounds
         }
-        assert Queen(Color.WHITE, Square("d1")).legal_moves() == {
+        assert Queen("white", Square("d1")).legal_moves() == {
             Square("d2"),  # TODO: No piece blocking yet
             Square("d3"),  # TODO: No piece blocking yet
             Square("d4"),  # TODO: No piece blocking yet
