@@ -28,7 +28,7 @@ from typing import ClassVar, Optional
 from .square import Square, Vector
 
 
-class Color(IntEnum):
+class Orientation(IntEnum):
     """Annotate direction on the board with the corresponding color."""
 
     white = -1
@@ -91,13 +91,14 @@ class Piece:
 
     steps: ClassVar[set[Vector]] = set()
 
-    def __init__(self, color: str, square: Optional[Square] = None):
+    def __init__(self, color_name: str, square: Optional[Square] = None):
         f"""Give a {self.__class__.__name__} a color and a square.
 
         Args:
+            color_name: Either "white" or "black"
             square: Location on a board (which board is irrelevant).
         """
-        self.color = Color[color]
+        self.orientation = Orientation[color_name]
         self.square = square
 
     def __repr__(self) -> str:
@@ -121,7 +122,7 @@ class Piece:
             True if `target` square has a foe of whatever is on `source` square.
         """
         if self and other:
-            return self.color == other.color
+            return self.orientation == other.color
         return False
 
     def has_foe(self, other):
@@ -137,7 +138,7 @@ class Piece:
             True if `target` square has a foe of whatever is on `source` square.
         """
         if self and other:
-            return self.color != other.color
+            return self.orientation != other.color
         return False
 
     def condition(self, target: Square) -> bool:
@@ -208,16 +209,16 @@ class Pawn(Piece):
     def __repr__(self) -> str:
         self.__repr__.__doc__
         return {
-            Color.white: "♙",
-            Color.black: "♟",
-        }[self.color]
+            "white": "♙",
+            "black": "♟",
+        }[self.orientation.name]
 
     def legal_moves(self) -> set[Square]:
         super().legal_moves.__doc__
         squares = set()
         for step in self.steps:
             if self.square is not None:
-                square_step = self.square + step * self.color
+                square_step = self.square + step * self.orientation
                 if square_step is not None and self.condition(square_step):
                     squares.add(square_step)
         return squares
@@ -266,9 +267,9 @@ class King(Melee):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.white: "♔",
-            Color.black: "♚",
-        }[self.color]
+            "white": "♔",
+            "black": "♚",
+        }[self.orientation.name]
 
 
 @dataclass(init=False, repr=False)
@@ -307,9 +308,9 @@ class Knight(Melee):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.white: "♘",
-            Color.black: "♞",
-        }[self.color]
+            "white": "♘",
+            "black": "♞",
+        }[self.orientation.name]
 
 
 @dataclass(init=False, repr=False)
@@ -354,9 +355,9 @@ class Rook(Range):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.white: "♖",
-            Color.black: "♜",
-        }[self.color]
+            "white": "♖",
+            "black": "♜",
+        }[self.orientation.name]
 
 
 @dataclass(init=False, repr=False)
@@ -386,9 +387,9 @@ class Bishop(Range):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.white: "♗",
-            Color.black: "♝",
-        }[self.color]
+            "white": "♗",
+            "black": "♝",
+        }[self.orientation.name]
 
 
 @dataclass(init=False, repr=False)
@@ -420,6 +421,6 @@ class Queen(Range):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            Color.white: "♕",
-            Color.black: "♛",
-        }[self.color]
+            "white": "♕",
+            "black": "♛",
+        }[self.orientation.name]
