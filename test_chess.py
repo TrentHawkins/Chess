@@ -168,7 +168,7 @@ class TestChessGame:
         game.run()
         assert game._board == board_after_step
 
-    def test_two_turns(self, game_sequence_two_turns):
+    def test_two_turns(self):
         """Play two turns, one white one black."""
         from src.chess import Chess
         from src.board import Board
