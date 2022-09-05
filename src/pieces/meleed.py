@@ -26,18 +26,18 @@ class Meleed(Piece):
     """
 
     @property
-    def moves(self) -> tuple[set[Square], set[Square]]:
+    def moves(self) -> set[Square]:
         f"""{super().moves.__doc__}"""
-        squares, targets = super().moves
+        squares = super().moves
 
         if self.square is not None:  # If meleed piece is on a board,
             for step in self.steps:  # For all target squares,
                 square = self.square + step  # Get target,
 
-                if square is not None and self.condition(square):  # If said target is inside board limits,
-                    targets.add(square)  # Add said target to meleed piece.
+                if self.deployable(square) or self.capturable(square):  # If said target is inside board limits,
+                    squares.add(square)  # Add said target to meleed piece.
 
-        return squares, targets
+        return squares
 
 
 @dataclass(init=False, repr=False)

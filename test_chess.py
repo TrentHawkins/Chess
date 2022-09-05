@@ -25,7 +25,7 @@ class TestBoard:
 
         assert repr(Board()) == initial_board_state
 
-    def test_board_conditions(self):
+    def test_board_piece_relations(self):
         """Test the various logical conditions imposed at board level."""
         from src.board import Board
 
@@ -45,6 +45,48 @@ class TestBoard:
         assert not source.has_foe(friend)
         assert source.has_foe(foe)
 
+    def test_move(self):
+        """Test legal moves on initial board."""
+        from src.board import Board
+        from src.square import Square
+
+        board = Board()
+
+        assert board.moves == {
+            Square("a1"): set(),
+            Square("b1"): {Square("a3"), Square("c3")},  # Knight!
+            Square("c1"): set(),
+            Square("d1"): set(),
+            Square("e1"): set(),
+            Square("f1"): set(),
+            Square("g1"): {Square("f3"), Square("h3")},  # Knight!
+            Square("h1"): set(),
+            Square("a2"): {Square("a3"), Square("a4")},  # Pawn.
+            Square("b2"): {Square("b3"), Square("b4")},  # Pawn.
+            Square("c2"): {Square("c3"), Square("c4")},  # Pawn.
+            Square("d2"): {Square("d3"), Square("d4")},  # Pawn.
+            Square("e2"): {Square("e3"), Square("e4")},  # Pawn.
+            Square("f2"): {Square("f3"), Square("f4")},  # Pawn.
+            Square("g2"): {Square("g3"), Square("g4")},  # Pawn.
+            Square("h2"): {Square("h3"), Square("h4")},  # Pawn.
+            Square("a8"): set(),
+            Square("b8"): {Square("a6"), Square("c6")},  # Knight!
+            Square("c8"): set(),
+            Square("d8"): set(),
+            Square("e8"): set(),
+            Square("f8"): set(),
+            Square("g8"): {Square("f6"), Square("h6")},  # Knight!
+            Square("h8"): set(),
+            Square("a7"): {Square("a6"), Square("a5")},  # Pawn.
+            Square("b7"): {Square("b6"), Square("b5")},  # Pawn.
+            Square("c7"): {Square("c6"), Square("c5")},  # Pawn.
+            Square("d7"): {Square("d6"), Square("d5")},  # Pawn.
+            Square("e7"): {Square("e6"), Square("e5")},  # Pawn.
+            Square("f7"): {Square("f6"), Square("f5")},  # Pawn.
+            Square("g7"): {Square("g6"), Square("g5")},  # Pawn.
+            Square("h7"): {Square("h6"), Square("h5")},  # Pawn.
+        }
+
 
 class TestSquare:
     """Unit tests exclusive to the squares."""
@@ -59,115 +101,3 @@ class TestSquare:
         assert Square("e4") + Vector(0, +1) == Square("f4")
 
 
-class TestPiece:
-    """Unit tests for pieces."""
-
-    def test_legal_moves(self):
-        """Test whether the pieces generate proper legal moves. One example for each piece."""
-        from src.pieces.meleed import King, Knight
-        from src.pieces.ranged import Bishop, Queen, Rook
-        from src.pieces.special import Pawn
-        from src.square import Square
-
-        assert Pawn("white", Square("h2")).moves == (
-            {
-                Square("h3"),
-                Square("h4"),
-            },
-            {
-                Square("g3"),  # TODO: No capturing logic yet
-            #   Square("i3"),  # TODO: No capturing logic yet  # out of bounds
-            },
-        )
-        assert King("white", Square("e1")).moves == (
-            set(),
-            {
-                Square("e2"),  # TODO: No piece blocking yet
-                Square("d2"),  # TODO: No piece blocking yet
-                Square("d1"),  # TODO: No piece blocking yet
-            #   Square("d0"),  # out of bounds
-            #   Square("e0"),  # out of bounds
-            #   Square("f0"),  # out of bounds
-                Square("f1"),  # TODO: No piece blocking yet
-                Square("f2"),  # TODO: No piece blocking yet
-                Square("e2"),  # TODO: No piece blocking yet
-            },
-        )
-        assert Knight("white", Square("g1")).moves == (
-            set(),
-            {
-                Square("h3"),
-                Square("f3"),
-                Square("e2"),  # TODO: No piece blocking yet
-            #   Square("e0"),
-            #   Square("i0"),
-            #   Square("i2"),
-            },
-        )
-        assert Rook("white", Square("h1")).moves == (
-            {
-                Square("h2"),  # TODO: No piece blocking yet
-                Square("h3"),  # TODO: No piece blocking yet
-                Square("h4"),  # TODO: No piece blocking yet
-                Square("h5"),  # TODO: No piece blocking yet
-                Square("h6"),  # TODO: No piece blocking yet
-                Square("h7"),  # TODO: No piece blocking yet
-                Square("h8"),  # TODO: No piece blocking yet
-                Square("g1"),  # TODO: No piece blocking yet
-                Square("f1"),  # TODO: No piece blocking yet
-                Square("e1"),  # TODO: No piece blocking yet
-                Square("d1"),  # TODO: No piece blocking yet
-                Square("c1"),  # TODO: No piece blocking yet
-                Square("b1"),  # TODO: No piece blocking yet
-                Square("a1"),  # TODO: No piece blocking yet
-            #   Square("h0"),  # out of bounds
-            #   Square("i1"),  # out of bounds
-            },
-            set(),
-        )
-        assert Bishop("white", Square("f1")).moves == (
-            {
-                Square("e2"),  # TODO: No piece blocking yet
-                Square("d3"),  # TODO: No piece blocking yet
-                Square("c4"),  # TODO: No piece blocking yet
-                Square("b5"),  # TODO: No piece blocking yet
-                Square("a6"),  # TODO: No piece blocking yet
-            #   Square("e0"),  # out of bounds
-            #   Square("g0"),  # out of bounds
-                Square("g2"),  # TODO: No piece blocking yet
-                Square("h3"),  # TODO: No piece blocking yet
-            #   Square("i4"),  # out of bounds
-            },
-            set(),
-        )
-        assert Queen("white", Square("d1")).moves == (
-            {
-                Square("d2"),  # TODO: No piece blocking yet
-                Square("d3"),  # TODO: No piece blocking yet
-                Square("d4"),  # TODO: No piece blocking yet
-                Square("d5"),  # TODO: No piece blocking yet
-                Square("d6"),  # TODO: No piece blocking yet
-                Square("d7"),  # TODO: No piece blocking yet
-                Square("d8"),  # TODO: No piece blocking yet
-                Square("c2"),  # TODO: No piece blocking yet
-                Square("b3"),  # TODO: No piece blocking yet
-                Square("a4"),  # TODO: No piece blocking yet
-                Square("c1"),  # TODO: No piece blocking yet
-                Square("b1"),  # TODO: No piece blocking yet
-                Square("a1"),  # TODO: No piece blocking yet
-            #   Square("c0"),  # out of bounds
-            #   Square("d0"),  # out of bounds
-            #   Square("e0"),  # out of bounds
-                Square("e1"),  # TODO: No piece blocking yet
-                Square("f1"),  # TODO: No piece blocking yet
-                Square("g1"),  # TODO: No piece blocking yet
-                Square("h1"),  # TODO: No piece blocking yet
-            #   Square("i1"),  # out of bounds
-                Square("e2"),  # TODO: No piece blocking yet
-                Square("f3"),  # TODO: No piece blocking yet
-                Square("g4"),  # TODO: No piece blocking yet
-                Square("h5"),  # TODO: No piece blocking yet
-            #   Square("i6"),  # out of bounds
-            },
-            set(),
-        )

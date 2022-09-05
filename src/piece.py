@@ -110,53 +110,38 @@ class Piece:
         """
         return self.orientation != other.orientation if self and other else False
 
-    def condition(self, target: Square) -> bool:
-        """Special conditions pertaining the particular piece type and source square.
+    def deployable(self, target: Square) -> bool:
+        """Check if current piece is placeable on target square.
 
         This method is to be lazily-defined in board, access to current piece data makes it appropriate to sign it in here.
+        If this check fails, the capturability check will kick in as a next step.
 
         Args:
-            target: The source square is `self.square`.
+            target: The source square is `self.square` (not necessary).
 
         Returns:
-            Whether the specific condition are met.
+            Whether piece is placeable on target square.
         """
-        return self.square is not None  # The most basic condition if for a piece to be on a legal square.
+        return self.square is not None and target is not None  # Make sure you check a piece that is on a board.
+
+    def capturable(self, target: Square) -> bool:
+        """Check if piece on target square is capturable by current piece.
+
+        This method is to be lazily-defined in board, access to current piece data makes it appropriate to sign it in here.
+        If this check fails... NOTE: Implement special checks.
+
+        Args:
+            target: The source square is `self.square` (necessary for cross-checking color).
+
+        Returns:
+            Whether piece on target square is capturable by current piece.
+        """
+        return self.square is not None and target is not None  # Make sure you check a piece that is on a board.
 
 #   NOTE: The king might be prove to be problematic, as it has an extra condition of blocked movement, squares that are checked.
     @property
-    def moves(self) -> tuple[set[Square], set[Square]]:
+    def moves(self) -> set[Square]:
         f"""Generate all legal moves a {self.__class__.__name__} can apriori make.
-
-        2 sets are returned, one for empty squares the piece can move to and one for potential target squares.
-        The logic is to unify movement blocking logic, and basically differentiate blocks by type.
-        Only target squares may mutate into viable move squares.
-
-        Example:
-            Suppose there is a rook at "h1" and a pawn at "h6". The rook can move freely up to "h5".
-            If the pawn at "h6" is friednly this is it. If it is foe, then rook on "h1" can capture pawn on "h6".
-            Instead of differentiating scenario early,
-            apply a global blocking movement policy and add blockers to potential targets instead, to be trimmed by color.
-
-        Example with block resolution:
-            Suppose there is a white pawn at "e4" and two black pawns at "d5" and "e5" respectively.
-            Upon checking the white pawn for legal moves,
-                squares will be blocked if any piece is found in them
-                targets will be blocked if an enemy piece is not found in them.
-
-        The reason is that, no matter how a piece moves,
-        target resolution happens only at the trailing end of its move pattern.
-        Therefore, if target squares do not contain an enemy, the piece cannot go there,
-        because target are created when the trigger for blocking squares is activated.
-        See implementation of `Range(Piece)` for an illustrative application of this logic.
-
-        Pawns:
-            This logic is extensible to pawns as well.
-            Their diagonals will be checked with and only with enemy pieces, as it should.
-            The front of a pawn will be checked if blocked normally. No color check is needed, if blocked, that is it.
-
-        Why does the latter not affect other pieces?
-        Because the trailing end of all movements is always a target square for all pieces.
 
         Args:
             square: Square on which piece is placed.
@@ -168,5 +153,4 @@ class Piece:
                 squares: any empty potential square the piece can move to
                 targets: any potential square in squares that the piece can target another piece
         """
-        squares, targets = set(), set()
-        return squares, targets  # A ghost piece cannot move or capture.
+        return set()  # A ghost piece cannot move or capture.

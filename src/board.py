@@ -3,6 +3,8 @@
 Referencing with chess algebraic notation is possible.
 """
 
+from types import MethodType
+
 from .piece import Orientation, Piece
 from .pieces.meleed import King, Knight
 from .pieces.ranged import Bishop, Queen, Rook
@@ -103,6 +105,13 @@ class Board:
 
         self._board[square.rank][square.file] = None
 
+    def __iter__(self):
+        """Iterate through existent pieces on the board."""
+        for rank in self._board:
+            for piece in rank:
+                if piece is not None:
+                    yield piece
+
     def __contains__(self, piece: Piece | None) -> bool:
         """Check if a piece is on the board.
 
@@ -113,3 +122,33 @@ class Board:
             If piece is in board.
         """
         return any(piece in rank for rank in self._board)
+
+    @property
+    def moves(self):
+        """Generate moves for all pieces on the board."""
+        _moves = {}
+
+        for piece in self:
+            def deployable(source_piece: Piece, target: Square):
+                Piece.deployable.__doc__
+                if target is not None:
+                    target_piece = self[target]
+
+                return Piece.deployable(source_piece, target) and target_piece is None
+
+            def capturable(source_piece: Piece, target: Square):
+                Piece.capturable.__doc__
+                if target is not None:
+                    target_piece = self[target]
+
+                    if target_piece is not None:
+                        return Piece.capturable(source_piece, target) and source_piece.orientation != target_piece.orientation
+
+                return False
+
+            piece.deployable = MethodType(deployable, piece)
+            piece.capturable = MethodType(capturable, piece)
+
+            _moves[piece.square] = piece.moves
+
+        return _moves

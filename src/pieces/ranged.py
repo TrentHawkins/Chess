@@ -24,22 +24,22 @@ class Ranged(Piece):
     """
 
     @property
-    def moves(self) -> tuple[set[Square], set[Square]]:
+    def moves(self) -> set[Square]:
         f"""{super().moves.__doc__}"""
-        squares, targets = super().moves
+        squares = super().moves
 
         if self.square is not None:  # If ranged piece is on a board,
             for step in self.steps:  # For all legal directions,
                 square = self.square + step  # Get next square in direction,
 
-                while square is not None and self.condition(square):  # If said square is inside board limits,
+                while self.deployable(square):  # If said square is inside board limits,
                     squares.add(square)  # Add said square to ranged piece.
                     square += step  # Advance to the next square in said direction.
 
-                if square is not None:  # NOTE: This check will become relevant as soon as condition is defined too.
-                    targets.add(square)  # Do not forget to add trailing square to targets.
+                if self.capturable(square):  # NOTE: This check will become relevant as soon as condition is defined too.
+                    squares.add(square)  # Do not forget to add trailing square to targets.
 
-        return squares, targets
+        return squares
 
 
 @dataclass(init=False, repr=False)

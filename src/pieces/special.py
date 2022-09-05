@@ -20,7 +20,7 @@ class Pawn(Piece):
     Moves forward a square, unless its first move where it can move two and unless blocked by any piece.
     It captured forward-diagonally. I can capture en-passant:
         If an enemy pawn passes yours trying to escape capture, well... it cannot, not for this round.
-    NOTE: That probably means that board will invoke this method multiple times (unti a better way is thought).
+
     Upon reaching the end of the board, it is promoted to an officer:
         - Rook
         - Bishop
@@ -62,26 +62,29 @@ class Pawn(Piece):
         }[self.orientation.name]
 
     @property
-    def moves(self) -> tuple[set[Square], set[Square]]:
+    def moves(self) -> set[Square]:
         f"""{super().moves.__doc__}"""
-        squares, targets = super().moves
+        squares = super().moves
 
         if self.square is not None:  # If pawn is on a board,
             for step in self.captures:  # For all target squares (diagonally with respect to pawn),
                 square = self.square + step * self.orientation  # Get target,
 
-                if square is not None:  # If said target is inside board limits,
-                    targets.add(square)  # Add said target to pawn.
+                if self.capturable(square):  # If said target is inside board limits,
+                    squares.add(square)  # Add said target to pawn.
 
             square = self.square + self.step * self.orientation  # Get forward square,
 
-            if square is not None:  # If said square is inside board limits,
+            if self.deployable(square):  # If said square is inside board limits,
                 squares.add(square)  # Add said square to possible moves,
 
                 if not self.has_moved:  # If the pawn is in its starting position,
-                    squares.add(square + self.step * self.orientation)  # Add the next forward square to possible moves too.
+                    square += self.step * self.orientation  # Get next forward square,
+
+                    if self.deployable(square):  # If said square is inside board limits,
+                        squares.add(square)  # Add the next forward square to possible moves too.
 
             else:  # Otherwise,
                 self.promoted = True  # The pawn is promoted, assuming it falls outside because it can only move forward.
 
-        return squares, targets
+        return squares
