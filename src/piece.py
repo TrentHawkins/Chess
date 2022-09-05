@@ -95,38 +95,20 @@ class Piece:
         return " "  # An unspecified piece is a ghost piece.
 
     def has_friend(self, other):
-        """Check weather `target` is a foe of `source`.
-
-        NOTE: this can be done with `Piece` objects instead of `Square` ones.
-
-        Args:
-            source: The source piece.
-            source: The target piece to check allegiance of.
+        """Check weather `other` is a friend of `self`.
 
         Returns:
-            True if `target` square has a foe of whatever is on `source` square.
+            True if `self` and `other` are of the same color.
         """
-        if self and other:
-            return self.orientation == other.orientation
-
-        return False
+        return self.orientation == other.orientation if self and other else False
 
     def has_foe(self, other):
-        """Check weather `target` is a friend of `source`.
-
-        NOTE: this can be done with `Piece` objects instead of `Square` ones.
-
-        Args:
-            source: The source piece.
-            source: The target piece to check allegiance of.
+        """Check weather `other` is a foe of `self`.
 
         Returns:
-            True if `target` square has a foe of whatever is on `source` square.
+            True if `self` and `other` are of different color.
         """
-        if self and other:
-            return self.orientation != other.orientation
-
-        return False
+        return self.orientation != other.orientation if self and other else False
 
     def condition(self, target: Square) -> bool:
         """Special conditions pertaining the particular piece type and source square.
@@ -142,6 +124,7 @@ class Piece:
         return self.square is not None  # The most basic condition if for a piece to be on a legal square.
 
 #   NOTE: The king might be prove to be problematic, as it has an extra condition of blocked movement, squares that are checked.
+    @property
     def moves(self) -> tuple[set[Square], set[Square]]:
         f"""Generate all legal moves a {self.__class__.__name__} can apriori make.
 

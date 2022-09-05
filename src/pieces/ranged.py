@@ -19,11 +19,14 @@ class Ranged(Piece):
         - Rook
         - Bishop
         - Queen
+
+    Testing.
     """
 
+    @property
     def moves(self) -> tuple[set[Square], set[Square]]:
         f"""{super().moves.__doc__}"""
-        squares, targets = super().moves()
+        squares, targets = super().moves
 
         if self.square is not None:  # If ranged piece is on a board,
             for step in self.steps:  # For all legal directions,

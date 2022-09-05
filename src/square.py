@@ -4,8 +4,9 @@ A different type is used for displacements on squares since they are also semant
 """
 
 
-import re
 from dataclasses import dataclass
+from re import compile
+from typing import ClassVar
 
 Rank = int
 File = int
@@ -67,15 +68,15 @@ class Square(Vector):
     You can operate on squares with squares, but results will be unpredictable unless you know what you are doing.
     """
 
-    rank_range = "87654321"
-    file_range = "abcdefgh"
+    rank_range: ClassVar[str] = "87654321"
+    file_range: ClassVar[str] = "abcdefgh"
 
-    index_to_file = {index_: file_ for index_, file_ in zip(range(8), file_range)}  # translate range index to file in chess
-    file_to_index = {file_: index_ for index_, file_ in zip(range(8), file_range)}  # translate file in chess to range index
-    index_to_rank = {index_: rank_ for index_, rank_ in zip(range(8), rank_range)}  # translate range index to rank in chess
-    rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), rank_range)}  # translate rank in chess to range index
+    index_to_file: ClassVar[dict] = {index_: file_ for index_, file_ in zip(range(8), file_range)}  # range index to file in chess
+    file_to_index: ClassVar[dict] = {file_: index_ for index_, file_ in zip(range(8), file_range)}  # file in chess to range index
+    index_to_rank: ClassVar[dict] = {index_: rank_ for index_, rank_ in zip(range(8), rank_range)}  # range index to rank in chess
+    rank_to_index: ClassVar[dict] = {rank_: index_ for index_, rank_ in zip(range(8), rank_range)}  # rank in chess to range index
 
-    notation_range = re.compile(f"[{file_range}][{rank_range}]")
+    notation_range = compile(f"[{file_range}][{rank_range}]")
 
     def __new__(cls, square: Vector | str):
         """Abort if attempted square is illegal.

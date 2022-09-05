@@ -25,16 +25,17 @@ class Meleed(Piece):
     For a meeled piece (pawns are special) all squares are target squares.
     """
 
+    @property
     def moves(self) -> tuple[set[Square], set[Square]]:
         f"""{super().moves.__doc__}"""
-        squares, targets = super().moves()
+        squares, targets = super().moves
 
         if self.square is not None:  # If meleed piece is on a board,
             for step in self.steps:  # For all target squares,
-                target = self.square + step  # Get target,
+                square = self.square + step  # Get target,
 
-                if target is not None and self.condition(target):  # If said target is inside board limits,
-                    targets.add(target)  # Add said target to meleed piece.
+                if square is not None and self.condition(square):  # If said target is inside board limits,
+                    targets.add(square)  # Add said target to meleed piece.
 
         return squares, targets
 
@@ -60,7 +61,7 @@ class King(Meleed):
     steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
 
     def __repr__(self) -> str:
-        f"""{super().__repr__.__doc__}"""
+        super().__repr__.__doc__
         return {
             "white": "♔",
             "black": "♚",
@@ -101,7 +102,7 @@ class Knight(Meleed):
         {diagonal + straight for diagonal, straight in product(Piece.diagonals, Piece.straights)} - Piece.straights
 
     def __repr__(self) -> str:
-        f"""{super().__repr__.__doc__}"""
+        super().__repr__.__doc__
         return {
             "white": "♘",
             "black": "♞",

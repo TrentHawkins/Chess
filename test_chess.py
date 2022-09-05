@@ -69,7 +69,7 @@ class TestPiece:
         from src.pieces.special import Pawn
         from src.square import Square
 
-        assert Pawn("white", Square("h2")).moves() == (
+        assert Pawn("white", Square("h2")).moves == (
             {
                 Square("h3"),
                 Square("h4"),
@@ -79,7 +79,7 @@ class TestPiece:
             #   Square("i3"),  # TODO: No capturing logic yet  # out of bounds
             },
         )
-        assert King("white", Square("e1")).moves() == (
+        assert King("white", Square("e1")).moves == (
             set(),
             {
                 Square("e2"),  # TODO: No piece blocking yet
@@ -93,7 +93,7 @@ class TestPiece:
                 Square("e2"),  # TODO: No piece blocking yet
             },
         )
-        assert Knight("white", Square("g1")).moves() == (
+        assert Knight("white", Square("g1")).moves == (
             set(),
             {
                 Square("h3"),
@@ -104,7 +104,7 @@ class TestPiece:
             #   Square("i2"),
             },
         )
-        assert Rook("white", Square("h1")).moves() == (
+        assert Rook("white", Square("h1")).moves == (
             {
                 Square("h2"),  # TODO: No piece blocking yet
                 Square("h3"),  # TODO: No piece blocking yet
@@ -125,7 +125,7 @@ class TestPiece:
             },
             set(),
         )
-        assert Bishop("white", Square("f1")).moves() == (
+        assert Bishop("white", Square("f1")).moves == (
             {
                 Square("e2"),  # TODO: No piece blocking yet
                 Square("d3"),  # TODO: No piece blocking yet
@@ -140,7 +140,7 @@ class TestPiece:
             },
             set(),
         )
-        assert Queen("white", Square("d1")).moves() == (
+        assert Queen("white", Square("d1")).moves == (
             {
                 Square("d2"),  # TODO: No piece blocking yet
                 Square("d3"),  # TODO: No piece blocking yet
