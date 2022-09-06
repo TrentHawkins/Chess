@@ -154,16 +154,21 @@ class Board:
 
         return _moves
 
-    def move(self, source: Square | str, target: Square | str):
+    def move(self, source_piece: Piece | None, target: Square | str):
         """Move whatever is in source square to target square if move is valid.
 
         Args:
             source: The square in notation the piece is on
             target: The square in notation the piece wants to go to.
         """
-        source = Square(source)
+        if source_piece is not None:
+            source = source_piece.square
+
+        else:
+            source = None
+
         target = Square(target)
 
-        if source in self.moves:
+        if source is not None and source in self.moves:
             if target in self.moves[source]:
-                self[source], self[target] = None, self[source]
+                self[source], self[target] = None, source_piece

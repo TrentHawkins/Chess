@@ -95,7 +95,7 @@ class TestBoard:
         board = Board()
         pawn = board["e2"]
 
-        board.move("e2", "e4")  # The most famous opening move in the history of chess!
+        board.move(pawn, "e4")  # The most famous opening move in the history of chess!
 
         assert board["e2"] is None
         assert board["e4"] is pawn
@@ -112,5 +112,3 @@ class TestSquare:
         assert Square("e4") + Vector(0, -1) == Square("d4")
         assert Square("e4") + Vector(+1, 0) == Square("e3")
         assert Square("e4") + Vector(0, +1) == Square("f4")
-
-
