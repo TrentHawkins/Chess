@@ -73,10 +73,15 @@ class Board:
         """
         square = Square(square)
 
+    #   If there is another piece on the square, safely remove it from the board first.
+        if self[square] is not None:
+            del self[square]
+
+    #   If a true piece is assigned, proceed as planned, otherwise leave the square empty.
         if piece is not None:
             piece.square = square
 
-        self._board[square.rank][square.file] = piece
+            self._board[square.rank][square.file] = piece
 
     def __getitem__(self, square: Square | str) -> Piece | None:
         """Get the piece of a given square.
@@ -89,6 +94,7 @@ class Board:
         """
         square = Square(square)
 
+    #   If requesting the content of a true square return a piece or `None`.
         if square is not None:
             return self._board[square.rank][square.file]
 
@@ -101,12 +107,13 @@ class Board:
             square: The rank and file of the square on which to remove a piece (if any).
         """
         square = Square(square)
-        piece = self._board[square.rank][square.file]
+        piece = self[square]
 
+    #   If there truly is a piece on that square, and referenced elsewhere, best do the book-keeping of taking it off-board.
         if piece is not None:
             piece.square = None
 
-        self._board[square.rank][square.file] = None
+            self._board[square.rank][square.file] = None
 
     def __iter__(self):
         """Iterate through existent pieces on the board."""
