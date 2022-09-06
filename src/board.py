@@ -89,7 +89,10 @@ class Board:
         """
         square = Square(square)
 
-        return self._board[square.rank][square.file]
+        if square is not None:
+            return self._board[square.rank][square.file]
+
+        return None
 
     def __delitem__(self, square: Square | str):
         """Remove the piece of a given square.
@@ -131,18 +134,16 @@ class Board:
         for piece in self:
             def deployable(source_piece: Piece, target: Square):
                 Piece.deployable.__doc__
-                if target is not None:
-                    target_piece = self[target]
+                target_piece = self[target]
 
                 return Piece.deployable(source_piece, target) and target_piece is None
 
             def capturable(source_piece: Piece, target: Square):
                 Piece.capturable.__doc__
-                if target is not None:
-                    target_piece = self[target]
+                target_piece = self[target]
 
-                    if target_piece is not None:
-                        return Piece.capturable(source_piece, target) and source_piece.orientation != target_piece.orientation
+                if target_piece is not None:
+                    return Piece.capturable(source_piece, target) and source_piece.orientation != target_piece.orientation
 
                 return False
 
@@ -152,3 +153,17 @@ class Board:
             _moves[piece.square] = piece.moves
 
         return _moves
+
+    def move(self, source: Square | str, target: Square | str):
+        """Move whatever is in source square to target square if move is valid.
+
+        Args:
+            source: The square in notation the piece is on
+            target: The square in notation the piece wants to go to.
+        """
+        source = Square(source)
+        target = Square(target)
+
+        if source in self.moves:
+            if target in self.moves[source]:
+                self[source], self[target] = None, self[source]

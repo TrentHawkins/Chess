@@ -45,7 +45,7 @@ class TestBoard:
         assert not source.has_foe(friend)
         assert source.has_foe(foe)
 
-    def test_move(self):
+    def test_moves(self):
         """Test legal moves on initial board."""
         from src.board import Board
         from src.square import Square
@@ -86,6 +86,19 @@ class TestBoard:
             Square("g7"): {Square("g6"), Square("g5")},  # Pawn.
             Square("h7"): {Square("h6"), Square("h5")},  # Pawn.
         }
+
+    def test_move(self):
+        """Test draft move method."""
+        from src.board import Board
+        from src.square import Square
+
+        board = Board()
+        pawn = board["e2"]
+
+        board.move("e2", "e4")  # The most famous opening move in the history of chess!
+
+        assert board["e2"] is None
+        assert board["e4"] is pawn
 
 
 class TestSquare:
