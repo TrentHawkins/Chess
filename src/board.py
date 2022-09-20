@@ -8,7 +8,7 @@ from types import MethodType
 from .piece import Orientation, Piece
 from .pieces.meleed import King, Knight
 from .pieces.ranged import Bishop, Queen, Rook
-from .pieces.special import Pawn
+from .pieces.special import Castle, Pawn
 from .square import Square
 
 
@@ -30,6 +30,9 @@ class Board:
         """Initialize a chessboard with a new game congifuration."""
         self._board: list[list[Piece | None]] = [[None for _ in range(8)] for _ in range(8)]
 
+    #   NOTE: Temporarily assign castles to board:
+        self.castle = {}
+
         if not empty:
             for color in ["white", "black"]:
                 pawn_rank = (Orientation[color] * 5 + 9) // 2  # Pawn rank per color.
@@ -48,6 +51,18 @@ class Board:
                 self[f"f{main_rank}"] = Bishop(color)
                 self[f"g{main_rank}"] = Knight(color)
                 self[f"h{main_rank}"] = Rook(color)
+
+            #   NOTE: Temporarily assign castles to board:
+                self.castle[color] = {
+                    "king-side": Castle(
+                        self[f"e{main_rank}"],  # type: ignore
+                        self[f"h{main_rank}"],  # type: ignore
+                    ),
+                    "queen-side": Castle(
+                        self[f"e{main_rank}"],  # type: ignore
+                        self[f"a{main_rank}"],  # type: ignore
+                    ),
+                }
 
     def __repr__(self) -> str:
         """Represent the board in proper direction and use the representation of each piece.

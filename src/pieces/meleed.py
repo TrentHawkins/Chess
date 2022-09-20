@@ -60,6 +60,9 @@ class King(Meleed):
 #   King moves:
     steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
 
+    has_moved: bool = False  # For castling.
+    in_check: bool = False
+
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {

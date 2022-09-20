@@ -11,6 +11,8 @@ from typing import ClassVar
 
 from ..piece import Piece
 from ..square import Square, Vector
+from .meleed import King
+from .ranged import Rook
 
 
 @dataclass(init=False, repr=False)
@@ -88,3 +90,44 @@ class Pawn(Piece):
                 self.promoted = True  # The pawn is promoted, assuming it falls outside because it can only move forward.
 
         return squares
+
+
+@dataclass
+class Castle:
+    """ A pair of king and rook for facilitating castling.
+
+    For each game, two such pairs are created per player, a king-side and a queen-side castle.
+    This class attempts at abstracting the castling logic to its fundamental rules:
+    -   The king must not have moved.
+    -   The corresponding rook to castle must not have moved.
+    -   The king must not be in check.
+    -   The square the king skips with castling must not be threatened.
+    -   There must not be any obstructing pieces (of any color).
+
+    Relative positions will be used for checking and performing the castling,
+    relying on the `has_moved` flags and proper board initialization to ensure correctness.
+
+    Attributes:
+        king: reference to a king piece
+        rook: reference to a rook piece (of same color and on the same board)
+
+    NOTE: Color logic will become cosmetic only, as soon as `Player` objects are implemented.
+    This will solve both the "same color" and "same game (board)" issues,
+    as pieces will be drawn from a player's collection.
+
+    Castles belong to player and are a piece wrapper for such special moves.
+    """
+
+    king: King  # reference to a king piece
+    rook: Rook  # reference to a rook piece (of same color)
+
+    def deployable(self) -> bool:
+        """Check if castling with the two pieces is still possible.
+
+        This check will be refined with context from the board.
+        For now check if either piece has moved, king is unchecked and corresponding rook is still alive.
+
+        Returns:
+            Whether castling with the two pieces is still possible.
+        """
+        return not (self.king.has_moved or self.rook.has_moved or self.king.in_check or self.rook.square is not None)

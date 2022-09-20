@@ -105,7 +105,10 @@ class Square(Vector):
         """
         match square:
             case Vector(rank, file):
-                super().__init__(rank, file)
+                super().__init__(
+                    rank,
+                    file,
+                )
 
             case str():
                 super().__init__(
