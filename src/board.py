@@ -193,7 +193,13 @@ class Board:
 
     @property
     def moves(self):
-        """Generate moves for all pieces on the board."""
+        """Generate moves for all pieces on the board.
+
+        Return:
+            A dictionary containing all possible moves for each square player has a piece on.
+
+        NOTE: Ideally the piece would be used as key but it is unhashable.
+        """
         _moves = {}
 
         for piece in self:
