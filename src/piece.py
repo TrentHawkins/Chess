@@ -83,8 +83,9 @@ class Piece:
             color_name: Either "white" or "black"
             square: Location on a board (which board is irrelevant).
         """
-        self.orientation = Orientation[color]
-        self.square = square
+        self.orientation: Orientation = Orientation[color]
+        self.square: Square | None = square
+        self.has_moved: bool = False  # Has not moved upon creation.  # NOTE: This may apply to several pieces so define here.
 
     def __repr__(self) -> str:
         f"""Represent a {self.__class__.__name__}.

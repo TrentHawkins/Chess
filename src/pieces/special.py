@@ -53,7 +53,6 @@ class Pawn(Piece):
     }
 
 #   Pawn flags:
-    has_moved: bool = False
     promoted: bool = False
 
     def __repr__(self) -> str:

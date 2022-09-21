@@ -238,4 +238,9 @@ class Board:
 
         if source is not None and source in self.moves:
             if target in self.moves[source]:
-                self[source], self[target] = None, self[source]
+                piece = self[source]
+
+                if piece is not None:
+                    piece.has_moved = True
+
+                self[source], self[target] = None, piece

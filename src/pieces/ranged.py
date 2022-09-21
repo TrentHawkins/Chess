@@ -61,8 +61,6 @@ class Rook(Ranged):
 #   Straight lines:
     steps: ClassVar[set[Vector]] = Piece.straights
 
-    has_moved: bool = False  # For castling.
-
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
