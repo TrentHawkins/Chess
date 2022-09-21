@@ -270,7 +270,7 @@ class TestBoard:
         board = Board()
         pawn = board["e2"]
 
-        board.move(pawn, "e4")  # The most famous opening move in the history of chess!
+        board.move("e2", "e4")  # The most famous opening move in the history of chess!
 
         assert board["e2"] is None
         assert board["e4"] is pawn
