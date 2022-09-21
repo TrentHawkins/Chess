@@ -3,7 +3,6 @@
 Referencing with chess algebraic notation is possible.
 """
 
-from codecs import strict_errors
 from itertools import cycle
 from types import MethodType
 
@@ -28,31 +27,39 @@ class Board:
         Item at [7][0] is referenced as ["a1"].
     """
 
-    def __init__(self, empty: bool = False):
+    default_board_theme = {
+        'white': 3,
+        'black': 1,
+    }
+
+    def __init__(self, *, empty: bool = False, theme: dict[str, int] = default_board_theme):
         """Initialize a chessboard with a new game congifuration."""
         self._board: list[list[Piece | None]] = [[None for _ in range(8)] for _ in range(8)]
+        self.theme = theme  # Set board color theme.
 
     #   NOTE: Temporarily assign castles to board:
         self.castle = {}
 
+        main_pieces = {
+            "a": Rook,
+            "b": Knight,
+            "c": Bishop,
+            "d": Queen,
+            "e": King,
+            "f": Bishop,
+            "g": Knight,
+            "h": Rook,
+        }
+
         if not empty:
-            for color in ["white", "black"]:
+            for color in ['white', 'black']:
                 pawn_rank = (Orientation[color] * 5 + 9) // 2  # Pawn rank per color.
                 main_rank = (Orientation[color] * 7 + 9) // 2  # Main rank per color.
 
-            #   The pawns:
-                for file in Square.file_range:
-                    self[f"{file}{pawn_rank}"] = Pawn(color)
-
-            #   The rest of the pieces:
-                self[f"a{main_rank}"] = Rook(color)
-                self[f"b{main_rank}"] = Knight(color)
-                self[f"c{main_rank}"] = Bishop(color)
-                self[f"d{main_rank}"] = Queen(color)
-                self[f"e{main_rank}"] = King(color)
-                self[f"f{main_rank}"] = Bishop(color)
-                self[f"g{main_rank}"] = Knight(color)
-                self[f"h{main_rank}"] = Rook(color)
+            #   All the pieces:
+                for file, Main in main_pieces.items():
+                    self[f"{file}{main_rank}"] = Main(color)  # The main pieces (rooks, knights, bishops, queen, king)
+                    self[f"{file}{pawn_rank}"] = Pawn(color)  # The pawns.
 
             #   NOTE: Temporarily assign castles to board:
                 self.castle[color] = {
@@ -72,44 +79,47 @@ class Board:
         Returns:
             The board representation.
         """
-        main = cycle(
+        white = 3
+        black = 1
+
+        square_color = cycle(
             [
-                "\033[30;46m",  # white
-                "\033[30;44m",  # black
+                f"\033[0m\033[4{self.theme['white']}m",  # white
+                f"\033[0m\033[4{self.theme['black']}m",  # black
             ]
         )
-        edge = cycle(
+        edge_color = cycle(
             [
-                "\033[36;44m▌",
-                "\033[36;44m▐",
+                f"\033[0m\033[3{self.theme['black']};4{self.theme['white']}m▐",
+                f"\033[0m\033[3{self.theme['white']};4{self.theme['black']}m▐",
             ]
         )
-        null = cycle(
+        border_color = cycle(
             [
-                "\033[0m\033[36m▐",
-                "\033[0m\033[34m▌\033[0m\n",
-                "\033[0m\033[34m▐",
-                "\033[0m\033[36m▌\033[0m\n",
+                f"\033[0m\033[3{self.theme['white']}m▐",
+                f"\033[0m\033[3{self.theme['black']}m▌\033[0m\n",
+                f"\033[0m\033[3{self.theme['black']}m▐",
+                f"\033[0m\033[3{self.theme['white']}m▌\033[0m\n",
             ]
         )
 
         representation = "\n"
 
         for rank in self._board:
-            representation += next(null)
+            representation += next(border_color)
             representation += (
-                next(main) + str(rank[0]) + next(edge) +
-                next(main) + str(rank[1]) + next(edge) +
-                next(main) + str(rank[2]) + next(edge) +
-                next(main) + str(rank[3]) + next(edge) +
-                next(main) + str(rank[4]) + next(edge) +
-                next(main) + str(rank[5]) + next(edge) +
-                next(main) + str(rank[6]) + next(edge) +
-                next(main) + str(rank[7])
+                next(square_color) + str(rank[0]) + next(edge_color) +
+                next(square_color) + str(rank[1]) + next(edge_color) +
+                next(square_color) + str(rank[2]) + next(edge_color) +
+                next(square_color) + str(rank[3]) + next(edge_color) +
+                next(square_color) + str(rank[4]) + next(edge_color) +
+                next(square_color) + str(rank[5]) + next(edge_color) +
+                next(square_color) + str(rank[6]) + next(edge_color) +
+                next(square_color) + str(rank[7])
             )
-            representation += next(null)
+            representation += next(border_color)
 
-            next(main)
+            next(square_color)  # Flip colors for next rank to make a checkerboard.
 
         return representation.replace("None", "\033[8m🨅\033[0m")
 
@@ -130,7 +140,7 @@ class Board:
         if piece is not None:
             piece.square = square
 
-            self._board[square.rank][square.file] = piece
+        self._board[square.rank][square.file] = piece
 
     def __getitem__(self, square: Square | str) -> Piece | None:
         """Get the piece of a given square.
@@ -143,11 +153,9 @@ class Board:
         """
         square = Square(square)
 
-    #   If requesting the content of a true square return a piece or `None`.
+    #   HACK: A square outside the boarfd may be requested.
         if square is not None:
             return self._board[square.rank][square.file]
-
-        return None
 
     def __delitem__(self, square: Square | str):
         """Remove the piece of a given square.
@@ -156,13 +164,14 @@ class Board:
             square: The rank and file of the square on which to remove a piece (if any).
         """
         square = Square(square)
+
         piece = self[square]
 
     #   If there truly is a piece on that square, and referenced elsewhere, best do the book-keeping of taking it off-board.
         if piece is not None:
             piece.square = None
 
-            self._board[square.rank][square.file] = None
+        self._board[square.rank][square.file] = None
 
     def __iter__(self):
         """Iterate through existent pieces on the board."""
@@ -198,6 +207,7 @@ class Board:
                 Piece.capturable.__doc__
                 target_piece = self[target]
 
+            #   If there is a piece on the target, check their allegiance.
                 if target_piece is not None:
                     return Piece.capturable(source_piece, target) and source_piece.orientation != target_piece.orientation
 

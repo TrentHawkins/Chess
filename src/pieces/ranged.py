@@ -36,7 +36,7 @@ class Ranged(Piece):
                     squares.add(square)  # Add said square to ranged piece.
                     square += step  # Advance to the next square in said direction.
 
-                if self.capturable(square):  # NOTE: This check will become relevant as soon as condition is defined too.
+                if self.capturable(square):  # If the square after last has a capturable piece,
                     squares.add(square)  # Do not forget to add trailing square to targets.
 
         return squares
@@ -66,8 +66,8 @@ class Rook(Ranged):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            "white": "♖",
-            "black": "♜",
+            "white": "\033[37;1m♜\033[0m",
+            "black": "\033[30;1m♜\033[0m",
         }[self.orientation.name]
 
 
@@ -98,8 +98,8 @@ class Bishop(Ranged):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            "white": "♗",
-            "black": "♝",
+            "white": "\033[37;1m♝\033[0m",
+            "black": "\033[30;1m♝\033[0m",
         }[self.orientation.name]
 
 
@@ -132,6 +132,6 @@ class Queen(Ranged):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            "white": "♕",
-            "black": "♛",
+            "white": "\033[37;1m♛\033[0m",
+            "black": "\033[30;1m♛\033[0m",
         }[self.orientation.name]

@@ -66,8 +66,8 @@ class King(Meleed):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            "white": "♔",
-            "black": "♚",
+            "white": "\033[37;1m♚\033[0m",
+            "black": "\033[30;1m♚\033[0m",
         }[self.orientation.name]
 
 
@@ -107,6 +107,6 @@ class Knight(Meleed):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            "white": "♘",
-            "black": "♞",
+            "white": "\033[37;1m♞\033[0m",
+            "black": "\033[30;1m♞\033[0m",
         }[self.orientation.name]

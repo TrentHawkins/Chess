@@ -14,7 +14,7 @@ Chess has 6 types of pieces with predifined rules of movement and worth in-game:
 from dataclasses import dataclass
 from enum import IntEnum
 from itertools import combinations
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 from .square import Square, Vector
 
@@ -76,7 +76,7 @@ class Piece:
 
     steps: ClassVar[set[Vector]] = set()
 
-    def __init__(self, color: str, square: Optional[Square] = None):
+    def __init__(self, color: str, square: Square | None = None):
         f"""Give a {self.__class__.__name__} a color and a square.
 
         Args:
