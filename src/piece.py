@@ -92,7 +92,7 @@ class Piece:
         Returns:
             The representation of a {self.__class__.__name__}.
         """
-        return " "  # An unspecified piece is a ghost piece.
+        return "\033[8m🨅\033[0m"  # An unspecified piece is a ghost piece.
 
     def has_friend(self, other):
         """Check weather `other` is a friend of `self`.

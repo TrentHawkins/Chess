@@ -3,6 +3,8 @@
 Referencing with chess algebraic notation is possible.
 """
 
+from codecs import strict_errors
+from itertools import cycle
 from types import MethodType
 
 from .piece import Orientation, Piece
@@ -70,14 +72,46 @@ class Board:
         Returns:
             The board representation.
         """
-        return (
-            "\n▐\033[7m  A B C D E F G H  \033[0m▌\n" +
-            "\n".join(
-                f"▐\033[7m{Square.index_to_rank[index]}\033[27m\033[4m▌" +
-                "│".join(str(piece) for piece in rank) +
-                f"▐\033[24m\033[7m{Square.index_to_rank[index]}\033[0m▌" for index, rank in enumerate(self._board)
-            ) + "\n▐\033[7m  A B C D E F G H  \033[0m▌\n\n"
-        ).replace("None", " ")
+        main = cycle(
+            [
+                "\033[30;46m",  # white
+                "\033[30;44m",  # black
+            ]
+        )
+        edge = cycle(
+            [
+                "\033[36;44m▌",
+                "\033[36;44m▐",
+            ]
+        )
+        null = cycle(
+            [
+                "\033[0m\033[36m▐",
+                "\033[0m\033[34m▌\033[0m\n",
+                "\033[0m\033[34m▐",
+                "\033[0m\033[36m▌\033[0m\n",
+            ]
+        )
+
+        representation = "\n"
+
+        for rank in self._board:
+            representation += next(null)
+            representation += (
+                next(main) + str(rank[0]) + next(edge) +
+                next(main) + str(rank[1]) + next(edge) +
+                next(main) + str(rank[2]) + next(edge) +
+                next(main) + str(rank[3]) + next(edge) +
+                next(main) + str(rank[4]) + next(edge) +
+                next(main) + str(rank[5]) + next(edge) +
+                next(main) + str(rank[6]) + next(edge) +
+                next(main) + str(rank[7])
+            )
+            representation += next(null)
+
+            next(main)
+
+        return representation.replace("None", "\033[8m🨅\033[0m")
 
     def __setitem__(self, square: Square | str, piece: Piece | None):
         """Add a piece to a square.
