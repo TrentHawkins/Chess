@@ -191,6 +191,14 @@ class Board:
         """
         return any(piece in rank for rank in self.pieces)
 
+    def flip(self):
+        """Flip board as an array.
+
+        Returns:
+            Flipped board.
+        """
+        return self.pieces[::-1][::-1]
+
     @property
     def moves(self):
         """Generate moves for all pieces on the board.
