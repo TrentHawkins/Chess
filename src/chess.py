@@ -14,10 +14,10 @@ class Chess:
         """Start a chess game."""
         self.board = Board()
 
-    #   Player piece collections are made agnostic of board position, in case a game is formed from a custom position instead.
+    #   Cycle players through to run the game.
         self.player = cycle(
             [
-                Player(pieces=set(piece for piece in self.board if piece.orientation == -1)),  # white
-                Player(pieces=set(piece for piece in self.board if piece.orientation == +1)),  # black
+                Player(self.board, "white"),  # white
+                Player(self.board, "black"),  # black
             ]
         )
