@@ -37,6 +37,34 @@ class TestChess:
             Rook("black", "h8"),
         } | set(Pawn("white", f"{file}7") for file in "abcdefgh")
 
+    def test_captured_counting(self):
+        """Check if reduced implied hashing of captured pieces works on piece counters."""
+        from collections import Counter
+
+        from src.pieces.meleed import King, Knight
+        from src.pieces.ranged import Bishop, Queen, Rook
+        from src.pieces.special import Pawn
+
+        captured = Counter()
+
+    #   Lets capture some pawns.
+        captured += Counter({Pawn("white")})
+        captured += Counter({Pawn("white")})
+
+    #   Lets get the queen.
+        captured += Counter({Queen("white")})
+
+    #   Emulate pawn promotion to queen?
+        captured -= Counter({Queen("white")})
+        captured += Counter({Pawn("white")})
+
+    #   Notice how color is ignored, as it should; pieces are binned by player.  # NOTE: Probably remove color attribute?
+        captured += Counter({Pawn("black")})
+
+        assert captured == Counter({
+            Pawn("white"): 4,
+        })
+
 
 class TestBoard:
     """Unit tests for the board."""
