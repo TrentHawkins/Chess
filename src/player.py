@@ -17,6 +17,7 @@ class Player:
     """A player.
 
     Attributes:
+        name: The player's name.
         board: The board this player is playing on.
         orientation: The allegiance of the player, defining the correspponding orientation of the board.
         pieces: A collection of the player's pieces on the board.
@@ -24,19 +25,39 @@ class Player:
             NOTE: All captured pieces are expected to have `square == None` making them distinct only by type.
     """
 
-    def __init__(self, board: Board, color: str):
+    def __init__(self, name: str, color: str, board: Board):
         """Create collections for player.
 
         Args:
+            name: The player's name.
+            color: The color of the player's pieces.
             board: The board this player is playing on.
-            orientation: The allegiance of the player, defining the correspponding orientation of the board.
         """
-        self.board: Board = board  # The board this player is playing on.
+        self.name: str = name
         self.orientation: Orientation = Orientation[color]  # The allegiance of the player.
+        self.board: Board = board  # The board this player is playing on.
 
     #   Assign pieces to player agnostically, so that custom position can also be loaded.
         self.pieces = set(piece for piece in self.board if piece.orientation == self.orientation)
         self.captured = Counter()  # In custom positions, captured material is immaterial.
+
+    def __repr__(self):
+        """Represent a player by name and captured pieces.
+
+        NOTE: Timer is not implemented yet.
+
+        Returns:
+            Players name followed by a color window and captured pieces
+        """
+        ...
+
+    @property
+    def checked(self) -> set[Square]:
+        """Get all squares checked by player.
+
+        As a bonus define the `Square.is_checked` flag based on the result.
+        """
+        return set().union(*self.moves.values())
 
     @property
     def moves(self):
@@ -49,28 +70,28 @@ class Player:
         """
         _moves = {}
 
+        def deployable(source_piece: Piece, target: Square):
+            source_piece.deployable.__doc__
+            target_piece = self.board[target]
+
+            return source_piece.deployable(target) and target_piece is None
+
+        def capturable(source_piece: Piece, target: Square):
+            source_piece.capturable.__doc__
+            target_piece = self.board[target]
+
+        #   If there is a piece on the target, check their allegiance.
+            if target_piece is not None:
+                return source_piece.capturable(target) and source_piece.orientation != target_piece.orientation
+
+            return False
+
     #   Check only pieces of player:
         for piece in self.pieces:
-            def deployable(source_piece: Piece, target: Square):
-                Piece.deployable.__doc__
-                target_piece = self.board[target]
+            _moves[piece] = piece.moves  # Add the moves of specific piece keyed by itself.
 
-                return Piece.deployable(source_piece, target) and target_piece is None
-
-            def capturable(source_piece: Piece, target: Square):
-                Piece.capturable.__doc__
-                target_piece = self.board[target]
-
-            #   If there is a piece on the target, check their allegiance.
-                if target_piece is not None:
-                    return Piece.capturable(source_piece, target) and source_piece.orientation != target_piece.orientation
-
-                return False
-
-            piece.deployable = MethodType(deployable, piece)
-            piece.capturable = MethodType(capturable, piece)
-
-            _moves[piece] = piece.moves
+            piece.deployable = MethodType(deployable, piece)  # Update deployability context for specific piece.
+            piece.capturable = MethodType(capturable, piece)  # Update capturability context for specific piece.
 
         return _moves
 

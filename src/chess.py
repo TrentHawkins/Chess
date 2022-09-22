@@ -17,7 +17,7 @@ class Chess:
     #   Cycle players through to run the game.
         self.player = cycle(
             [
-                Player(self.board, "white"),  # white
-                Player(self.board, "black"),  # black
+                Player("White", "white", self.board),  # input("Enter player name for white: ")
+                Player("Black", "black", self.board),  # input("Enter player name for black: ")
             ]
         )
