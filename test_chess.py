@@ -1,6 +1,43 @@
 """Unit tests for the Chess project."""
 
 
+class TestChess:
+    """Unit tests for the game engine."""
+
+    def test_simple_chess_game(self):
+        """Test initial game setup with players."""
+        from src.chess import Chess
+        from src.pieces.meleed import King, Knight
+        from src.pieces.ranged import Bishop, Queen, Rook
+        from src.pieces.special import Pawn
+
+        new_game = Chess()
+
+    #   White pieces:
+        assert next(new_game.player).pieces == {
+            Rook("white", "a1"),
+            Knight("white", "b1"),
+            Bishop("white", "c1"),
+            Queen("white", "d1"),
+            King("white", "e1"),
+            Bishop("white", "f1"),
+            Knight("white", "g1"),
+            Rook("white", "h1"),
+        } | set(Pawn("white", f"{file}2") for file in "abcdefgh")
+
+    #   Black pieces:
+        assert next(new_game.player).pieces == {
+            Rook("black", "a8"),
+            Knight("black", "b8"),
+            Bishop("black", "c8"),
+            Queen("black", "d8"),
+            King("black", "e8"),
+            Bishop("black", "f8"),
+            Knight("black", "g8"),
+            Rook("black", "h8"),
+        } | set(Pawn("white", f"{file}7") for file in "abcdefgh")
+
+
 class TestBoard:
     """Unit tests for the board."""
 
@@ -33,7 +70,6 @@ class TestBoard:
         NOTE: A lot of this code will be encapsulated into `Piece` specialized `move` functions.
         """
         from src.board import Board
-        from src.pieces.special import Pawn
         from src.square import Square
 
     #   The chosen position is only a few moves from the start so it is faster to start from a new game and delete pieces.
@@ -68,12 +104,12 @@ class TestBoard:
 
         tal_moves = \
         {
-            Square("c1"):  # King (white)
+            tal["c1"]:  # King (white)
             {
                 Square("d2"),  # ↗
                 Square("b1"),  # ←
             },
-            Square("d4"):  # Queen (white)
+            tal["d4"]:  # Queen (white)
             {
                 Square("e5"),  # ↗
                 Square("f6"),  # ↗  # capture
@@ -97,7 +133,7 @@ class TestBoard:
 
                 Square("e3"),  # ↘
             },
-            Square("f1"):  # Bishop (white/white)
+            tal["f1"]:  # Bishop (white/white)
             {
                 Square("e2"),  # ↖
                 Square("d3"),  # ↖
@@ -105,7 +141,7 @@ class TestBoard:
                 Square("b5"),  # ↖
                 Square("a6"),  # ↖
             },
-            Square("g5"):  # Bishop (white/black)
+            tal["g5"]:  # Bishop (white/black)
             {
                 Square("f6"),  # ↖  # capture
 
@@ -117,7 +153,7 @@ class TestBoard:
 
                 Square("h6"),  # ↗
             },
-            Square("e4"):  # Knight (white/white)
+            tal["e4"]:  # Knight (white/white)
             {
                 Square("f6"),  # ↗ + ↑  # capture
                 Square("g3"),  # ↘ + →
@@ -126,7 +162,7 @@ class TestBoard:
                 Square("c5"),  # ↖ + ←
                 Square("d6"),  # ↖ + ↑
             },
-            Square("f3"):  # Knight (white/black)
+            tal["f3"]:  # Knight (white/black)
             {
                 Square("h4"),  # ↗ + →
                 Square("g1"),  # ↘ + ↓
@@ -134,49 +170,49 @@ class TestBoard:
                 Square("d2"),  # ↙ + ←
                 Square("e5"),  # ↖ + ↑
             },
-            Square("h1"):  # Rook (white/white)
+            tal["h1"]:  # Rook (white/white)
             {
                 Square("g1"),  # ↑
             },
-            Square("d1"):  # Rook (white/black)
+            tal["d1"]:  # Rook (white/black)
             {
                 Square("e1"),  # ↑
 
                 Square("d2"),  # ↑
                 Square("d3"),  # ↑
             },
-            Square("a2"):  # Pawn (white/A)
+            tal["a2"]:  # Pawn (white/A)
             {
                 Square("a3"),  # ↑
                 Square("a4"),  # ↑
             },
-            Square("b2"):  # Pawn (white/B)
+            tal["b2"]:  # Pawn (white/B)
             {
                 Square("b3"),  # ↑
                 Square("b4"),  # ↑
             },
-            Square("c2"):  # Pawn (white/C)
+            tal["c2"]:  # Pawn (white/C)
             {
                 Square("c3"),  # ↑
                 Square("c4"),  # ↑
             },
-            Square("f2"):  # Pawn (white/F)
+            tal["f2"]:  # Pawn (white/F)
             set(),
-            Square("g2"):  # Pawn (white/G)
+            tal["g2"]:  # Pawn (white/G)
             {
                 Square("g3"),  # ↑
                 Square("g4"),  # ↑
             },
-            Square("h2"):  # Pawn (white/H)
+            tal["h2"]:  # Pawn (white/H)
             {
                 Square("h3"),  # ↑
                 Square("h4"),  # ↑
             },
-            Square("g8"):  # King (black)
+            tal["g8"]:  # King (black)
             {
                 Square("h8"),  # →
             },
-            Square("d8"):  # Queen (black)
+            tal["d8"]:  # Queen (black)
             {
                 Square("e8"),  # →
 
@@ -184,16 +220,16 @@ class TestBoard:
                 Square("b6"),  # ↙
                 Square("a5"),  # ↙
             },
-            Square("c8"):  # Bishop (black/white)
+            tal["c8"]:  # Bishop (black/white)
             set(),
-            Square("e7"):  # Bishop (black/black)
+            tal["e7"]:  # Bishop (black/black)
             {
                 Square("d6"),  # ↙
                 Square("c5"),  # ↙
                 Square("b4"),  # ↙
                 Square("a3"),  # ↙
             },
-            Square("f6"):  # Knight (black/white)
+            tal["f6"]:  # Knight (black/white)
             {
                 Square("h5"),  # ↘ + →
                 Square("g4"),  # ↘ + ↓
@@ -201,42 +237,42 @@ class TestBoard:
                 Square("d5"),  # ↙ + ←
                 Square("e8"),  # ↖ + ↑
             },
-            Square("d7"):  # Knight (black/black)
+            tal["d7"]:  # Knight (black/black)
             {
                 Square("e5"),  # ↘ + ↓
                 Square("c5"),  # ↙ + ↓
                 Square("b6"),  # ↙ + ←
                 Square("b8"),  # ↖ + ←
             },
-            Square("a8"):  # Rook (black/white)
+            tal["a8"]:  # Rook (black/white)
             {
                 Square("b8"),  # →
             },
-            Square("f8"):  # Rook (black/black)
+            tal["f8"]:  # Rook (black/black)
             {
                 Square("e8"),  # ←
             },
-            Square("a7"):  # Pawn (black/A)
+            tal["a7"]:  # Pawn (black/A)
             {
                 Square("a6"),  # ↓
                 Square("a5"),  # ↓
             },
-            Square("b7"):  # Pawn (black/B)
+            tal["b7"]:  # Pawn (black/B)
             {
                 Square("b6"),  # ↓
                 Square("b5"),  # ↓
             },
-            Square("c6"):  # Pawn (white/C)
+            tal["c6"]:  # Pawn (white/C)
             {
                 Square("c5"),  # ↓
             },
-            Square("f7"):  # Pawn (white/F)
+            tal["f7"]:  # Pawn (white/F)
             set(),
-            Square("g7"):  # Pawn (black/G)
+            tal["g7"]:  # Pawn (black/G)
             {
                 Square("g6"),  # ↓
             },
-            Square("h7"):  # Pawn (black/H)
+            tal["h7"]:  # Pawn (black/H)
             {
                 Square("h6"),  # ↓
                 Square("h5"),  # ↓
@@ -252,7 +288,9 @@ class TestBoard:
         board = Board()
         pawn = board["e2"]
 
-        board.move("e2", "e4")  # The most famous opening move in the history of chess!
+        assert pawn is not None
+
+        board.move(pawn, "e4")  # The most famous opening move in the history of chess!
 
         assert board["e2"] is None
         assert board["e4"] is pawn

@@ -76,7 +76,7 @@ class Piece:
 
     steps: ClassVar[set[Vector]] = set()
 
-    def __init__(self, color: str, square: Square | None = None):
+    def __init__(self, color: str, square: Square | str | None = None):
         f"""Give a {self.__class__.__name__} a color and a square.
 
         Args:
@@ -84,7 +84,7 @@ class Piece:
             square: Location on a board (which board is irrelevant).
         """
         self.orientation: Orientation = Orientation[color]
-        self.square: Square | None = square
+        self.square: Square | None = Square(square) if square is not None else None
         self.has_moved: bool = False  # Has not moved upon creation.  # NOTE: This may apply to several pieces so define here.
 
     def __repr__(self) -> str:
@@ -94,6 +94,18 @@ class Piece:
             The representation of a {self.__class__.__name__}.
         """
         return "\033[8m🨅\033[0m"  # An unspecified piece is a ghost piece.
+
+    def __hash__(self):
+        """Make each piece distinct based on its type square alone.
+
+        That means that pieces outside the board will still be distinct by type.
+        That is no issue as the only thing we need of pieces outside the board is to count them by type.
+
+        Returns:
+            The square the piece is designated to.
+        """
+
+        return hash((self.__class__.__name__, self.square))
 
     def has_friend(self, other):
         """Check weather `other` is a friend of `self`.
@@ -139,7 +151,6 @@ class Piece:
         """
         return self.square is not None and target is not None  # Make sure you check a piece that is on a board.
 
-#   NOTE: The king might be prove to be problematic, as it has an extra condition of blocked movement, squares that are checked.
     @property
     def moves(self) -> set[Square]:
         f"""Generate all legal moves a {self.__class__.__name__} can apriori make.

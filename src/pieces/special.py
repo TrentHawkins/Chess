@@ -6,7 +6,6 @@ Of the 6 type of chess pieces pawns are special:
 """
 
 from dataclasses import dataclass
-from itertools import product
 from typing import ClassVar
 
 from ..piece import Piece
@@ -15,7 +14,7 @@ from .meleed import King
 from .ranged import Rook
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False, repr=False, eq=False)
 class Pawn(Piece):
     """A Pawn.
 

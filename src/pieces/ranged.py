@@ -13,7 +13,7 @@ from ..piece import Piece
 from ..square import Square, Vector
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False, repr=False, eq=False)
 class Ranged(Piece):
     """A long range piece:
         - Rook
@@ -42,7 +42,7 @@ class Ranged(Piece):
         return squares
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False, repr=False, eq=False)
 class Rook(Ranged):
     """A rook.
 
@@ -69,7 +69,7 @@ class Rook(Ranged):
         }[self.orientation.name]
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False, repr=False, eq=False)
 class Bishop(Ranged):
     """A bishop.
 
@@ -101,7 +101,7 @@ class Bishop(Ranged):
         }[self.orientation.name]
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False, repr=False, eq=False)
 class Queen(Ranged):
     """A queen.
 

@@ -16,7 +16,7 @@ from ..piece import Piece
 from ..square import Square, Vector
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False, repr=False, eq=False)
 class Meleed(Piece):
     """A close ranged piece:
         - King
@@ -40,7 +40,7 @@ class Meleed(Piece):
         return squares
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False, repr=False, eq=False)
 class King(Meleed):
     """A King.
 
@@ -70,7 +70,7 @@ class King(Meleed):
         }[self.orientation.name]
 
 
-@dataclass(init=False, repr=False)
+@dataclass(init=False, repr=False, eq=False)
 class Knight(Meleed):
     """A knight.
 

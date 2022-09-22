@@ -153,7 +153,7 @@ class Board:
         """
         square = Square(square)
 
-    #   HACK: A square outside the boarfd may be requested.
+    #   HACK: A square outside the board may be requested.
         if square is not None:
             return self._board[square.rank][square.file]
 
@@ -222,25 +222,23 @@ class Board:
             piece.deployable = MethodType(deployable, piece)
             piece.capturable = MethodType(capturable, piece)
 
-            _moves[piece.square] = piece.moves
+            _moves[piece] = piece.moves
 
         return _moves
 
-    def move(self, source: Square | str, target: Square | str):
+    def move(self, piece: Piece, target: Square | str):
         """Move whatever is in source square to target square if move is valid.
 
         Args:
             source: The square in notation the piece is on
             target: The square in notation the piece wants to go to.
         """
-        source = Square(source)
         target = Square(target)
 
-        if source is not None and source in self.moves:
-            if target in self.moves[source]:
-                piece = self[source]
+        source = piece.square
 
-                if piece is not None:
-                    piece.has_moved = True
-
+        if source is not None and piece in self.moves:
+            if target in self.moves[piece]:
                 self[source], self[target] = None, piece
+
+                piece.has_moved = True
