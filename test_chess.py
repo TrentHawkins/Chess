@@ -66,6 +66,12 @@ class TestChess:
         })
 
 
+class TestPlayer:
+    """Unit tests for players."""
+
+    ...
+
+
 class TestBoard:
     """Unit tests for the board."""
 
@@ -130,8 +136,7 @@ class TestBoard:
         tal["e1"], tal["a1"], tal["c1"], tal["d1"] = tal["c1"], tal["d1"], tal["e1"], tal["a1"]
         tal["e8"], tal["h8"], tal["g8"], tal["f8"] = tal["g8"], tal["f8"], tal["e8"], tal["h8"]
 
-        tal_moves = \
-        {
+        assert tal.moves == {
             tal["c1"]:  # King (white)
             {
                 Square("d2"),  # ↗
@@ -306,8 +311,6 @@ class TestBoard:
                 Square("h5"),  # ↓
             },
         }
-
-        assert tal.moves == tal_moves
 
     def test_move(self):
         """Test draft move method."""

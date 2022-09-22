@@ -34,7 +34,7 @@ class Board:
 
     def __init__(self, *, empty: bool = False, theme: dict[str, int] = default_board_theme):
         """Initialize a chessboard with a new game congifuration."""
-        self._board: list[list[Piece | None]] = [[None for _ in range(8)] for _ in range(8)]
+        self.pieces: list[list[Piece | None]] = [[None for _ in range(8)] for _ in range(8)]
         self.theme = theme  # Set board color theme.
 
     #   NOTE: Temporarily assign castles to board:
@@ -105,7 +105,7 @@ class Board:
 
         representation = "\n"
 
-        for rank in self._board:
+        for rank in self.pieces:
             representation += next(border_color)
             representation += (
                 next(square_color) + str(rank[0]) + next(edge_color) +
@@ -140,7 +140,7 @@ class Board:
         if piece is not None:
             piece.square = square
 
-        self._board[square.rank][square.file] = piece
+        self.pieces[square.rank][square.file] = piece
 
     def __getitem__(self, square: Square | str) -> Piece | None:
         """Get the piece of a given square.
@@ -155,7 +155,7 @@ class Board:
 
     #   HACK: A square outside the board may be requested.
         if square is not None:
-            return self._board[square.rank][square.file]
+            return self.pieces[square.rank][square.file]
 
     def __delitem__(self, square: Square | str):
         """Remove the piece of a given square.
@@ -171,11 +171,11 @@ class Board:
         if piece is not None:
             piece.square = None
 
-        self._board[square.rank][square.file] = None
+        self.pieces[square.rank][square.file] = None
 
     def __iter__(self):
         """Iterate through existent pieces on the board."""
-        for rank in self._board:
+        for rank in self.pieces:
             for piece in rank:
                 if piece is not None:
                     yield piece
@@ -189,7 +189,7 @@ class Board:
         Returns:
             If piece is in board.
         """
-        return any(piece in rank for rank in self._board)
+        return any(piece in rank for rank in self.pieces)
 
     @property
     def moves(self):
