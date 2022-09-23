@@ -199,54 +199,21 @@ class Board:
         """
         return self.pieces[::-1][::-1]
 
-    @property
-    def moves(self):
-        """Generate moves for all pieces on the board.
+    def simulate_move(self, source_piece: Piece, target: Square) -> Piece | None:
+        """Simulate a move on the board without constraints.
 
-        Return:
-            A dictionary containing all possible moves for each square player has a piece on.
-
-        NOTE: Ideally the piece would be used as key but it is unhashable.
-        """
-        _moves = {}
-
-        for piece in self:
-            def deployable(source_piece: Piece, target: Square):
-                Piece.deployable.__doc__
-                target_piece = self[target]
-
-                return Piece.deployable(source_piece, target) and target_piece is None
-
-            def capturable(source_piece: Piece, target: Square):
-                Piece.capturable.__doc__
-                target_piece = self[target]
-
-            #   If there is a piece on the target, check their allegiance.
-                if target_piece is not None:
-                    return Piece.capturable(source_piece, target) and source_piece.orientation != target_piece.orientation
-
-                return False
-
-            piece.deployable = MethodType(deployable, piece)
-            piece.capturable = MethodType(capturable, piece)
-
-            _moves[piece] = piece.moves
-
-        return _moves
-
-    def move(self, piece: Piece, target: Square | str):
-        """Move whatever is in source square to target square if move is valid.
+        For the lack of constraints save the lost by the move piece by returing it to the caller.
 
         Args:
-            source: The square in notation the piece is on
-            target: The square in notation the piece wants to go to.
+            source_piece: Piece to move.
+            target: Square to move it to.
+
+        Returns:
+            Potential piece in the target square that is potentially lost in the move.
         """
-        target = Square(target)
+        source = source_piece.square
+        target_piece = self[target]
+        self[target] = source_piece
+        del self[source]  # type: ignore
 
-        source = piece.square
-
-        if source is not None and piece in self.moves:
-            if target in self.moves[piece]:
-                self[source], self[target] = None, piece
-
-                piece.has_moved = True
+        return target_piece
