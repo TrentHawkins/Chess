@@ -132,10 +132,6 @@ class Board:
         """
         square = Square(square)
 
-    #   If there is another piece on the square, safely remove it from the board first.
-        if self[square] is not None:
-            del self[square]
-
     #   If a true piece is assigned, proceed as planned, otherwise leave the square empty.
         if piece is not None:
             piece.square = square
@@ -191,15 +187,7 @@ class Board:
         """
         return any(piece in rank for rank in self.pieces)
 
-    def flip(self):
-        """Flip board as an array.
-
-        Returns:
-            Flipped board.
-        """
-        return self.pieces[::-1][::-1]
-
-    def simulate_move(self, source_piece: Piece, target: Square) -> Piece | None:
+    def simulate_move(self, source_piece: Piece, target: Square):
         """Simulate a move on the board without constraints.
 
         For the lack of constraints save the lost by the move piece by returing it to the caller.
@@ -212,8 +200,11 @@ class Board:
             Potential piece in the target square that is potentially lost in the move.
         """
         source = source_piece.square
-        target_piece = self[target]
-        self[target] = source_piece
-        del self[source]  # type: ignore
 
-        return target_piece
+    #   On first iteration make the move and return the square left behind. Save the piece lost on target square, if any.
+        self[source], self[target], target_piece = None, self[source], self[target]  # type: ignore
+        yield
+
+    #   On last iteration revert back to original position.
+        self[source], self[target] = self[target], target_piece,  # type: ignore
+        yield

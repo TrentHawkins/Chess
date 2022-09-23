@@ -82,10 +82,12 @@ class TestChess:
         set_game = Chess(board)
 
         pawn = set_game.board["d2"]
+        king = set_game.board["e1"]
 
+        assert king is not None
+        assert king.moves == set()  # Because it puts the king in check from "Ba6".
         assert pawn is not None
-        assert set_game.current.king.moves == set()  # Because it puts the king in check from "Ba6".
-    #   assert pawn.moves == set()  # Because it discovers a check to the king from "Ba5".  # FIXME: Not implemented yet.
+        assert pawn.moves == set()  # Because it discovers a check to the king from "Ba5".  # FIXME: Not implemented yet.
 
 
 class TestPlayer:

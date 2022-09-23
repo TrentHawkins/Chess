@@ -33,6 +33,13 @@ class Player:
             name: The player's name.
             color: The color of the player's pieces.
             board: The board this player is playing on.
+
+        Also defines player-context-sensitive rules for evaluating piece legal moves.
+        King safety is not relevant nor can be resolve here.
+        The piece legal moves shall be agnostically updated here though,
+        because the squares the player checks are legit, since king safety is irrelevant when it is not their turn!
+        In elaboration, if an opponent walks their king in danger, it does not matter if your king will be in danger after;
+        their king will die first.
         """
         self.name: str = name
         self.orientation: Orientation = Orientation[color]  # The allegiance of the player.
@@ -42,42 +49,29 @@ class Player:
         self.pieces: set[Piece] = set(piece for piece in self.board if piece.orientation == self.orientation)
         self.captured: Counter = Counter()  # In custom positions, captured material is immaterial.
 
-        def deployable(source_piece: Piece, target: Square):
+        def piece_deployable(source_piece: Piece, target: Square):
             source_piece.deployable.__doc__
             target_piece = self.board[target]
-
-        #   NOTE: Applying method directly to `source_piece` causes infinite recursion.
-        #   A more explicit resolution is required.
-        #   However, since method is updated for all pieces on the board,
-        #   and since each one of them is a strict `Piece` subclass,
-        #   we need the actual class name to resolve the redefinition.
 
             return source_piece.__class__.deployable(source_piece, target) \
                 and target_piece is None
 
-        def capturable(source_piece: Piece, target: Square):
+        def piece_capturable(source_piece: Piece, target: Square):
             source_piece.capturable.__doc__
             target_piece = self.board[target]
 
-        #   NOTE: Applying method directly to `source_piece` causes infinite recursion.
-        #   A more explicit resolution is required.
-        #   However, since method is updated for all pieces on the board,
-        #   and since each one of them is a strict `Piece` subclass,
-        #   we need the actual class name to resolve the redefinition.
-
-        #   If there is a piece on the target, check their allegiance.
             if target_piece is not None:
                 return source_piece.__class__.capturable(source_piece, target) \
                     and source_piece.orientation != target_piece.orientation
 
             return False
 
-    #   Register the updated rules at player initialization to make sure it "takes".
         for piece in self.pieces:
-            piece.deployable = MethodType(deployable, piece)  # Update deployability context for specific piece.
-            piece.capturable = MethodType(capturable, piece)  # Update capturability context for specific piece.
+            piece.deployable = MethodType(piece_deployable, piece)
+            piece.capturable = MethodType(piece_capturable, piece)
 
-        #   Keep the player's king registered, as it is a special piece.
+    #   Keep the player's king registered, as it is a special piece.
+        for piece in self.pieces:
             if isinstance(piece, King):
                 self.king: King = piece
 
