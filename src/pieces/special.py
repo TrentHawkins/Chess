@@ -62,9 +62,9 @@ class Pawn(Piece):
         }[self.orientation.name]
 
     @property
-    def moves(self) -> set[Square]:
-        f"""{super().moves.__doc__}"""
-        squares = super().moves
+    def squares(self) -> set[Square]:
+        f"""{super().squares.__doc__}"""
+        squares = super().squares
 
         if self.square is not None:  # If pawn is on a board,
             for step in self.captures:  # For all target squares (diagonally with respect to pawn),

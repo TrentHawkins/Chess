@@ -152,7 +152,7 @@ class Piece:
         return self.square is not None and target is not None  # Make sure you check a piece that is on a board.
 
     @property
-    def moves(self) -> set[Square]:
+    def squares(self) -> set[Square]:
         f"""Generate all legal moves a {self.__class__.__name__} can apriori make.
 
         Args:

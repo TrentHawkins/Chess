@@ -86,27 +86,28 @@ class Player:
         ...
 
     @property
-    def checks(self) -> set[Square]:
+    def squares_checked(self) -> set[Square]:
         """Get all squares checked by player.
 
         Returns:
             A flattened union of all squares the player has access to.
         """
-        return set().union(*(piece.moves for piece in self.pieces))
+        return set().union(*(piece.squares for piece in self.pieces))
 
     def move(self, piece: Piece, target: Square | str):
         """Move whatever is in source square to target square if move is valid.
 
         Args:
-            source: The square in notation the piece is on
+            piece: The piece to move.
             target: The square in notation the piece wants to go to.
+
+        NOTE: A `Move` class will be made to encapsulate moves, this will be moved there.
         """
         target = Square(target)
-
         source = piece.square
 
-        if source is not None:
-            if target in piece.moves:
-                self.board[source], self.board[target] = None, piece
+        if source is not None:  # If piece is on the board,
+            if target in piece.squares:  # If the target square is legal for the piece,
+                self.board[target], self.board[source] = piece, None  # Move the piece to the target square.
 
-                piece.has_moved = True
+                piece.has_moved = True  # The pawns at theirstart and kings and rooks for castling use this flag.

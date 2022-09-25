@@ -85,9 +85,9 @@ class TestChess:
         king = set_game.board["e1"]
 
         assert king is not None
-        assert king.moves == set()  # Because it puts the king in check from "Ba6".
+        assert king.squares == set()  # Because it puts the king in check from "Ba6".
         assert pawn is not None
-        assert pawn.moves == set()  # Because it discovers a check to the king from "Ba5".  # FIXME: Not implemented yet.
+        assert pawn.squares == set()  # Because it discovers a check to the king from "Ba5".  # FIXME: Not implemented yet.
 
 
 class TestPlayer:
@@ -141,13 +141,13 @@ class TestPlayer:
 
         piece = talB["c1"]
         assert piece is not None
-        assert piece.moves == {  # King (white)
+        assert piece.squares == {  # King (white)
             Square("d2"),  # ↗
             Square("b1"),  # ←
         }
         piece = talB["d4"]
         assert piece is not None
-        assert piece.moves == {  # Queen (white)
+        assert piece.squares == {  # Queen (white)
             Square("e5"),  # ↗
             Square("f6"),  # ↗  # capture
             Square("d5"),  # ↑
@@ -166,7 +166,7 @@ class TestPlayer:
         }
         piece = talB["f1"]
         assert piece is not None
-        assert piece.moves == {  # Bishop (white/white)
+        assert piece.squares == {  # Bishop (white/white)
             Square("e2"),  # ↖
             Square("d3"),  # ↖
             Square("c4"),  # ↖
@@ -175,7 +175,7 @@ class TestPlayer:
         }
         piece = talB["g5"]
         assert piece is not None
-        assert piece.moves == {  # Bishop (white/black)
+        assert piece.squares == {  # Bishop (white/black)
             Square("f6"),  # ↖  # capture
             Square("f4"),  # ↙
             Square("e3"),  # ↙
@@ -185,7 +185,7 @@ class TestPlayer:
         }
         piece = talB["e4"]
         assert piece is not None
-        assert piece.moves == {  # Knight (white/white)
+        assert piece.squares == {  # Knight (white/white)
             Square("f6"),  # ↗ + ↑  # capture
             Square("g3"),  # ↘ + →
             Square("d2"),  # ↙ + ↓
@@ -195,7 +195,7 @@ class TestPlayer:
         }
         piece = talB["f3"]
         assert piece is not None
-        assert piece.moves == {  # Knight (white/black)
+        assert piece.squares == {  # Knight (white/black)
             Square("h4"),  # ↗ + →
             Square("g1"),  # ↘ + ↓
             Square("e1"),  # ↙ + ↓
@@ -204,46 +204,46 @@ class TestPlayer:
         }
         piece = talB["h1"]
         assert piece is not None
-        assert piece.moves == {  # Rook (white/white)
+        assert piece.squares == {  # Rook (white/white)
             Square("g1"),  # ↑
         }
         piece = talB["d1"]
         assert piece is not None
-        assert piece.moves == {  # Rook (white/black)
+        assert piece.squares == {  # Rook (white/black)
             Square("e1"),  # ↑
             Square("d2"),  # ↑
             Square("d3"),  # ↑
         }
         piece = talB["a2"]
         assert piece is not None
-        assert piece.moves == {  # Pawn (white/A)
+        assert piece.squares == {  # Pawn (white/A)
             Square("a3"),  # ↑
             Square("a4"),  # ↑
         }
         piece = talB["b2"]
         assert piece is not None
-        assert piece.moves == {  # Pawn (white/B)
+        assert piece.squares == {  # Pawn (white/B)
             Square("b3"),  # ↑
             Square("b4"),  # ↑
         }
         piece = talB["c2"]
         assert piece is not None
-        assert piece.moves == {  # Pawn (white/C)
+        assert piece.squares == {  # Pawn (white/C)
             Square("c3"),  # ↑
             Square("c4"),  # ↑
         }
         piece = talB["f2"]
         assert piece is not None
-        assert piece.moves == set()  # Pawn (white/F)
+        assert piece.squares == set()  # Pawn (white/F)
         piece = talB["g2"]
         assert piece is not None
-        assert piece.moves == {  # Pawn (white/G)
+        assert piece.squares == {  # Pawn (white/G)
             Square("g3"),  # ↑
             Square("g4"),  # ↑
         }
         piece = talB["h2"]
         assert piece is not None
-        assert piece.moves == {  # Pawn (white/H)
+        assert piece.squares == {  # Pawn (white/H)
             Square("h3"),  # ↑
             Square("h4"),  # ↑
         }
