@@ -77,6 +77,7 @@ class Chess:
 
             return False
 
+    #   Update all pieces in the current player's collection.
         for piece in self.current.pieces:
             piece.deployable = MethodType(piece_deployable, piece)
             piece.capturable = MethodType(piece_capturable, piece)

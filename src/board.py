@@ -27,9 +27,28 @@ class Board:
         Item at [7][0] is referenced as ["a1"].
     """
 
+#   Decide theme statically for now.
     default_board_theme = {
         'white': 3,
         'black': 1,
+    }
+
+#   Convinient piece color list.
+    piece_colors = [
+        "white",
+        "black",
+    ]
+
+#   Convinient main piece file dictionary, as pieces' file by type match.
+    main_pieces = {
+        "a": Rook,
+        "b": Knight,
+        "c": Bishop,
+        "d": Queen,
+        "e": King,
+        "f": Bishop,
+        "g": Knight,
+        "h": Rook,
     }
 
     def __init__(self, *, empty: bool = False, theme: dict[str, int] = default_board_theme):
@@ -40,24 +59,13 @@ class Board:
     #   NOTE: Temporarily assign castles to board:
         self.castle = {}
 
-        main_pieces = {
-            "a": Rook,
-            "b": Knight,
-            "c": Bishop,
-            "d": Queen,
-            "e": King,
-            "f": Bishop,
-            "g": Knight,
-            "h": Rook,
-        }
-
         if not empty:
-            for color in ['white', 'black']:
+            for color in Board.piece_colors:
                 pawn_rank = (Orientation[color] * 5 + 9) // 2  # Pawn rank per color.
                 main_rank = (Orientation[color] * 7 + 9) // 2  # Main rank per color.
 
             #   All the pieces:
-                for file, Main in main_pieces.items():
+                for file, Main in Board.main_pieces.items():
                     self[f"{file}{main_rank}"] = Main(color)  # The main pieces (rooks, knights, bishops, queen, king)
                     self[f"{file}{pawn_rank}"] = Pawn(color)  # The pawns.
 
