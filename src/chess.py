@@ -27,8 +27,8 @@ class Chess:
         self.board = board
 
     #   White usually starts first, but this player will alwyas be the current one.
-        self.current = Player("White", "white", self.board)  # input("Enter player name for white: ")
-        self.opponent = Player("Black", "black", self.board)  # input("Enter player name for black: ")
+        self.current = Player("Foo", "white", self.board)  # input("Enter player name for white: ")
+        self.opponent = Player("Bar", "black", self.board)  # input("Enter player name for black: ")
 
     #   Switch to blacks turn in  acustom position starting with black.
         if board != Board() and black:
@@ -61,19 +61,17 @@ class Chess:
             target_piece = self.board[target]
 
         #   Avoid ckecking for king safety in unecessary scenarios.
-            if source_piece.__class__.deployable(source_piece, target) and target_piece is None:
-                return king_safe(source_piece, target)
-
-            return False
+            return source_piece.__class__.deployable(source_piece, target) and target_piece is None \
+                and king_safe(source_piece, target)
 
         def piece_capturable(source_piece: Piece, target: Square):
             source_piece.capturable.__doc__
             target_piece = self.board[target]
 
         #   Avoid ckecking for king safety in unecessary scenarios.
-            if source_piece.__class__.capturable(source_piece, target) and target_piece is not None \
-                    and source_piece.orientation != target_piece.orientation:
-                return king_safe(source_piece, target)
+            return source_piece.__class__.capturable(source_piece, target) and target_piece is not None \
+                and source_piece.orientation != target_piece.orientation \
+                and king_safe(source_piece, target)
 
             return False
 
