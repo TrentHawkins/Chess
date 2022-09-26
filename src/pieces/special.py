@@ -6,12 +6,12 @@ Of the 6 type of chess pieces pawns are special:
 """
 
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import ClassVar, Type
 
-from ..piece import Piece
+from ..piece import Orientation, Piece
 from ..square import Square, Vector
-from .meleed import King
-from .ranged import Rook
+from .meleed import King, Knight
+from .ranged import Bishop, Queen, Rook
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -51,6 +51,14 @@ class Pawn(Piece):
         Vector(+1, +1),  # Capturing to the east.
     }
 
+#   Eligible ranks for promotion:
+    promotions: ClassVar[Type] = {
+        Bishop,
+        Knight,
+        Rook,
+        Queen,
+    }
+
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
@@ -82,6 +90,15 @@ class Pawn(Piece):
                         squares.add(square)  # Add the next forward square to possible moves too.
 
         return squares
+
+    def promote(self, Piece: Type):
+        """Promote pawn to piece.
+
+        Args:
+            piece: The type of piece to promote pawn to.
+        """
+        if Piece in self.promotions:
+            self.__class__ = Piece  # Promote pawn without changing any of its other attributes.
 
 
 @dataclass

@@ -306,6 +306,53 @@ class TestBoard:
         assert source.has_foe(foe)
 
 
+class TestPieces:
+    """Unit tests for various pieces."""
+
+    def test_pawn_promotion(self):
+        """Test that pawn promotion successfully mutates pawn."""
+        from src.board import Board
+        from src.pieces.ranged import Queen
+        from src.pieces.special import Pawn
+        from src.square import Square
+
+        board = Board(empty=True)
+
+        pawn = Pawn("white")
+        board["e8"] = pawn
+
+        assert pawn.square == Square("e8")
+        assert pawn.squares == set()
+
+        pawn.promote(Queen)
+
+        assert pawn.square == Square("e8")  # Check if promoted pawn is still in-place.
+        assert isinstance(pawn, Queen)  # Check if pawn was indeed promoted.
+        assert pawn.squares == {
+            Square("d8"),
+            Square("c8"),
+            Square("b8"),
+            Square("a8"),
+            Square("d7"),
+            Square("c6"),
+            Square("b5"),
+            Square("a4"),
+            Square("e7"),
+            Square("e6"),
+            Square("e5"),
+            Square("e4"),
+            Square("e3"),
+            Square("e2"),
+            Square("e1"),
+            Square("f7"),
+            Square("g6"),
+            Square("h5"),
+            Square("f8"),
+            Square("g8"),
+            Square("h8"),
+        }  # Check if pawn has the priviligies of its new rank.
+
+
 class TestSquare:
     """Unit tests exclusive to the squares."""
 
