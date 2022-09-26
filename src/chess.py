@@ -42,15 +42,13 @@ class Chess:
 
             NOTE: A player's checks rely on the player's pieces' moves, which are affected by what is happening here.
             """
-            source = source_piece.square
-
-        #   Check first if king is in danger presently. If it is, there is hope for this move yet, keep reading.
             king_safe = self.current.king.square not in self.opponent.squares_checked
 
         #   Check if king is still in danger, after the move. If it is not, then the move is legit.
-            target_piece, self.board[target], self.board[source] = self.board[target], self.board[source], None  # type: ignore
-            king_safe = king_safe and self.current.king.square not in self.opponent.squares_checked
-            self.board[source], self.board[target] = self.board[target], target_piece  # type: ignore
+            simulation = self.board.simulate(source_piece, target)
+            target_piece = next(simulation)  # Make the move.
+            king_safe = king_safe and self.current.king.square not in self.opponent.squares_checked  # Is king still safe?
+            next(simulation)  # Take move back.
 
             return king_safe
 

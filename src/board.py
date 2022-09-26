@@ -4,7 +4,7 @@ Referencing with chess algebraic notation is possible.
 """
 
 from itertools import cycle
-from types import MethodType
+from typing import Generator
 
 from .piece import Orientation, Piece
 from .pieces.meleed import King, Knight
@@ -195,6 +195,38 @@ class Board:
         """
         return any(piece in rank for rank in self.pieces)
 
+    def simulate(self, source_piece: Piece, target: Square | str) -> Generator[Piece | None, None, None]:
+        """Simulate moving the source piece to target square if move is valid.
+
+        This only simulates the move, so the target piece, if any, is preserved.
+        On the second iteration, take the move back, to return the board to its original position.
+
+        Args:
+            source_piece: The piece to move.
+            target: The square in notation the piece wants to go to.
+
+        Yields:
+            Lost piece in the move/back, if any.
+        """
+        source = source_piece.square
+        target = Square(target)
+
+        target_piece = self[target]
+
+    #   If the source piece is in-board and the target square is legit, make the move without switching its has-moved flag.
+        if source is not None:
+            self[target], self[source] = source_piece, None
+
+        yield target_piece
+
+    #   Now return the board to its original state.
+        if source is not None:
+            self[source], self[target] = source_piece, target_piece
+
+        yield None
+
+        return
+
     def move(self, source_piece: Piece, target: Square | str) -> Piece | None:
         """Move the source piece to target square if move is valid.
 
@@ -206,8 +238,7 @@ class Board:
             target: The square in notation the piece wants to go to.
 
         Returns:
-            Lost piece on target square if any
-
+            Lost piece on target square if any.
         """
         source = source_piece.square
         target = Square(target)
