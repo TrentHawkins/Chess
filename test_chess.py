@@ -65,7 +65,7 @@ class TestChess:
             Pawn("white"): 4,
         })
 
-    def testKing(self):
+    def test_king(self):
         """Test king movements and related movements."""
         from src.board import Board
         from src.chess import Chess
@@ -88,6 +88,94 @@ class TestChess:
         assert king.squares == set()  # Because it puts the king in check from "Ba6".
         assert pawn is not None
         assert pawn.squares == set()  # Because it discovers a check to the king from "Ba5".  # FIXME: Not implemented yet.
+
+    def test_castling(self):
+        """Test castling."""
+        from src.board import Board
+        from src.chess import Chess
+        from src.pieces.meleed import King
+        from src.pieces.ranged import Bishop, Rook
+        from src.pieces.special import Castle
+        from src.square import Square
+
+    #   Make board empty to test singular castling conditions.
+        board = Board(empty=True)
+
+    #   Put castling pieces on the board to be found by the players' castles.
+        board["e1"] = King("white")
+        board["a1"] = Rook("white")
+        board["h1"] = Rook("white")
+        board["e8"] = King("black")
+        board["e6"] = Bishop("black")
+        board["e7"] = Bishop("black")
+        board["a8"] = Rook("black")
+        board["h8"] = Rook("black")
+
+    #   Make new game with custom position.
+        new_game = Chess(board=board)
+
+    #   As is we should be having both castles.
+        assert new_game.current.castles == {
+            Castle(board["e1"], board["a1"]),  # type: ignore
+            Castle(board["e1"], board["h1"]),  # type: ignore
+        }
+
+    #   They should both be deployable:
+        assert all(castle.deployable() for castle in new_game.current.castles)
+
+    #   Add some benigh danger to castling long:
+        new_game.opponent.move(board["a8"], "b8")  # type: ignore
+
+    #   They should still be both deployable.
+        assert all(castle.deployable() for castle in new_game.current.castles)
+
+    #   Castling long target checked.
+        new_game.opponent.move(board["b8"], "c8")  # type: ignore
+
+    #   Should only see one.
+        assert not all(castle.deployable() for castle in new_game.current.castles) \
+            and any(castle.deployable() for castle in new_game.current.castles)
+
+    #   Castling long flying checked.
+        new_game.opponent.move(board["c8"], "d8")  # type: ignore
+
+    #   Should only see one.
+        assert not all(castle.deployable() for castle in new_game.current.castles) \
+            and any(castle.deployable() for castle in new_game.current.castles)
+
+    #   King checked. Pull other danger away to see if king check kills both castles.
+        new_game.opponent.move(board["d8"], "b8")  # type: ignore
+        new_game.opponent.move(board["e7"], "b4")  # type: ignore
+
+    #   Should see none.
+        assert not any(castle.deployable() for castle in new_game.current.castles)
+
+    #   Lets see if we can retrive them when the danger is gone.
+        new_game.opponent.move(board["b4"], "e7")  # type: ignore
+
+    #   Should see both.
+        assert all(castle.deployable() for castle in new_game.current.castles)
+
+    #   Lets put an obstacle on the long castle near the rook, where the king doesn't even reach.
+        new_game.current.move(board["e6"], "f5")  # type: ignore
+        new_game.current.move(board["f5"], "b1")  # type: ignore
+
+    #   Should see one.
+        assert any(castle.deployable() for castle in new_game.current.castles)
+
+    #   Remove block.
+        new_game.current.move(board["b1"], "f5")  # type: ignore
+        new_game.current.move(board["f5"], "e6")  # type: ignore
+
+    #   Should see both.
+        assert all(castle.deployable() for castle in new_game.current.castles)
+
+    #   Lets move the king back and forth.
+        new_game.current.move(board["e1"], "d1")  # type: ignore
+        new_game.current.move(board["d1"], "e1")  # type: ignore
+
+    #   Should see none.
+        assert not any(castle.deployable() for castle in new_game.current.castles)
 
 
 class TestPlayer:
@@ -281,29 +369,6 @@ class TestPlayer:
         assert black_pawn.square is None
         assert black_pawn not in black.pieces
         assert black_pawn in white.captured and white.captured[black_pawn] == 1
-
-
-class TestBoard:
-    """Unit tests for the board."""
-
-    def test_board_piece_relations(self):
-        """Test the various logical conditions imposed at board level."""
-        from src.board import Board
-
-        board = Board()
-
-        source = board["h1"]
-        friend = board["h2"]
-        foe = board["h8"]
-
-        assert source
-        assert friend
-        assert foe
-
-        assert source.has_friend(friend)
-        assert not source.has_friend(foe)
-        assert not source.has_foe(friend)
-        assert source.has_foe(foe)
 
 
 class TestPieces:

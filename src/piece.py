@@ -108,22 +108,6 @@ class Piece:
 
         return hash((self.__class__.__name__, self.square))
 
-    def has_friend(self, other):
-        """Check weather `other` is a friend of `self`.
-
-        Returns:
-            True if `self` and `other` are of the same color.
-        """
-        return self.orientation == other.orientation if self and other else False
-
-    def has_foe(self, other):
-        """Check weather `other` is a foe of `self`.
-
-        Returns:
-            True if `self` and `other` are of different color.
-        """
-        return self.orientation != other.orientation if self and other else False
-
     def deployable(self, target: Square) -> bool:
         """Check if current piece is placeable on target square.
 

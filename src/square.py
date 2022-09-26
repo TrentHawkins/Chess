@@ -54,6 +54,23 @@ class Vector:
             self.file * times,
         )
 
+    def __floordiv__(self, times: int):
+        """Vector integer (euclidean) division with an factor."""
+        return Vector(
+            self.rank // times,
+            self.file // times,
+        )
+
+    def __len__(self):
+        """Manhattan path length.
+
+        Returns:
+            Integer number of steps from start to end.
+        """
+        return \
+            abs(self.rank) + \
+            abs(self.file)
+
 
 @dataclass(init=False, repr=False, frozen=True)
 class Square(Vector):

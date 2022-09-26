@@ -10,10 +10,11 @@ from types import MethodType
 from .board import Board
 from .piece import Orientation, Piece
 from .pieces.meleed import King
+from .pieces.ranged import Rook
+from .pieces.special import Castle
 from .square import Square
 
 
-@dataclass(init=False, repr=False)
 class Player:
     """A player.
 
@@ -53,18 +54,14 @@ class Player:
             source_piece.deployable.__doc__
             target_piece = self.board[target]
 
-            return source_piece.__class__.deployable(source_piece, target) \
-                and target_piece is None
+            return source_piece.__class__.deployable(source_piece, target) and target_piece is None
 
         def piece_capturable(source_piece: Piece, target: Square):
             source_piece.capturable.__doc__
             target_piece = self.board[target]
 
-            if target_piece is not None:
-                return source_piece.__class__.capturable(source_piece, target) \
-                    and source_piece.orientation != target_piece.orientation
-
-            return False
+            return source_piece.__class__.capturable(source_piece, target) and target_piece is not None \
+                and source_piece.orientation != target_piece.orientation
 
         for piece in self.pieces:
             piece.deployable = MethodType(piece_deployable, piece)
@@ -74,6 +71,14 @@ class Player:
         for piece in self.pieces:
             if isinstance(piece, King):
                 self.king: King = piece
+
+    #   Castles
+        self.castles: set[Castle] = set()
+
+    #   Do not allow castles in custom positions as the `has_moved` conditions is unresolvable mathematically.
+        for piece in self.pieces:
+            if isinstance(piece, Rook):
+                self.castles.add(Castle(self.king, piece))
 
     def __repr__(self):
         """Represent a player by name and captured pieces.
