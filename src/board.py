@@ -140,11 +140,11 @@ class Board:
         """
         square = Square(square)
 
-    #   If a true piece is assigned, proceed as planned, otherwise leave the square empty.
+        self.pieces[square.rank][square.file] = piece
+
+    #   If a true piece is assigned, update its square.
         if piece is not None:
             piece.square = square
-
-        self.pieces[square.rank][square.file] = piece
 
     def __getitem__(self, square: Square | str) -> Piece | None:
         """Get the piece of a given square.
@@ -195,24 +195,31 @@ class Board:
         """
         return any(piece in rank for rank in self.pieces)
 
-    def simulate_move(self, source_piece: Piece, target: Square):
-        """Simulate a move on the board without constraints.
+    def move(self, source_piece: Piece, target: Square | str) -> Piece | None:
+        """Move the source piece to target square if move is valid.
 
-        For the lack of constraints save the lost by the move piece by returing it to the caller.
+        Whatever lies on the target square is saved for further processing, however its square is killed, naturally.
+        NOTE: A `Move` class will be made to encapsulate moves, this will be moved there.
 
         Args:
-            source_piece: Piece to move.
-            target: Square to move it to.
+            source_piece: The piece to move.
+            target: The square in notation the piece wants to go to.
 
         Returns:
-            Potential piece in the target square that is potentially lost in the move.
+            Lost piece on target square if any
+
         """
         source = source_piece.square
+        target = Square(target)
 
-    #   On first iteration make the move and return the square left behind. Save the piece lost on target square, if any.
-        self[source], self[target], target_piece = None, self[source], self[target]  # type: ignore
-        yield
+        target_piece = self[target]
 
-    #   On last iteration revert back to original position.
-        self[source], self[target] = self[target], target_piece,  # type: ignore
-        yield
+    #   If the source piece is in-board and the target square is legit, make the move and switch its has-moved flag.
+        if source is not None:
+            self[target], self[source] = source_piece.move(target), None
+
+    #   If there really is a piece on the target square, prep it for removal:
+        if target_piece is not None:
+            target_piece.square = None
+
+        return target_piece

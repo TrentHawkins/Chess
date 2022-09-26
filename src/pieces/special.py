@@ -51,9 +51,6 @@ class Pawn(Piece):
         Vector(+1, +1),  # Capturing to the east.
     }
 
-#   Pawn flags:
-    promoted: bool = False
-
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
@@ -83,9 +80,6 @@ class Pawn(Piece):
 
                     if self.deployable(square):  # If said square is inside board limits,
                         squares.add(square)  # Add the next forward square to possible moves too.
-
-            else:  # Otherwise,
-                self.promoted = True  # The pawn is promoted, assuming it falls outside because it can only move forward.
 
         return squares
 

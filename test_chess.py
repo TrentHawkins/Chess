@@ -251,18 +251,36 @@ class TestPlayer:
     def test_move(self):
         """Test draft move method."""
         from src.board import Board
-        from src.player import Player
+        from src.chess import Chess
 
-        board = Board()
-        player = Player("Player", "white", board)
-        pawn = board["e2"]
+        new_game = Chess()
 
-        assert pawn is not None
+    #   HACK: Do not swirl players, just use both as is for simplicity:
+        white = new_game.current
+        black = new_game.opponent
+        board = new_game.board
 
-        player.move(pawn, "e4")  # The most famous opening move in the history of chess!
-
+        white_pawn = board["e2"]
+        white.move(white_pawn, "e4")  # type: ignore  # The most famous opening move in the history of chess!
         assert board["e2"] is None
-        assert board["e4"] is pawn
+        assert board["e4"] is white_pawn
+
+        black_pawn = board["d7"]
+        black.move(black_pawn, "d5")  # type: ignore  # An untypical response to create a capturing scenario.
+        assert board["d7"] is None
+        assert board["d5"] is black_pawn
+
+        white_pawn = board["e4"]
+        black_pawn = board["d5"]
+        white.move(white_pawn, "d5")  # type: ignore  # The pawn at "e4" takes the pawn at "d5".
+        assert board["e4"] is None
+        assert board["d5"] is white_pawn
+
+    #   Ascertain that the captured pawn is properly gone:
+        assert black_pawn is not None
+        assert black_pawn.square is None
+        assert black_pawn not in black.pieces
+        assert black_pawn in white.captured and white.captured[black_pawn] == 1
 
 
 class TestBoard:

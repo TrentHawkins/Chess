@@ -47,7 +47,7 @@ class Player:
 
     #   Assign pieces to player agnostically, so that custom position can also be loaded.
         self.pieces: set[Piece] = set(piece for piece in self.board if piece.orientation == self.orientation)
-        self.captured: Counter = Counter()  # In custom positions, captured material is immaterial.
+        self.captured: Counter[Piece] = Counter()  # NOTE: Not yet implemented.
 
         def piece_deployable(source_piece: Piece, target: Square):
             source_piece.deployable.__doc__
@@ -94,20 +94,16 @@ class Player:
         """
         return set().union(*(piece.squares for piece in self.pieces))
 
-    def move(self, piece: Piece, target: Square | str):
-        """Move whatever is in source square to target square if move is valid.
+    def move(self, source_piece: Piece, target: Square | str):
+        """Move the source piece to target square if move is valid.
 
         Args:
-            piece: The piece to move.
+            source_piece: The piece to move.
             target: The square in notation the piece wants to go to.
 
         NOTE: A `Move` class will be made to encapsulate moves, this will be moved there.
         """
-        target = Square(target)
-        source = piece.square
+        target_piece = self.board.move(source_piece, target)  # Make the move.
 
-        if source is not None:  # If piece is on the board,
-            if target in piece.squares:  # If the target square is legal for the piece,
-                self.board[target], self.board[source] = piece, None  # Move the piece to the target square.
-
-                piece.has_moved = True  # The pawns at theirstart and kings and rooks for castling use this flag.
+        if target_piece is not None:  # If there was a piece there (opponent's),
+            self.captured[target_piece] += 1  # Add lost piece to target collection, not that it has lost its square.
