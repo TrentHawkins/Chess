@@ -215,7 +215,7 @@ class Board:
         target_piece = self[target]
 
     #   If the source piece is in-board and the target square is legit, make the move and switch its has-moved flag.
-        if source is not None:
+        if source is not None and target in source_piece.squares:
             self[target], self[source] = source_piece.move(target), None
 
     #   If there really is a piece on the target square, prep it for removal:
