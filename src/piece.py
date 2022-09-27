@@ -131,6 +131,28 @@ class Piece:
 
         return hash((self.__class__.__name__, self.square))
 
+    def __call__(self, target: Square | str):
+        """Move the piece to a target square.
+
+        Simply updates the piece's square and movement flag.
+
+        Args:
+            target: The square in notation the piece wants to go to.
+
+        Returns:
+            The piece moved.
+
+        NOTE: A `Move` class will be made to encapsulate moves, this will be moved there.
+        """
+        if target is not None:  # If target square is given
+            target = Square(target)
+
+        if target in self.squares:
+            self.square = target  # Update the piece's square.
+            self.has_moved = True  # The pawns at their start and kings and rooks for castling use this flag.
+
+        return self
+
     def deployable(self, target: Square) -> bool:
         """Check if current piece is placeable on target square.
 
@@ -174,25 +196,3 @@ class Piece:
                 targets: any potential square in squares that the piece can target another piece
         """
         return set()  # A ghost piece cannot move or capture.
-
-    def __call__(self, target: Square | str):
-        """Move the piece to a target square.
-
-        Simply updates the piece's square and movement flag.
-
-        Args:
-            target: The square in notation the piece wants to go to.
-
-        Returns:
-            The piece moved.
-
-        NOTE: A `Move` class will be made to encapsulate moves, this will be moved there.
-        """
-        if target is not None:  # If target square is given
-            target = Square(target)
-
-        if target in self.squares:
-            self.square = target  # Update the piece's square.
-            self.has_moved = True  # The pawns at their start and kings and rooks for castling use this flag.
-
-        return self

@@ -91,15 +91,6 @@ class Player:
         """
         ...
 
-    @property
-    def squares_checked(self) -> set[Square]:
-        """Get all squares checked by player.
-
-        Returns:
-            A flattened union of all squares the player has access to.
-        """
-        return set().union(*(piece.squares for piece in self.pieces))
-
     def __call__(self, move: Move):
         """Move the source piece to target square if move is valid.
 
@@ -111,3 +102,12 @@ class Player:
 
         if target_piece is not None:  # If there was a piece there (opponent's),
             self.captured[target_piece] += 1  # Add lost piece to target collection, not that it has lost its square.
+
+    @property
+    def squares_checked(self) -> set[Square]:
+        """Get all squares checked by player.
+
+        Returns:
+            A flattened union of all squares the player has access to.
+        """
+        return {square for piece in self.pieces for square in piece.squares}
