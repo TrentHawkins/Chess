@@ -8,10 +8,12 @@ Of the 6 type of chess pieces pawns are special:
 from dataclasses import dataclass
 from typing import ClassVar, Type
 
-from ..piece import Orientation, Piece
+from ..piece import Piece
 from ..square import Square, Vector
-from .melee import King, Knight
+from .melee import Knight
 from .ranged import Bishop, Queen, Rook
+
+Officer: Type = Bishop | Knight | Queen | Rook
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -41,8 +43,9 @@ class Pawn(Piece):
             ↑ + → = ↗ capture east
     """
 
-#   Pawn value:
+#   Pawn main attributes:
     value: ClassVar[int] = 1
+    _repr: ClassVar[str] = "♟"
 
 #   Pawn moves:
     step: ClassVar[Vector] = Vector(+1, 0)  # One step.
@@ -51,19 +54,11 @@ class Pawn(Piece):
         Vector(+1, +1),  # Capturing to the east.
     }
 
-#   Eligible ranks for promotion:
-    promotions: ClassVar[Type] = {
-        Bishop,
-        Knight,
-        Rook,
-        Queen,
-    }
-
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            "white": f"\033[37;1m♟\033[0m",
-            "black": f"\033[30;1m♟\033[0m",
+            "white": f"\033[37;1m{self._repr}\033[0m",
+            "black": f"\033[30;1m{self._repr}\033[0m",
         }[self.orientation.name]
 
     @property
@@ -91,11 +86,16 @@ class Pawn(Piece):
 
         return squares
 
-    def promote(self, Piece: Type):
-        """Promote pawn to piece.
+    @property
+    def can_promote(self) -> bool:
+        """Check if pawn is promotable."""
+        return self.square is not None and self.square.rank == Square.rank_to_index[str((9 - self.orientation * 5) // 2)]
 
-        Args:
-            piece: The type of piece to promote pawn to.
-        """
-        if Piece in self.promotions:
+    def promote(self, target: Square, Piece: Type):
+        super().__call__.__doc__
+
+        if Piece in Officer.__args__ and self.can_promote:
+            super().__call__(target)
             self.__class__ = Piece  # Promote pawn without changing any of its other attributes.
+
+        return self

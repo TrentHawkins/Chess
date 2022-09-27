@@ -72,15 +72,15 @@ class Chess:
             piece.deployable = MethodType(piece_deployable, piece)
             piece.capturable = MethodType(piece_capturable, piece)
 
-        def castle_deployable(castle: Castle):
-            castle.legal.__doc__
-            return castle.__class__.legal(castle) \
+        def castle_is_legal(castle: Castle):
+            castle.is_legal.__doc__
+            return castle.__class__.is_legal(castle) \
                 and castle.flying not in self.opponent.squares_checked \
                 and castle.target not in self.opponent.squares_checked
 
     #   Update current player's castles with check constraints.
         for castle in self.current.castles:
-            castle.legal = MethodType(castle_deployable, castle)
+            castle.is_legal = MethodType(castle_is_legal, castle)
 
     def turn(self):
         """Advance the turn."""

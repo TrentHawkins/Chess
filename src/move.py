@@ -64,7 +64,7 @@ from .pieces.ranged import Rook
 from .square import Square
 
 
-@dataclass(init=False, repr=False)
+@dataclass(repr=False)
 class Move:
     """Encapsulate all the data needed for a move in chess.
 
@@ -92,15 +92,12 @@ class Move:
         is_legal: Check if move is legal based on piece and square context.
     """
 
-    def __init__(self, piece: Piece, square: Square | str):
-        """Recode square in notation to a `Square` object.
+    piece: Piece
+    square: Square
 
-        Args:
-            piece: The source piece of the move.
-            square: the target square of the move.
-        """
-        self.piece = piece
-        self.square = Square(square)
+    def __post_init__(self):
+        """Recode square in notation to a `Square` object."""
+        self.square = Square(self.square)
 
     def __repr__(self):
         """Each move of a piece is indicated by the piece's uppercase letter, plus the coordinate of the destination square.
@@ -111,15 +108,14 @@ class Move:
 
         NOTE: This needs contextual resolve at `Board` or `Player` level. For now use long algebraic notation.
         """
-        return repr(self.piece) + repr(self.piece.square) + "-" + repr(self.square)
+        return self.piece._repr + repr(self.piece.square) + "-" + repr(self.square)
 
-    @property
     def is_legal(self):
         """Check if move is legal based on piece and square context."""
         return self.piece.deployable(self.square)  # type: ignore
 
 
-@dataclass(init=False, repr=False)
+@dataclass(repr=False)
 class Capture(Move):
     """Encapsulate all the data needed for a capture in chess.
 
@@ -146,9 +142,8 @@ class Capture(Move):
 
         NOTE: This needs contextual resolve at `Board` or `Player` level. For now use long algebraic notation.
         """
-        return repr(self.piece) + repr(self.piece.square) + "×" + repr(self.square)
+        return super().__repr__().replace("-", "×")
 
-    @property
     def is_legal(self):
         """Check if move is legal based on piece and square context."""
         return self.piece.capturable(self.square)  # type: ignore

@@ -36,7 +36,6 @@ from dataclasses import dataclass
 from enum import IntEnum
 from itertools import combinations
 from typing import ClassVar
-from unittest.util import strclass
 
 from .square import Square, Vector
 
@@ -84,6 +83,9 @@ class Piece:
         ↑ + ↓ = · center (removed)
     """
 
+#   Piece main attributes:
+    _repr: ClassVar[str] = "🨅"
+
 #   Straight steps:
     straights: ClassVar[set[Vector]] = {
         Vector(-1, 0),
@@ -115,7 +117,7 @@ class Piece:
         Returns:
             The representation of a {self.__class__.__name__}.
         """
-        return "\033[8m🨅\033[0m"  # An unspecified piece is a ghost piece.
+        return f"\033[8m{self._repr}\033[0m"  # An unspecified piece is a ghost piece.
 
     def __hash__(self):
         """Make each piece distinct based on its type square alone.
@@ -173,7 +175,7 @@ class Piece:
         """
         return set()  # A ghost piece cannot move or capture.
 
-    def move(self, target: Square | str):
+    def __call__(self, target: Square | str):
         """Move the piece to a target square.
 
         Simply updates the piece's square and movement flag.

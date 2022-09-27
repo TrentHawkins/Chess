@@ -70,7 +70,7 @@ class Player:
 
     #   Keep the player's king registered, as it is a special piece.
         for piece in self.pieces:
-            if isinstance(piece, King):
+            if type(piece) is King:
                 self.king: King = piece
 
     #   Castles
@@ -78,7 +78,7 @@ class Player:
 
     #   Do not allow castles in custom positions as the `has_moved` conditions is unresolvable mathematically.
         for piece in self.pieces:
-            if isinstance(piece, Rook):
+            if type(piece) is Rook:
                 self.castles.add(Castle(self.king, piece))
 
     def __repr__(self):
@@ -100,16 +100,14 @@ class Player:
         """
         return set().union(*(piece.squares for piece in self.pieces))
 
-    def move(self, move: Move):
+    def __call__(self, move: Move):
         """Move the source piece to target square if move is valid.
 
         Args:
             source_piece: The piece to move.
             target: The square in notation the piece wants to go to.
-
-        NOTE: A `Move` class will be made to encapsulate moves, this will be moved there.
         """
-        target_piece = self.board.move(move)  # Make the move.
+        target_piece = self.board(move)  # Make the move.
 
         if target_piece is not None:  # If there was a piece there (opponent's),
             self.captured[target_piece] += 1  # Add lost piece to target collection, not that it has lost its square.

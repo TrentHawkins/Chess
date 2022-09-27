@@ -55,8 +55,9 @@ class Rook(Ranged):
         → east
     """
 
-#   Knight value:
+#   Rook main attributes:
     value: ClassVar[int] = 5
+    _repr: ClassVar[str] = "♜"
 
 #   Straight lines:
     steps: ClassVar[set[Vector]] = Piece.straights
@@ -64,8 +65,8 @@ class Rook(Ranged):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            "white": "\033[37;1m♜\033[0m",
-            "black": "\033[30;1m♜\033[0m",
+            "white": f"\033[37;1m{self._repr}\033[0m",
+            "black": f"\033[30;1m{self._repr}\033[0m",
         }[self.orientation.name]
 
 
@@ -87,8 +88,9 @@ class Bishop(Ranged):
         ↙ south-west
     """
 
-#   Knight value:
+#   Bishop main attributes:
     value: ClassVar[int] = 3
+    _repr: ClassVar[str] = "♝"
 
 #   Diagonal lines:
     steps: ClassVar[set[Vector]] = Piece.diagonals
@@ -96,8 +98,8 @@ class Bishop(Ranged):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            "white": "\033[37;1m♝\033[0m",
-            "black": "\033[30;1m♝\033[0m",
+            "white": f"\033[37;1m{self._repr}\033[0m",
+            "black": f"\033[30;1m{self._repr}\033[0m",
         }[self.orientation.name]
 
 
@@ -121,8 +123,9 @@ class Queen(Ranged):
         ↙ south-west
     """
 
-#   Knight value:
+#   Queen main attributes:
     value: ClassVar[int] = 9
+    _repr: ClassVar[str] = "♛"
 
 #   Queen lines:
     steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
@@ -130,6 +133,6 @@ class Queen(Ranged):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            "white": "\033[37;1m♛\033[0m",
-            "black": "\033[30;1m♛\033[0m",
+            "white": f"\033[37;1m{self._repr}\033[0m",
+            "black": f"\033[30;1m{self._repr}\033[0m",
         }[self.orientation.name]

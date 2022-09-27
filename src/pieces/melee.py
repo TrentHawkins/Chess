@@ -57,6 +57,9 @@ class King(Meleed):
         ↙ south-west
     """
 
+#   King main attributes:
+    _repr: ClassVar[str] = "♚"
+
 #   King moves:
     steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
 
@@ -65,8 +68,8 @@ class King(Meleed):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            "white": "\033[37;1m♚\033[0m",
-            "black": "\033[30;1m♚\033[0m",
+            "white": f"\033[37;1m{self._repr}\033[0m",
+            "black": f"\033[30;1m{self._repr}\033[0m",
         }[self.orientation.name]
 
 
@@ -96,8 +99,9 @@ class Knight(Meleed):
         ↙ + → = ↓ south (removed)
     """
 
-#   Knight value:
+#   Knight main attributes:
     value: ClassVar[int] = 3
+    _repr: ClassVar[str] = "♞"
 
 #   Knight moves:
     steps: ClassVar[set[Vector]] = \
@@ -106,6 +110,6 @@ class Knight(Meleed):
     def __repr__(self) -> str:
         super().__repr__.__doc__
         return {
-            "white": "\033[37;1m♞\033[0m",
-            "black": "\033[30;1m♞\033[0m",
+            "white": f"\033[37;1m{self._repr}\033[0m",
+            "black": f"\033[30;1m{self._repr}\033[0m",
         }[self.orientation.name]

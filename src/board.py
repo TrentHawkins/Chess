@@ -8,6 +8,7 @@ from typing import Generator
 
 from .move import Capture, Move
 from .moves.castle import Castle
+from .moves.pawn import Promotion
 from .piece import Orientation, Piece
 from .pieces.melee import King, Knight
 from .pieces.pawn import Pawn
@@ -198,11 +199,10 @@ class Board:
         """
         return any(piece in rank for rank in self.pieces)
 
-    def move(self, move: Move) -> Piece | None:
+    def __call__(self, move: Move) -> Piece | None:
         """Move the source piece to target square if move is valid.
 
         Whatever lies on the target square is saved for further processing, however its square is killed, naturally.
-        NOTE: A `Move` class will be made to encapsulate moves, this will be moved there.
 
         Args:
             source_piece: The piece to move.
@@ -217,8 +217,13 @@ class Board:
         target_piece = self[move.square]
 
     #   If the source piece is in-board and the target square is legit, make the move and switch its has-moved flag.
-        if move.piece.square is not None and move.is_legal:
-            self[target], self[source] = move.piece.move(target), None  # type: ignore
+        if move.piece.square is not None and move.is_legal():
+            if type(move) is not Promotion:
+                self[target], self[source] = move.piece(target), None  # type: ignore
+
+        #   If it a promotion, pass the designated promotion type.
+            else:
+                self[target], self[source] = move.piece.promote(target, move.Piece), None  # type: ignore
 
     #   If there really is a piece on the target square, prep it for removal:
         if target_piece is not None:

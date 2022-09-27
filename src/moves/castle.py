@@ -73,7 +73,7 @@ class Castle:
         """Hashing for castle moves."""
         return hash((self.king.orientation, self.connection))
 
-    def legal(self) -> bool:
+    def is_legal(self) -> bool:
         """Check if castling with the two pieces is still possible.
 
         Returns:
