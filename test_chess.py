@@ -7,9 +7,9 @@ class TestChess:
     def test_simple_chess_game(self):
         """Test initial game setup with players."""
         from src.chess import Chess
-        from src.pieces.meleed import King, Knight
+        from src.pieces.melee import King, Knight
+        from src.pieces.pawn import Pawn
         from src.pieces.ranged import Bishop, Queen, Rook
-        from src.pieces.special import Pawn
 
         new_game = Chess()
 
@@ -41,9 +41,9 @@ class TestChess:
         """Check if reduced implied hashing of captured pieces works on piece counters."""
         from collections import Counter
 
-        from src.pieces.meleed import King, Knight
+        from src.pieces.melee import King, Knight
+        from src.pieces.pawn import Pawn
         from src.pieces.ranged import Bishop, Queen, Rook
-        from src.pieces.special import Pawn
 
         captured = Counter()
 
@@ -93,10 +93,10 @@ class TestChess:
         """Test castling."""
         from src.board import Board
         from src.chess import Chess
-        from src.pieces.meleed import King
+        from src.move import Move
+        from src.moves.castle import Castle
+        from src.pieces.melee import King
         from src.pieces.ranged import Bishop, Rook
-        from src.pieces.special import Castle
-        from src.square import Square
 
     #   Make board empty to test singular castling conditions.
         board = Board(empty=True)
@@ -121,61 +121,61 @@ class TestChess:
         }
 
     #   They should both be deployable:
-        assert all(castle.deployable() for castle in new_game.current.castles)
+        assert all(castle.legal() for castle in new_game.current.castles)
 
     #   Add some benigh danger to castling long:
-        new_game.opponent.move(board["a8"], "b8")  # type: ignore
+        new_game.opponent.move(Move(board["a8"], "b8"))  # type: ignore
 
     #   They should still be both deployable.
-        assert all(castle.deployable() for castle in new_game.current.castles)
+        assert all(castle.legal() for castle in new_game.current.castles)
 
     #   Castling long target checked.
-        new_game.opponent.move(board["b8"], "c8")  # type: ignore
+        new_game.opponent.move(Move(board["b8"], "c8"))  # type: ignore
 
     #   Should only see one.
-        assert not all(castle.deployable() for castle in new_game.current.castles) \
-            and any(castle.deployable() for castle in new_game.current.castles)
+        assert not all(castle.legal() for castle in new_game.current.castles) \
+            and any(castle.legal() for castle in new_game.current.castles)
 
     #   Castling long flying checked.
-        new_game.opponent.move(board["c8"], "d8")  # type: ignore
+        new_game.opponent.move(Move(board["c8"], "d8"))  # type: ignore
 
     #   Should only see one.
-        assert not all(castle.deployable() for castle in new_game.current.castles) \
-            and any(castle.deployable() for castle in new_game.current.castles)
+        assert not all(castle.legal() for castle in new_game.current.castles) \
+            and any(castle.legal() for castle in new_game.current.castles)
 
     #   King checked. Pull other danger away to see if king check kills both castles.
-        new_game.opponent.move(board["d8"], "b8")  # type: ignore
-        new_game.opponent.move(board["e7"], "b4")  # type: ignore
+        new_game.opponent.move(Move(board["d8"], "b8"))  # type: ignore
+        new_game.opponent.move(Move(board["e7"], "b4"))  # type: ignore
 
     #   Should see none.
-        assert not any(castle.deployable() for castle in new_game.current.castles)
+        assert not any(castle.legal() for castle in new_game.current.castles)
 
     #   Lets see if we can retrive them when the danger is gone.
-        new_game.opponent.move(board["b4"], "e7")  # type: ignore
+        new_game.opponent.move(Move(board["b4"], "e7"))  # type: ignore
 
     #   Should see both.
-        assert all(castle.deployable() for castle in new_game.current.castles)
+        assert all(castle.legal() for castle in new_game.current.castles)
 
     #   Lets put an obstacle on the long castle near the rook, where the king doesn't even reach.
-        new_game.current.move(board["e6"], "f5")  # type: ignore
-        new_game.current.move(board["f5"], "b1")  # type: ignore
+        new_game.current.move(Move(board["e6"], "f5"))  # type: ignore
+        new_game.current.move(Move(board["f5"], "b1"))  # type: ignore
 
     #   Should see one.
-        assert any(castle.deployable() for castle in new_game.current.castles)
+        assert any(castle.legal() for castle in new_game.current.castles)
 
     #   Remove block.
-        new_game.current.move(board["b1"], "f5")  # type: ignore
-        new_game.current.move(board["f5"], "e6")  # type: ignore
+        new_game.current.move(Move(board["b1"], "f5"))  # type: ignore
+        new_game.current.move(Move(board["f5"], "e6"))  # type: ignore
 
     #   Should see both.
-        assert all(castle.deployable() for castle in new_game.current.castles)
+        assert all(castle.legal() for castle in new_game.current.castles)
 
     #   Lets move the king back and forth.
-        new_game.current.move(board["e1"], "d1")  # type: ignore
-        new_game.current.move(board["d1"], "e1")  # type: ignore
+        new_game.current.move(Move(board["e1"], "d1"))  # type: ignore
+        new_game.current.move(Move(board["d1"], "e1"))  # type: ignore
 
     #   Should see none.
-        assert not any(castle.deployable() for castle in new_game.current.castles)
+        assert not any(castle.legal() for castle in new_game.current.castles)
 
 
 class TestPlayer:
@@ -340,6 +340,7 @@ class TestPlayer:
         """Test draft move method."""
         from src.board import Board
         from src.chess import Chess
+        from src.move import Capture, Move
 
         new_game = Chess()
 
@@ -349,18 +350,18 @@ class TestPlayer:
         board = new_game.board
 
         white_pawn = board["e2"]
-        white.move(white_pawn, "e4")  # type: ignore  # The most famous opening move in the history of chess!
+        white.move(Move(white_pawn, "e4"))  # type: ignore  # The most famous opening move in the history of chess!
         assert board["e2"] is None
         assert board["e4"] is white_pawn
 
         black_pawn = board["d7"]
-        black.move(black_pawn, "d5")  # type: ignore  # An untypical response to create a capturing scenario.
+        black.move(Move(black_pawn, "d5"))  # type: ignore  # An untypical response to create a capturing scenario.
         assert board["d7"] is None
         assert board["d5"] is black_pawn
 
         white_pawn = board["e4"]
         black_pawn = board["d5"]
-        white.move(white_pawn, "d5")  # type: ignore  # The pawn at "e4" takes the pawn at "d5".
+        white.move(Capture(white_pawn, "d5"))  # type: ignore  # The pawn at "e4" takes the pawn at "d5".
         assert board["e4"] is None
         assert board["d5"] is white_pawn
 
@@ -377,8 +378,8 @@ class TestPieces:
     def test_pawn_promotion(self):
         """Test that pawn promotion successfully mutates pawn."""
         from src.board import Board
+        from src.pieces.pawn import Pawn
         from src.pieces.ranged import Queen
-        from src.pieces.special import Pawn
         from src.square import Square
 
         board = Board(empty=True)

@@ -1,6 +1,11 @@
 """Implement square logic.
 
-A different type is used for displacements on squares since they are also semantically distinct.
+Naming the squares
+    Each square of the chessboard is identified by a unique coordinate pair—a letter and a number—from White's point of view.
+    The vertical columns of squares, called files, are labeled a through h from the queenside to the kingside.
+    The horizontal rows of squares, called ranks, are numbered 1 to 8 starting from White's side of the board.
+    Thus each square has a unique identification of file letter followed by rank number.
+    For example, the initial square of White's king is designated as "e1".
 """
 
 

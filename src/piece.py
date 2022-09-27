@@ -9,6 +9,27 @@ Chess has 6 types of pieces with predifined rules of movement and worth in-game:
     Rook: Moves along ranks and files. Worth 5.
     Queen: Moves both like a rook and bishop. Worth 9.
     King: Moves one square in any direction. Worth N/A (you loose the king it's game over).
+
+Naming the pieces
+    This section contains chess piece figurines.
+    Without proper rendering support, you may see question marks, boxes, or other symbols.
+    Each piece type (other than pawns) is identified by an uppercase letter.
+    English-speaking players use the letters:
+    -   K for king,
+    -   Q for queen,
+    -   R for rook,
+    -   B for bishop, and
+    -   N for knight (since K is already used and is a silent letter in knight).
+
+    In both standard algebraic notation and FAN, pawns are not identified by a letter or symbol, but rather by the absence of one.
+
+    Different initial letters are used by other languages.
+    In chess literature, especially that intended for an international audience,
+    the language-specific letters are often replaced by universally recognized piece symbols; for example, ♞c6 in place of Nc6.
+    This style is known as Figurine Algebraic Notation (FAN).
+    The Unicode Miscellaneous Symbols set includes all the symbols necessary for FAN.
+
+    In both standard algebraic notation and FAN, pawns are not identified by a letter or symbol,but rather by the absence of one.
 """
 
 from dataclasses import dataclass

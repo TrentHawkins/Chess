@@ -8,10 +8,11 @@ from dataclasses import dataclass
 from types import MethodType
 
 from .board import Board
+from .move import Capture, Move
+from .moves.castle import Castle
 from .piece import Orientation, Piece
-from .pieces.meleed import King
+from .pieces.melee import King
 from .pieces.ranged import Rook
-from .pieces.special import Castle
 from .square import Square
 
 
@@ -99,7 +100,7 @@ class Player:
         """
         return set().union(*(piece.squares for piece in self.pieces))
 
-    def move(self, source_piece: Piece, target: Square | str):
+    def move(self, move: Move):
         """Move the source piece to target square if move is valid.
 
         Args:
@@ -108,7 +109,7 @@ class Player:
 
         NOTE: A `Move` class will be made to encapsulate moves, this will be moved there.
         """
-        target_piece = self.board.move(source_piece, target)  # Make the move.
+        target_piece = self.board.move(move)  # Make the move.
 
         if target_piece is not None:  # If there was a piece there (opponent's),
             self.captured[target_piece] += 1  # Add lost piece to target collection, not that it has lost its square.

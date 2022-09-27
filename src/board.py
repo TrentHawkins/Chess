@@ -6,10 +6,12 @@ Referencing with chess algebraic notation is possible.
 from itertools import cycle
 from typing import Generator
 
+from .move import Capture, Move
+from .moves.castle import Castle
 from .piece import Orientation, Piece
-from .pieces.meleed import King, Knight
+from .pieces.melee import King, Knight
+from .pieces.pawn import Pawn
 from .pieces.ranged import Bishop, Queen, Rook
-from .pieces.special import Castle, Pawn
 from .square import Square
 
 
@@ -196,7 +198,7 @@ class Board:
         """
         return any(piece in rank for rank in self.pieces)
 
-    def move(self, source_piece: Piece, target: Square | str) -> Piece | None:
+    def move(self, move: Move) -> Piece | None:
         """Move the source piece to target square if move is valid.
 
         Whatever lies on the target square is saved for further processing, however its square is killed, naturally.
@@ -209,14 +211,14 @@ class Board:
         Returns:
             Lost piece on target square if any.
         """
-        source = source_piece.square
-        target = Square(target)
+        source = move.piece.square
+        target = move.square
 
-        target_piece = self[target]
+        target_piece = self[move.square]
 
     #   If the source piece is in-board and the target square is legit, make the move and switch its has-moved flag.
-        if source is not None and target in source_piece.squares:
-            self[target], self[source] = source_piece.move(target), None
+        if move.piece.square is not None and move.is_legal:
+            self[target], self[source] = move.piece.move(target), None  # type: ignore
 
     #   If there really is a piece on the target square, prep it for removal:
         if target_piece is not None:

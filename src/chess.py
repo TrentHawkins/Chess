@@ -4,8 +4,8 @@
 from types import MethodType
 
 from .board import Board
+from .moves.castle import Castle
 from .piece import Piece
-from .pieces.special import Castle
 from .player import Player
 from .square import Square
 
@@ -73,14 +73,14 @@ class Chess:
             piece.capturable = MethodType(piece_capturable, piece)
 
         def castle_deployable(castle: Castle):
-            castle.deployable.__doc__
-            return castle.__class__.deployable(castle) \
+            castle.legal.__doc__
+            return castle.__class__.legal(castle) \
                 and castle.flying not in self.opponent.squares_checked \
                 and castle.target not in self.opponent.squares_checked
 
     #   Update current player's castles with check constraints.
         for castle in self.current.castles:
-            castle.deployable = MethodType(castle_deployable, castle)
+            castle.legal = MethodType(castle_deployable, castle)
 
     def turn(self):
         """Advance the turn."""
