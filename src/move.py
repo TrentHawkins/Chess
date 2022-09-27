@@ -64,7 +64,7 @@ from .pieces.ranged import Rook
 from .square import Square
 
 
-@dataclass(repr=False)
+@dataclass(init=False, repr=False)
 class Move:
     """Encapsulate all the data needed for a move in chess.
 
@@ -92,12 +92,15 @@ class Move:
         is_legal: Check if move is legal based on piece and square context.
     """
 
-    piece: Piece
-    square: Square | str
+    def __init__(self, piece: Piece, square: Square | str):
+        """Recode square in notation to a `Square` object.
 
-    def __post_init__(self):
-        """Recode square in notation to a `Square` object."""
-        self.square = Square(self.square)
+        Args:
+            piece: The source piece of the move.
+            square: the target square of the move.
+        """
+        self.piece = piece
+        self.square = Square(square)
 
     def __repr__(self):
         """Each move of a piece is indicated by the piece's uppercase letter, plus the coordinate of the destination square.
@@ -116,7 +119,7 @@ class Move:
         return self.piece.deployable(self.square)  # type: ignore
 
 
-@dataclass(repr=False)
+@dataclass(init=False, repr=False)
 class Capture(Move):
     """Encapsulate all the data needed for a capture in chess.
 

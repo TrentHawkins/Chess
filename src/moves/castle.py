@@ -15,7 +15,9 @@ This implementation attempts at abstracting the castling logic to its fundamenta
     This requires a context at `board` level redefintion of the `deployable` function.
 """
 
-from ..move import dataclass
+from dataclasses import dataclass
+
+from ..move import Move
 from ..pieces.melee import King
 from ..pieces.ranged import Rook
 

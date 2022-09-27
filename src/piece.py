@@ -98,16 +98,16 @@ class Piece:
 
     steps: ClassVar[set[Vector]] = set()
 
-    def __init__(self, color: str, square: Square | str | None = None):
+    def __init__(self, orientation: Orientation | str, square: Square | str | None = None):
         f"""Give a {self.__class__.__name__} a color and a square.
 
         Args:
-            color_name: Either "white" or "black"
+            orientation: Either "white" or "black"
             square: Location on a board (which board is irrelevant).
         """
-        self.orientation: Orientation = Orientation[color]
-        self.square: Square | None = Square(square) if square is not None else None
-        self.has_moved: bool = False  # Has not moved upon creation.  # NOTE: This may apply to several pieces so define here.
+        self.orientation: Orientation = Orientation[orientation] if isinstance(orientation, str) else orientation
+        self.square: Square | None = Square(square) if isinstance(square, str) else square
+        self.has_moved: bool = False  # Has not moved upon creation.
 
     def __repr__(self) -> str:
         f"""Represent a {self.__class__.__name__}.
