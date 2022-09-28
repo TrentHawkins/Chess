@@ -20,9 +20,10 @@ from dataclasses import dataclass
 from ..move import Move
 from ..pieces.melee import King
 from ..pieces.ranged import Rook
+from ..square import Square
 
 
-@dataclass(init=False, repr=False)
+@dataclass(repr=False)
 class Castle:
     """A pair of king and rook for facilitating castling.
 
@@ -47,31 +48,37 @@ class Castle:
 
     Castling is indicated by the special notations 0-0 (for kingside castling) and 0-0-0 (queenside castling).
     While the FIDE standard [6] is to use the digit zero (0-0 and 0-0-0), PGN uses the uppercase letter O (O-O and O-O-O).
+
+    NOTE: This class is made to look like a `Move` class, but aside from common names it practically overrides everything,
+    so inheriting from `Move` has little to no use at all.
     """
 
-    def __init__(self, king: King, rook: Rook):
+    piece: King  # reference to a king piece
+    other: Rook  # reference to a rook piece (of same color)
+
+    def __post_init__(self):
         """Set up castling pair.
 
         Args:
             king: A reference to a king piece.
             rook: A reference to a rook piece (of same color and on the same board).
         """
-        self.king: King = king  # reference to a king piece
-        self.rook: Rook = rook  # reference to a rook piece (of same color)
-
-        self.connection = self.king.square - self.rook.square  # type: ignore
+        self.connection = (self.piece.square - self.other.square)  # type: ignore
         step = self.connection // len(self.connection)  # Take the unit step in the direction from king to rook.
 
-        self.flying = self.king.square + step      # The in-passing square of the king on its way to castling.
-        self.target = self.king.square + step * 2  # The destination square the king lands upon castling.
+        self.middle = self.piece.square + step  # The in-passing square of the king on its way to castling.
+        self.square = self.middle + step  # The destination square the king lands upon castling.
 
     def __repr__(self):
         """Notation for castle moves."""
-        return "O-O-O" if len(self.connection) > 3 else "O-O"
+        return {
+            4: "O-O-O",
+            3: "O-O",
+        }[self.connection]
 
     def __hash__(self):
         """Hashing for castle moves."""
-        return hash((self.king.orientation, self.connection))
+        return hash((self.piece.orientation, self.connection))
 
     def is_legal(self) -> bool:
         """Check if castling with the two pieces is still possible.
@@ -79,7 +86,7 @@ class Castle:
         Returns:
             Whether castling with the two pieces is still possible.
         """
-        return not (self.king.has_moved or self.rook.has_moved or self.rook.square is None) \
-            and self.king.deployable(self.flying) \
-            and self.king.deployable(self.target) \
-            and self.rook.deployable(self.flying)  # If rook can reach the last square, it can reach them all in-between.
+        return not (self.piece.has_moved or self.other.has_moved or self.other.square is None) \
+            and self.piece.deployable(self.middle) \
+            and self.piece.deployable(self.square) \
+            and self.other.deployable(self.middle)  # If rook can reach the last square, it can reach them all in-between.

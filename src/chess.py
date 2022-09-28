@@ -75,8 +75,8 @@ class Chess:
         def castle_is_legal(castle: Castle):
             castle.is_legal.__doc__
             return castle.__class__.is_legal(castle) \
-                and castle.flying not in self.opponent.squares_checked \
-                and castle.target not in self.opponent.squares_checked
+                and castle.middle not in self.opponent.squares_checked \
+                and castle.square not in self.opponent.squares_checked
 
     #   Update current player's castles with check constraints.
         for castle in self.current.castles:
