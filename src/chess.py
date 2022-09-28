@@ -33,7 +33,7 @@ class Chess:
 
     #   Switch to blacks turn in  acustom position starting with black.
         if board != Board() and black:
-            self.turn()
+            next(self)
 
         def king_safe(source_piece: Piece, target: Square):
             """Check if king of current player is safe.
@@ -82,6 +82,18 @@ class Chess:
         for castle in self.current.castles:
             castle.is_legal = MethodType(castle_is_legal, castle)
 
-    def turn(self):
-        """Advance the turn."""
+    def __next__(self):
+        """Advance a turn."""
         self.current, self.opponent = self.opponent, self.current
+
+        yield self.current
+
+    def round(self):
+        """Advance a round, which is two turns, one for black and one for white."""
+        next(self)
+        next(self)
+
+    #   Eliminate any ghost pieces after one full round to eliminate any missed en-passants.
+        for piece in self.board:
+            if type(piece) is Piece:
+                del piece

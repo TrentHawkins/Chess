@@ -204,6 +204,9 @@ class Board:
 
         Whatever lies on the target square is saved for further processing, however its square is killed, naturally.
 
+        Promotions should be checked here, as the move/capture happesn normally, and even the color doesn't change.
+        What changes is simply the subclass of the pawn involved.
+
         Args:
             source_piece: The piece to move.
             target: The square in notation the piece wants to go to.
@@ -211,24 +214,13 @@ class Board:
         Returns:
             Lost piece on target square if any.
         """
-        source = move.piece.square
-        target = move.square
+        source = move.piece.square  # This is defined for all kinds of moves.
+        target = move.square  # This is defined for all kinds of moves either implicitely or explicitely.
 
+    #   Save the piece captured in the move, if any.
         target_piece = self[move.square]
 
-    #   If the source piece is in-board and the target square is legit, make the move and switch its has-moved flag.
-        if isinstance(move, Move) or isinstance(move, Capture):
-            if move.piece.square is not None and move.is_legal():
-                if type(move) is Promotion and type(move.piece) is Pawn:
-                    move.piece.promote(target, move.Piece)
-
-                else:
-                    move.piece(target)
-
-        #   If there really is a piece on the target square, prep it for removal:
-            if target_piece is not None:
-                target_piece.square = None
-
+    #   If the move is a castling, move the rook first before moving the king.
         if isinstance(move, Castle) and move.is_legal():
             assist = move.other.square
             middle = move.middle
@@ -239,6 +231,21 @@ class Board:
         #   Move the rook in-place. King will be moved as normal with the main move.
             self[middle], self[assist] = move.other, None  # type: ignore
 
+    #   If the source piece is in-board and the target square is legit, make the move and switch its has-moved flag.
+        else:
+            if move.piece.square is not None and move.is_legal():
+                if type(move) is Promotion and type(move.piece) is Pawn:
+                    move.piece.promote(target, move.Piece)
+
+            #   If move is anything other than a promotion just move the piece.
+                else:
+                    move.piece(target)
+
+        #   If there really is a piece on the target square, prep it for removal:
+            if target_piece is not None:
+                target_piece.square = None
+
+    #   Make the move. If a castling, this is the king moving in place.
         self[target], self[source] = move.piece, None  # type: ignore
 
         return target_piece

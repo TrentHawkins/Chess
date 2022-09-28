@@ -43,8 +43,8 @@ from .square import Square, Vector
 class Orientation(IntEnum):
     """Annotate direction on the board with the corresponding color."""
 
-    white = -1
-    black = +1
+    white = -1  # Array indexing goes down the board, but white goes up.
+    black = +1  # Array indexing goes down the board, and so does black.
 
 
 @dataclass(init=False, repr=False)
@@ -84,7 +84,7 @@ class Piece:
     """
 
 #   Piece main attributes:
-    _repr: ClassVar[str] = "🨅"
+    _repr: ClassVar[str] = "🨅"  # This will be ghosted so that empty space has the right width.
 
 #   Straight steps:
     straights: ClassVar[set[Vector]] = {

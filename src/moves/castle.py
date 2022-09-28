@@ -50,14 +50,14 @@ class Castle:
     While the FIDE standard [6] is to use the digit zero (0-0 and 0-0-0), PGN uses the uppercase letter O (O-O and O-O-O).
 
     NOTE: This class is made to look like a `Move` class, but aside from common names it practically overrides everything,
-    so inheriting from `Move` has little to no use at all.
+    so inheriting from `Move` has little to no use at all. It does a type-hinting headeach but makes for readable code too.
     """
 
     piece: King  # reference to a king piece
     other: Rook  # reference to a rook piece (of same color)
 
     def __post_init__(self):
-        """Set up castling pair.
+        """Set up the castling relevant squares.
 
         Args:
             king: A reference to a king piece.

@@ -48,7 +48,8 @@ class Pawn(Piece):
     _repr: ClassVar[str] = "♟"
 
 #   Pawn moves:
-    step: ClassVar[Vector] = Vector(+1, 0)  # One step.
+    step: ClassVar[Vector] = Vector(+1, 0)  # One-step.
+    jump: ClassVar[Vector] = Vector(+2, 0)  # Two-step.
     captures: ClassVar[set[Vector]] = {
         Vector(+1, -1),  # Capturing to the west.
         Vector(+1, +1),  # Capturing to the east.
@@ -79,7 +80,7 @@ class Pawn(Piece):
                 squares.add(square)  # Add said square to possible moves,
 
                 if not self.has_moved:  # If the pawn is in its starting position,
-                    square += self.step * self.orientation  # Get next forward square,
+                    square = self.square + self.jump * self.orientation  # Get next forward square,
 
                     if self.deployable(square):  # If said square is inside board limits,
                         squares.add(square)  # Add the next forward square to possible moves too.

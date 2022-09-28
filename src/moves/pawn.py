@@ -30,9 +30,11 @@ class Promotion(Capture, Move):
     """A promotion move, that required the extra info of which piece to replace the pawn with.
 
     Attributes:
+        piece: Override original attribute with one that is `Pawn` specifically.
         Piece: The type of piece the pawn is promoted to.
     """
 
+    piece: Pawn
     Piece: Type
 
     def __repr__(self):
@@ -42,11 +44,28 @@ class Promotion(Capture, Move):
             When a pawn promotes, the piece promoted to is indicated at the end of the move notation,
             for example: e8Q (promoting to queen). In standard FIDE notation, no punctuation is used;
             in Portable Game Notation (PGN) and many publications, pawn promotion is indicated by the equals sign (e8=Q).
-
-        HACK: A mock new piece is createdto get its representation
         """
         return Move.__repr__(self) + "=" + self.Piece._repr
 
     def is_legal(self):
-        """Check if move is legal based on piece and square context."""
-        return (Move.is_legal(self) or Capture.is_legal(self)) and type(self.piece) is Pawn and self.Piece in Officer.__args__
+        """Check if pawn can promote either by moving or by capturing."""
+        return (Move.is_legal(self) or Capture.is_legal(self)) and self.piece.can_promote
+
+
+@dataclass(repr=False)
+class Jump(Move):
+    """This class actually emulates the ghost generation happening by pawn leaping at start.
+
+    This gives credance to enpassant shall an opposing pawn is lurking near the skipped square.
+    This move has a normal move representation.
+    Only `is_legal` is overriden to detect the jump.
+
+    Attributes:
+        piece: The pawn to make jump. It is a jump so square is known.
+    """
+
+    piece: Pawn
+
+    def __post_init__(self):
+        """Assumes a jump has been made."""
+        self.middle = self.square + (self.piece.square - self.square) // 2  # type: ignore

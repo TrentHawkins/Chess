@@ -10,8 +10,10 @@ from types import MethodType
 from .board import Board
 from .move import Capture, Move
 from .moves.castle import Castle
+from .moves.pawn import Jump
 from .piece import Orientation, Piece
 from .pieces.melee import King
+from .pieces.pawn import Pawn
 from .pieces.ranged import Rook
 from .square import Square
 
@@ -62,11 +64,25 @@ class Player:
             target_piece = self.board[target]
 
             return source_piece.__class__.capturable(source_piece, target) and target_piece is not None \
+                and source_piece.orientation != target_piece.orientation \
+                and type(target_piece) is not Piece  # Ignore ghost pieces.
+
+    #   Add ghost pieces to target of pawns:
+        def pawns_capturable(source_piece: Piece, target: Square):
+            source_piece.capturable.__doc__
+            target_piece = self.board[target]
+
+            return source_piece.__class__.capturable(source_piece, target) and target_piece is not None \
                 and source_piece.orientation != target_piece.orientation
 
         for piece in self.pieces:
             piece.deployable = MethodType(piece_deployable, piece)
-            piece.capturable = MethodType(piece_capturable, piece)
+
+            if type(piece) is Pawn:
+                piece.capturable = MethodType(pawns_capturable, piece)
+
+            else:
+                piece.capturable = MethodType(piece_capturable, piece)
 
     #   Keep the player's king registered, as it is a special piece.
         for piece in self.pieces:
@@ -91,14 +107,20 @@ class Player:
         """
         ...
 
-    def __call__(self, move: Move):
+    def __call__(self, move: Move | Castle):
         """Move the source piece to target square if move is valid.
+
+        Jumps should be checked here, because a ghost piece of the same color as the player must be generated with them.
 
         Args:
             source_piece: The piece to move.
             target: The square in notation the piece wants to go to.
         """
         target_piece = self.board(move)  # Make the move.
+
+    #   If move is a pawn jump, add a trailing ghost piece temporarily.
+        if type(move) is Jump:
+            self.board[move.middle] = Piece(self.orientation)  # This will have to go on the next round (2 turns).
 
         if target_piece is not None:  # If there was a piece there (opponent's),
             self.captured[target_piece] += 1  # Add lost piece to target collection, not that it has lost its square.
