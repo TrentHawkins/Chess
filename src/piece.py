@@ -83,8 +83,11 @@ class Piece:
         ↑ + ↓ = · center (removed)
     """
 
-#   Piece main attributes:
-    _repr: ClassVar[str] = "🨅"  # This will be ghosted so that empty space has the right width.
+#   Piece value is None:
+    value: int = 0
+
+#   Piece Notation:
+    symbol: ClassVar[str] = "🨅"  # This will be ghosted so that empty space has the right width.
 
 #   Straight steps:
     straights: ClassVar[set[Vector]] = {
@@ -117,7 +120,7 @@ class Piece:
         Returns:
             The representation of a {self.__class__.__name__}.
         """
-        return f"\033[8m{self._repr}\033[0m"  # An unspecified piece is a ghost piece.
+        return f"\033[8m{self.symbol}\033[0m"  # An unspecified piece is a ghost piece.
 
     def __hash__(self):
         """Make each piece distinct based on its type square alone.

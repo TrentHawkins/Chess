@@ -15,7 +15,7 @@ from typing import ClassVar
 
 from ..piece import Piece
 from ..square import Square, Vector
-from .ranged import Rook
+from .ranged import Bishop, Queen, Rook
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -43,6 +43,44 @@ class Meleed(Piece):
 
 
 @dataclass(init=False, repr=False, eq=False)
+class Knight(Meleed):
+    """A knight.
+
+    Moves two squares in any direction and one square in a vertical to that direction as one move.
+    It therefore can jump over other pieces. Target square must not be blocked by a same side piece.
+
+    Knight steps (via product of diagonal steps with straigh steps:
+        ↗ + ↑ north-north-east
+        ↗ + ← = ↑ north (removed)
+        ↗ + ↓ = → east (removed)
+        ↗ + → north-east-east
+        ↘ + ↑ = → east (removed)
+        ↘ + ← = ↓ south (removed)
+        ↘ + ↓ south-south-east
+        ↘ + → south-east-east
+        ↖ + ↑ north-north-west
+        ↖ + ← north-west-west
+        ↖ + ↓ = ← west (removed)
+        ↖ + → = ↑ north (removed)
+        ↙ + ↑ = ← west (removed)
+        ↙ + ← south-west-west
+        ↙ + ↓ south-south-west
+        ↙ + → = ↓ south (removed)
+    """
+
+#   Knight value:
+    value: ClassVar[int] = 3
+
+#   Knight notation:
+    letter: ClassVar[str] = "N"
+    symbol: ClassVar[str] = "♞"
+
+#   Knight moves:
+    steps: ClassVar[set[Vector]] = \
+        {diagonal + straight for diagonal, straight in product(Piece.diagonals, Piece.straights)} - Piece.straights
+
+
+@dataclass(init=False, repr=False, eq=False)
 class King(Meleed):
     """A King.
 
@@ -59,8 +97,12 @@ class King(Meleed):
         ↙ south-west
     """
 
-#   King main attributes:
-    _repr: ClassVar[str] = "♚"
+#   King value is normally infinite, but put is as the maximum possible player value with 9 Queens instead of pawns +1:
+    value: int = (8 + 1) * Queen.value + 2 * (Knight.value + Bishop.value + Rook.value) + 1  # 104
+
+#   King notation:
+    letter: ClassVar[str] = "K"
+    symbol: ClassVar[str] = "♚"
 
 #   King moves:
     steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
@@ -108,38 +150,3 @@ class King(Meleed):
                     squares.add(square)
 
         return squares
-
-
-@dataclass(init=False, repr=False, eq=False)
-class Knight(Meleed):
-    """A knight.
-
-    Moves two squares in any direction and one square in a vertical to that direction as one move.
-    It therefore can jump over other pieces. Target square must not be blocked by a same side piece.
-
-    Knight steps (via product of diagonal steps with straigh steps:
-        ↗ + ↑ north-north-east
-        ↗ + ← = ↑ north (removed)
-        ↗ + ↓ = → east (removed)
-        ↗ + → north-east-east
-        ↘ + ↑ = → east (removed)
-        ↘ + ← = ↓ south (removed)
-        ↘ + ↓ south-south-east
-        ↘ + → south-east-east
-        ↖ + ↑ north-north-west
-        ↖ + ← north-west-west
-        ↖ + ↓ = ← west (removed)
-        ↖ + → = ↑ north (removed)
-        ↙ + ↑ = ← west (removed)
-        ↙ + ← south-west-west
-        ↙ + ↓ south-south-west
-        ↙ + → = ↓ south (removed)
-    """
-
-#   Knight main attributes:
-    value: ClassVar[int] = 3
-    _repr: ClassVar[str] = "♞"
-
-#   Knight moves:
-    steps: ClassVar[set[Vector]] = \
-        {diagonal + straight for diagonal, straight in product(Piece.diagonals, Piece.straights)} - Piece.straights

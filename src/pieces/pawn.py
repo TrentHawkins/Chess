@@ -43,9 +43,12 @@ class Pawn(Piece):
             ↑ + → = ↗ capture east
     """
 
-#   Pawn main attributes:
+#   Pawn value:
     value: ClassVar[int] = 1
-    _repr: ClassVar[str] = "♟"
+
+#   Pawn notation:
+    letter: ClassVar[str] = ""
+    symbol: ClassVar[str] = "♟"
 
 #   Pawn moves:
     step: ClassVar[Vector] = Vector(+1, 0)  # One-step.

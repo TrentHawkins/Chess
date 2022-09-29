@@ -108,7 +108,7 @@ class Move:
 
         NOTE: This needs contextual resolve at `Board` or `Player` level. For now use long algebraic notation.
         """
-        return self.piece._repr + repr(self.piece.square) + "-" + repr(self.square)
+        return self.piece.symbol + repr(self.piece.square) + "-" + repr(self.square)
 
     def is_legal(self):
         """Check if move is legal based on piece and square context."""

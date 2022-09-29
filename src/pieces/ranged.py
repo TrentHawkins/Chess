@@ -55,12 +55,16 @@ class Rook(Ranged):
         → east
     """
 
-#   Rook main attributes:
+#   Rook value:
     value: ClassVar[int] = 5
-    _repr: ClassVar[str] = "♜"
+
+#   Rook notation:
+    letter: ClassVar[str] = "R"
+    symbol: ClassVar[str] = "♜"
 
 #   Straight lines:
     steps: ClassVar[set[Vector]] = Piece.straights
+    other: Vector = Vector(0, +1)  # other castling rook unit direction
 
     def castleable(self, square: Square) -> bool:
         """Check if current rook is castlable.
@@ -83,7 +87,7 @@ class Rook(Ranged):
 
     #   Mind that the rook moves the other way the king does.
         return not self.has_moved \
-            and self.deployable(self.square + Vector(0, +1)) if castle.file > 0 else True
+            and self.deployable(self.square + other) if castle.file > 0 else True  # type: ignore
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -104,9 +108,12 @@ class Bishop(Ranged):
         ↙ south-west
     """
 
-#   Bishop main attributes:
+#   Bishop value:
     value: ClassVar[int] = 3
-    _repr: ClassVar[str] = "♝"
+
+#   Bishop notation:
+    letter: ClassVar[str] = "B"
+    symbol: ClassVar[str] = "♝"
 
 #   Diagonal lines:
     steps: ClassVar[set[Vector]] = Piece.diagonals
@@ -132,9 +139,12 @@ class Queen(Ranged):
         ↙ south-west
     """
 
-#   Queen main attributes:
+#   Queen value:
     value: ClassVar[int] = 9
-    _repr: ClassVar[str] = "♛"
+
+#   Queen notation:
+    letter: ClassVar[str] = "Q"
+    symbol: ClassVar[str] = "♛"
 
 #   Queen lines:
     steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
