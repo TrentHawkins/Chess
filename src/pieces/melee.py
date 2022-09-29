@@ -27,6 +27,13 @@ class Meleed(Piece):
     For a meeled piece (pawns are special) all squares are target squares.
     """
 
+    def __repr__(self) -> str:
+        super().__repr__.__doc__
+        return {
+            "white": f"\033[37;1m{self.symbol}\033[0m",
+            "black": f"\033[30;1m{self.symbol}\033[0m",
+        }[self.orientation.name]
+
     @property
     def squares(self) -> set[Square]:
         f"""{super().squares.__doc__}"""
