@@ -1,7 +1,10 @@
 """Unit tests for the Chess project."""
 
+from unittest import TestCase
+from unittest.mock import patch  # To mock user input for interactive tests.
 
-class TestChess:
+
+class TestChess(TestCase):
     """Unit tests for the game engine."""
 
     def test_simple_chess_game(self):
@@ -340,6 +343,23 @@ class TestChess:
     #   Should see none.
         assert not new_game.current.king.castleable(short)
         assert not new_game.current.king.castleable(other)
+
+    @patch(
+        'builtins.input',
+        side_effect=[
+            "e2-e4",
+            "c7-c5",
+            "e4-e5",
+            "d7-d5",
+            "e5xd6",  # This is the en-passant move.
+            "e7-e6",  # Just a response to feed an even number of moves.
+        ],
+    )
+    def test_en_passant(self, mock_input):
+        """Test if en-passant works in full. Careful, this is an interactive test."""
+        from src.chess import Chess
+
+        new_game = Chess()
 
 
 class TestPlayer:

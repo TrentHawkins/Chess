@@ -113,6 +113,11 @@ class Player:
         if type(move) is Jump:
             self.board[move.middle] = Piece(self.orientation)  # This will have to go on the next round (2 turns).
 
+    #   Delete the actual pawn that skipped, and add that to the captured pieces, instead of the ghost piece.
+        if type(target_piece) is Piece:  # If pawn is taken by en-passant,
+            target = move.square + Pawn.step * target_piece.orientation  # type: ignore
+            target_piece, self.board[target] = self.board[target], None
+
         if target_piece is not None:  # If there was a piece there (opponent's),
             self.captured[target_piece] += 1  # Add lost piece to target collection, not that it has lost its square.
 
