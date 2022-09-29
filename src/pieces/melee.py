@@ -63,14 +63,11 @@ class King(Meleed):
 #   King moves:
     steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
 
-    in_check: bool = False
+#   Castles:
+    long: ClassVar[Vector] = Vector(-2, 0)
+    short: ClassVar[Vector] = Vector(+2, 0)
 
-    def __repr__(self) -> str:
-        super().__repr__.__doc__
-        return {
-            "white": f"\033[37;1m{self._repr}\033[0m",
-            "black": f"\033[30;1m{self._repr}\033[0m",
-        }[self.orientation.name]
+    in_check: bool = False
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -106,10 +103,3 @@ class Knight(Meleed):
 #   Knight moves:
     steps: ClassVar[set[Vector]] = \
         {diagonal + straight for diagonal, straight in product(Piece.diagonals, Piece.straights)} - Piece.straights
-
-    def __repr__(self) -> str:
-        super().__repr__.__doc__
-        return {
-            "white": f"\033[37;1m{self._repr}\033[0m",
-            "black": f"\033[30;1m{self._repr}\033[0m",
-        }[self.orientation.name]

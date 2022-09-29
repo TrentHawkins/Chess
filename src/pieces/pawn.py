@@ -55,13 +55,6 @@ class Pawn(Piece):
         Vector(+1, +1),  # Capturing to the east.
     }
 
-    def __repr__(self) -> str:
-        super().__repr__.__doc__
-        return {
-            "white": f"\033[37;1m{self._repr}\033[0m",
-            "black": f"\033[30;1m{self._repr}\033[0m",
-        }[self.orientation.name]
-
     @property
     def squares(self) -> set[Square]:
         f"""{super().squares.__doc__}"""

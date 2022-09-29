@@ -62,13 +62,6 @@ class Rook(Ranged):
 #   Straight lines:
     steps: ClassVar[set[Vector]] = Piece.straights
 
-    def __repr__(self) -> str:
-        super().__repr__.__doc__
-        return {
-            "white": f"\033[37;1m{self._repr}\033[0m",
-            "black": f"\033[30;1m{self._repr}\033[0m",
-        }[self.orientation.name]
-
 
 @dataclass(init=False, repr=False, eq=False)
 class Bishop(Ranged):
@@ -94,13 +87,6 @@ class Bishop(Ranged):
 
 #   Diagonal lines:
     steps: ClassVar[set[Vector]] = Piece.diagonals
-
-    def __repr__(self) -> str:
-        super().__repr__.__doc__
-        return {
-            "white": f"\033[37;1m{self._repr}\033[0m",
-            "black": f"\033[30;1m{self._repr}\033[0m",
-        }[self.orientation.name]
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -129,10 +115,3 @@ class Queen(Ranged):
 
 #   Queen lines:
     steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
-
-    def __repr__(self) -> str:
-        super().__repr__.__doc__
-        return {
-            "white": f"\033[37;1m{self._repr}\033[0m",
-            "black": f"\033[30;1m{self._repr}\033[0m",
-        }[self.orientation.name]
