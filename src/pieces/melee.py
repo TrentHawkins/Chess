@@ -10,10 +10,12 @@ Remember pawns are kind of special.
 
 from dataclasses import dataclass
 from itertools import product
+from pickletools import long1
 from typing import ClassVar
 
 from ..piece import Piece
 from ..square import Square, Vector
+from .ranged import Rook
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -63,11 +65,49 @@ class King(Meleed):
 #   King moves:
     steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
 
-#   Castles:
-    long: ClassVar[Vector] = Vector(-2, 0)
-    short: ClassVar[Vector] = Vector(+2, 0)
+#   Castles (key: king move, value: corresponding rook relative position):
+    castles: ClassVar[dict[Vector, Vector]] = {
+        Vector(0, +2): Vector(0, +3),
+        Vector(0, -2): Vector(0, -4),
+    }
 
     in_check: bool = False
+
+    def castleable(self, square: Square) -> bool:
+        """Check if current king is castlable on either side.
+
+        This method is to be lazily-defined in board, access to current piece data makes it appropriate to sign it in here.
+        If this check fails, the capturability check will kick in as a next step.
+
+        This method assumes that the proper squares are checked. This is done in `squares` below, so its safe.
+        For now, check that:
+        -   the king has not moved
+        -   the king can move to the castling square (but only as a move, not a capture)
+        -   the king can cross the middle square on the way to the castling square
+
+        Args:
+            square: The source square is `self.square` (not necessary).
+
+        Returns:
+            Whether piece is placeable on target square.
+        """
+        return not self.has_moved \
+            and self.deployable(square) \
+            and self.deployable(square + (square - self.square) // -2)
+
+    @property
+    def squares(self) -> set[Square]:
+        f"""{super().squares.__doc__}"""
+        squares = super().squares
+
+        if self.square is not None:
+            for castle in self.castles:
+                square = self.square + castle
+
+                if self.castleable(square):
+                    squares.add(square)
+
+        return squares
 
 
 @dataclass(init=False, repr=False, eq=False)

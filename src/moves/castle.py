@@ -86,7 +86,4 @@ class Castle:
         Returns:
             Whether castling with the two pieces is still possible.
         """
-        return not (self.piece.has_moved or self.other.has_moved or self.other.square is None) \
-            and self.piece.deployable(self.middle) \
-            and self.piece.deployable(self.square) \
-            and self.other.deployable(self.middle)  # If rook can reach the last square, it can reach them all in-between.
+        return self.piece.castleable(self.square)

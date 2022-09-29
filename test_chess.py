@@ -65,6 +65,161 @@ class TestChess:
             Pawn("white"): 4,
         })
 
+    def test_moves(self):
+        """Test legal moves on initial board.
+
+        This board presents a famous game by Michai Tal the moment both players castled.
+        NOTE: At this point this board is made by manually filling the pieces into their squares.
+        NOTE: At a later point this board will be made by making the actual moves of the Tal game from a new game position.
+        NOTE: For now all moves are listed indistinct of player.
+        NOTE: A lot of this code will be encapsulated into `Piece` specialized `move` functions.
+        """
+        from src.board import Board
+        from src.chess import Chess
+        from src.square import Square
+
+    #   The chosen position is only a few moves from the start so it is faster to start from a new game and delete pieces.
+        tal = Board()
+
+    #   Pawns lost:
+        del tal["e2"]
+        del tal["e7"]
+        del tal["d2"]
+        del tal["d7"]
+
+    #   Pawns:
+        tal["c7"], tal["c6"] = tal["c6"], tal["c7"]
+        tal["c6"].has_moved = True  # type: ignore  # Pawn has moved
+
+    #   Knights:
+        tal["g1"], tal["f3"] = tal["f3"], tal["g1"]
+        tal["b8"], tal["d7"] = tal["d7"], tal["b8"]
+        tal["b1"], tal["e4"] = tal["e4"], tal["b1"]
+        tal["g8"], tal["f6"] = tal["f6"], tal["g8"]
+
+    #   Bishops:
+        tal["c1"], tal["g5"] = tal["g5"], tal["c1"]
+        tal["f8"], tal["e7"] = tal["e7"], tal["f8"]
+
+    #   Queens and King castles:
+        tal["d1"], tal["d4"] = tal["d4"], tal["d1"]
+
+    #   King castles:
+        tal["e1"], tal["a1"], tal["c1"], tal["d1"] = tal["c1"], tal["d1"], tal["e1"], tal["a1"]
+        tal["e8"], tal["h8"], tal["g8"], tal["f8"] = tal["g8"], tal["f8"], tal["e8"], tal["h8"]
+
+    #   A player, designated ONLY after the board is all set to the desired position:
+        new_game = Chess(tal)
+
+        piece = tal["c1"]
+        assert piece is not None
+        assert piece.squares == {  # King (white)
+            Square("d2"),  # ↗
+            Square("b1"),  # ←
+        }
+        piece = tal["d4"]
+        assert piece is not None
+        assert piece.squares == {  # Queen (white)
+            Square("e5"),  # ↗
+            Square("f6"),  # ↗  # capture
+            Square("d5"),  # ↑
+            Square("d6"),  # ↑
+            Square("d7"),  # ↑  # capture
+            Square("c5"),  # ↖
+            Square("b6"),  # ↖
+            Square("a7"),  # ↖  # capture
+            Square("c4"),  # ←
+            Square("b4"),  # ←
+            Square("a4"),  # ←
+            Square("c3"),  # ↙
+            Square("d3"),  # ↓
+            Square("d2"),  # ↓
+            Square("e3"),  # ↘
+        }
+        piece = tal["f1"]
+        assert piece is not None
+        assert piece.squares == {  # Bishop (white/white)
+            Square("e2"),  # ↖
+            Square("d3"),  # ↖
+            Square("c4"),  # ↖
+            Square("b5"),  # ↖
+            Square("a6"),  # ↖
+        }
+        piece = tal["g5"]
+        assert piece is not None
+        assert piece.squares == {  # Bishop (white/black)
+            Square("f6"),  # ↖  # capture
+            Square("f4"),  # ↙
+            Square("e3"),  # ↙
+            Square("d2"),  # ↙
+            Square("h4"),  # ↘
+            Square("h6"),  # ↗
+        }
+        piece = tal["e4"]
+        assert piece is not None
+        assert piece.squares == {  # Knight (white/white)
+            Square("f6"),  # ↗ + ↑  # capture
+            Square("g3"),  # ↘ + →
+            Square("d2"),  # ↙ + ↓
+            Square("c3"),  # ↙ + ←
+            Square("c5"),  # ↖ + ←
+            Square("d6"),  # ↖ + ↑
+        }
+        piece = tal["f3"]
+        assert piece is not None
+        assert piece.squares == {  # Knight (white/black)
+            Square("h4"),  # ↗ + →
+            Square("g1"),  # ↘ + ↓
+            Square("e1"),  # ↙ + ↓
+            Square("d2"),  # ↙ + ←
+            Square("e5"),  # ↖ + ↑
+        }
+        piece = tal["h1"]
+        assert piece is not None
+        assert piece.squares == {  # Rook (white/white)
+            Square("g1"),  # ↑
+        }
+        piece = tal["d1"]
+        assert piece is not None
+        assert piece.squares == {  # Rook (white/black)
+            Square("e1"),  # ↑
+            Square("d2"),  # ↑
+            Square("d3"),  # ↑
+        }
+        piece = tal["a2"]
+        assert piece is not None
+        assert piece.squares == {  # Pawn (white/A)
+            Square("a3"),  # ↑
+            Square("a4"),  # ↑
+        }
+        piece = tal["b2"]
+        assert piece is not None
+        assert piece.squares == {  # Pawn (white/B)
+            Square("b3"),  # ↑
+            Square("b4"),  # ↑
+        }
+        piece = tal["c2"]
+        assert piece is not None
+        assert piece.squares == {  # Pawn (white/C)
+            Square("c3"),  # ↑
+            Square("c4"),  # ↑
+        }
+        piece = tal["f2"]
+        assert piece is not None
+        assert piece.squares == set()  # Pawn (white/F)
+        piece = tal["g2"]
+        assert piece is not None
+        assert piece.squares == {  # Pawn (white/G)
+            Square("g3"),  # ↑
+            Square("g4"),  # ↑
+        }
+        piece = tal["h2"]
+        assert piece is not None
+        assert piece.squares == {  # Pawn (white/H)
+            Square("h3"),  # ↑
+            Square("h4"),  # ↑
+        }
+
     def test_king(self):
         """Test king movements and related movements."""
         from src.board import Board
@@ -94,9 +249,9 @@ class TestChess:
         from src.board import Board
         from src.chess import Chess
         from src.move import Move
-        from src.moves.castle import Castle
         from src.pieces.melee import King
         from src.pieces.ranged import Bishop, Rook
+        from src.square import Square
 
     #   Make board empty to test singular castling conditions.
         board = Board(empty=True)
@@ -114,227 +269,81 @@ class TestChess:
     #   Make new game with custom position.
         new_game = Chess(board=board)
 
-    #   As is we should be having both castles.
-        assert new_game.current.castlings == {
-            Castle(board["e1"], board["a1"]),  # type: ignore
-            Castle(board["e1"], board["h1"]),  # type: ignore
-        }
+    #   HACK: This is a custom position, however for the sake of castling tests, we must assume pieces haven't moved.
+        for piece in board:
+            piece.has_moved = False
+
+    #   King castling squares:
+        short = Square("g1")
+        other = Square("c1")
 
     #   They should both be deployable:
-        assert all(castle.is_legal() for castle in new_game.current.castlings)
+        assert new_game.current.king.castleable(short)
+        assert new_game.current.king.castleable(other)
 
     #   Add some benigh danger to castling long:
         new_game.opponent(Move(board["a8"], "b8"))  # type: ignore
 
     #   They should still be both deployable.
-        assert all(castle.is_legal() for castle in new_game.current.castlings)
+        assert new_game.current.king.castleable(short)
+        assert new_game.current.king.castleable(other)
 
-    #   Castling long target checked.
+    #   Castling other square checked.
         new_game.opponent(Move(board["b8"], "c8"))  # type: ignore
 
     #   Should only see one.
-        assert not all(castle.is_legal() for castle in new_game.current.castlings) \
-            and any(castle.is_legal() for castle in new_game.current.castlings)
+        assert new_game.current.king.castleable(short)
+        assert not new_game.current.king.castleable(other)
 
-    #   Castling long flying checked.
+    #   Castling other middle checked.
         new_game.opponent(Move(board["c8"], "d8"))  # type: ignore
 
     #   Should only see one.
-        assert not all(castle.is_legal() for castle in new_game.current.castlings) \
-            and any(castle.is_legal() for castle in new_game.current.castlings)
+        assert new_game.current.king.castleable(short)
+        assert not new_game.current.king.castleable(other)
 
     #   King checked. Pull other danger away to see if king check kills both castles.
         new_game.opponent(Move(board["d8"], "b8"))  # type: ignore
         new_game.opponent(Move(board["e7"], "b4"))  # type: ignore
 
     #   Should see none.
-        assert not any(castle.is_legal() for castle in new_game.current.castlings)
+        assert not new_game.current.king.castleable(short)
+        assert not new_game.current.king.castleable(other)
 
     #   Lets see if we can retrive them when the danger is gone.
         new_game.opponent(Move(board["b4"], "e7"))  # type: ignore
 
     #   Should see both.
-        assert all(castle.is_legal() for castle in new_game.current.castlings)
+        assert new_game.current.king.castleable(short)
+        assert new_game.current.king.castleable(other)
 
-    #   Lets put an obstacle on the long castle near the rook, where the king doesn't even reach.
+    #   Lets put an obstacle on the other castle near the rook, where the king doesn't even reach.
         new_game.current(Move(board["e6"], "f5"))  # type: ignore
         new_game.current(Move(board["f5"], "b1"))  # type: ignore
 
     #   Should see one.
-        assert any(castle.is_legal() for castle in new_game.current.castlings)
+        assert new_game.current.king.castleable(short)
+        assert not new_game.current.king.castleable(other)
 
     #   Remove block.
         new_game.current(Move(board["b1"], "f5"))  # type: ignore
         new_game.current(Move(board["f5"], "e6"))  # type: ignore
 
     #   Should see both.
-        assert all(castle.is_legal() for castle in new_game.current.castlings)
+        assert new_game.current.king.castleable(short)
+        assert new_game.current.king.castleable(other)
 
     #   Lets move the king back and forth.
         new_game.current(Move(board["e1"], "d1"))  # type: ignore
         new_game.current(Move(board["d1"], "e1"))  # type: ignore
 
     #   Should see none.
-        assert not any(castle.is_legal() for castle in new_game.current.castlings)
+        assert not new_game.current.king.castleable(short)
+        assert not new_game.current.king.castleable(other)
 
 
 class TestPlayer:
     """Unit tests for players."""
-
-    def test_moves(self):
-        """Test legal moves on initial board.
-
-        This board presents a famous game by Michai Tal the moment both players castled.
-        NOTE: At this point this board is made by manually filling the pieces into their squares.
-        NOTE: At a later point this board will be made by making the actual moves of the Tal game from a new game position.
-        NOTE: For now all moves are listed indistinct of player.
-        NOTE: A lot of this code will be encapsulated into `Piece` specialized `move` functions.
-        """
-        from src.board import Board
-        from src.player import Player
-        from src.square import Square
-
-    #   The chosen position is only a few moves from the start so it is faster to start from a new game and delete pieces.
-        talB = Board()
-
-    #   Pawns lost:
-        del talB["e2"]
-        del talB["e7"]
-        del talB["d2"]
-        del talB["d7"]
-
-    #   Pawns:
-        talB["c7"], talB["c6"] = talB["c6"], talB["c7"]
-        talB["c6"].has_moved = True  # type: ignore  # Pawn has moved
-
-    #   Knights:
-        talB["g1"], talB["f3"] = talB["f3"], talB["g1"]
-        talB["b8"], talB["d7"] = talB["d7"], talB["b8"]
-        talB["b1"], talB["e4"] = talB["e4"], talB["b1"]
-        talB["g8"], talB["f6"] = talB["f6"], talB["g8"]
-
-    #   Bishops:
-        talB["c1"], talB["g5"] = talB["g5"], talB["c1"]
-        talB["f8"], talB["e7"] = talB["e7"], talB["f8"]
-
-    #   Queens and King castles:
-        talB["d1"], talB["d4"] = talB["d4"], talB["d1"]
-
-    #   King castles:
-        talB["e1"], talB["a1"], talB["c1"], talB["d1"] = talB["c1"], talB["d1"], talB["e1"], talB["a1"]
-        talB["e8"], talB["h8"], talB["g8"], talB["f8"] = talB["g8"], talB["f8"], talB["e8"], talB["h8"]
-
-    #   A player, designated ONLY after the board is all set to the desired position:
-        Player("Tal", "white", talB)  # NOTE: THIS IS CRITICAL, otherwise constraints do not become board-sentsitive.
-
-        piece = talB["c1"]
-        assert piece is not None
-        assert piece.squares == {  # King (white)
-            Square("d2"),  # ↗
-            Square("b1"),  # ←
-        }
-        piece = talB["d4"]
-        assert piece is not None
-        assert piece.squares == {  # Queen (white)
-            Square("e5"),  # ↗
-            Square("f6"),  # ↗  # capture
-            Square("d5"),  # ↑
-            Square("d6"),  # ↑
-            Square("d7"),  # ↑  # capture
-            Square("c5"),  # ↖
-            Square("b6"),  # ↖
-            Square("a7"),  # ↖  # capture
-            Square("c4"),  # ←
-            Square("b4"),  # ←
-            Square("a4"),  # ←
-            Square("c3"),  # ↙
-            Square("d3"),  # ↓
-            Square("d2"),  # ↓
-            Square("e3"),  # ↘
-        }
-        piece = talB["f1"]
-        assert piece is not None
-        assert piece.squares == {  # Bishop (white/white)
-            Square("e2"),  # ↖
-            Square("d3"),  # ↖
-            Square("c4"),  # ↖
-            Square("b5"),  # ↖
-            Square("a6"),  # ↖
-        }
-        piece = talB["g5"]
-        assert piece is not None
-        assert piece.squares == {  # Bishop (white/black)
-            Square("f6"),  # ↖  # capture
-            Square("f4"),  # ↙
-            Square("e3"),  # ↙
-            Square("d2"),  # ↙
-            Square("h4"),  # ↘
-            Square("h6"),  # ↗
-        }
-        piece = talB["e4"]
-        assert piece is not None
-        assert piece.squares == {  # Knight (white/white)
-            Square("f6"),  # ↗ + ↑  # capture
-            Square("g3"),  # ↘ + →
-            Square("d2"),  # ↙ + ↓
-            Square("c3"),  # ↙ + ←
-            Square("c5"),  # ↖ + ←
-            Square("d6"),  # ↖ + ↑
-        }
-        piece = talB["f3"]
-        assert piece is not None
-        assert piece.squares == {  # Knight (white/black)
-            Square("h4"),  # ↗ + →
-            Square("g1"),  # ↘ + ↓
-            Square("e1"),  # ↙ + ↓
-            Square("d2"),  # ↙ + ←
-            Square("e5"),  # ↖ + ↑
-        }
-        piece = talB["h1"]
-        assert piece is not None
-        assert piece.squares == {  # Rook (white/white)
-            Square("g1"),  # ↑
-        }
-        piece = talB["d1"]
-        assert piece is not None
-        assert piece.squares == {  # Rook (white/black)
-            Square("e1"),  # ↑
-            Square("d2"),  # ↑
-            Square("d3"),  # ↑
-        }
-        piece = talB["a2"]
-        assert piece is not None
-        assert piece.squares == {  # Pawn (white/A)
-            Square("a3"),  # ↑
-            Square("a4"),  # ↑
-        }
-        piece = talB["b2"]
-        assert piece is not None
-        assert piece.squares == {  # Pawn (white/B)
-            Square("b3"),  # ↑
-            Square("b4"),  # ↑
-        }
-        piece = talB["c2"]
-        assert piece is not None
-        assert piece.squares == {  # Pawn (white/C)
-            Square("c3"),  # ↑
-            Square("c4"),  # ↑
-        }
-        piece = talB["f2"]
-        assert piece is not None
-        assert piece.squares == set()  # Pawn (white/F)
-        piece = talB["g2"]
-        assert piece is not None
-        assert piece.squares == {  # Pawn (white/G)
-            Square("g3"),  # ↑
-            Square("g4"),  # ↑
-        }
-        piece = talB["h2"]
-        assert piece is not None
-        assert piece.squares == {  # Pawn (white/H)
-            Square("h3"),  # ↑
-            Square("h4"),  # ↑
-        }
 
     def test_move(self):
         """Test draft move method."""

@@ -153,33 +153,33 @@ class Piece:
 
         return self
 
-    def deployable(self, target: Square) -> bool:
+    def deployable(self, square: Square) -> bool:
         """Check if current piece is placeable on target square.
 
         This method is to be lazily-defined in board, access to current piece data makes it appropriate to sign it in here.
         If this check fails, the capturability check will kick in as a next step.
 
         Args:
-            target: The source square is `self.square` (not necessary).
+            square: The source square is `self.square` (not necessary).
 
         Returns:
             Whether piece is placeable on target square.
         """
-        return self.square is not None and target is not None  # Make sure you check a piece that is on a board.
+        return self.square is not None and square is not None  # Make sure you check a piece that is on a board.
 
-    def capturable(self, target: Square) -> bool:
+    def capturable(self, square: Square) -> bool:
         """Check if piece on target square is capturable by current piece.
 
         This method is to be lazily-defined in board, access to current piece data makes it appropriate to sign it in here.
         If this check fails... NOTE: Implement special checks.
 
         Args:
-            target: The source square is `self.square` (necessary for cross-checking color).
+            square: The source square is `self.square` (necessary for cross-checking color).
 
         Returns:
             Whether piece on target square is capturable by current piece.
         """
-        return self.square is not None and target is not None  # Make sure you check a piece that is on a board.
+        return self.square is not None and square is not None  # Make sure you check a piece that is on a board.
 
     @property
     def squares(self) -> set[Square]:

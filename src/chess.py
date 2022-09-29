@@ -38,9 +38,15 @@ class Chess:
         self.current = Player("Foo", "white", self.board)  # input("Enter player name for white: ")
         self.opponent = Player("Bar", "black", self.board)  # input("Enter player name for black: ")
 
-    #   Switch to blacks turn in  acustom position starting with black.
-        if board != Board() and black:
-            self.current, self.opponent = self.opponent, self.current
+    #   Each piece has moved in a custom position, except for pawn whose immovability can be discerned by their movement entropy.
+        if board != Board():
+            for piece in board:
+                if type(piece) is not Pawn:
+                    piece.has_moved = True
+
+        #   Switch to blacks turn in  acustom position starting with black.
+            if black:
+                self.current, self.opponent = self.opponent, self.current
 
         def king_safe(source_piece: Piece, target: Square):
             """Check if king of current player is safe.
@@ -79,15 +85,19 @@ class Chess:
             piece.deployable = MethodType(piece_deployable, piece)
             piece.capturable = MethodType(piece_capturable, piece)
 
-        def castle_is_legal(castle: Castle):
-            castle.is_legal.__doc__
-            return castle.__class__.is_legal(castle) \
-                and castle.middle not in self.opponent.squares \
-                and castle.square not in self.opponent.squares
+        def king_castleable(king: King, target: Square):
+            king.castleable.__doc__
+            castle = target - king.square
+            middle = king.square + castle // 2  # type: ignore
 
-    #   Update current player's castles with check constraints.
-        for castle in self.current.castlings:
-            castle.is_legal = MethodType(castle_is_legal, castle)
+        #   Escorting rook:
+            rook = self.board[king.square + king.castles[castle]]  # type: ignore
+
+        #   Mind that king cannot escape check with a castle, as it usually can by moving otherwise.
+            return type(rook) is Rook and rook.castleable(middle) \
+                and self.current.king.square not in self.opponent.squares and king.__class__.castleable(king, target)
+
+        self.current.king.castleable = MethodType(king_castleable, self.current.king)
 
     def turn(self):
         """Advance a turn."""

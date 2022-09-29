@@ -119,14 +119,6 @@ class Player:
             if type(piece) is King:
                 self.king: King = piece
 
-    #   Castles
-        self.castlings: set[Castle] = set()
-
-    #   Do not allow castles in custom positions as the `has_moved` conditions is unresolvable mathematically.
-        for piece in self.pieces:
-            if type(piece) is Rook:
-                self.castlings.add(Castle(self.king, piece))
-
     def __repr__(self):
         """Represent a player by name and captured pieces.
 

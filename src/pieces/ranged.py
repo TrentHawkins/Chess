@@ -62,6 +62,29 @@ class Rook(Ranged):
 #   Straight lines:
     steps: ClassVar[set[Vector]] = Piece.straights
 
+    def castleable(self, square: Square) -> bool:
+        """Check if current rook is castlable.
+
+        This method only takes care of whatever is needed by rook. Square is assumed properly invoked by `King.capturable`.
+        For now, check that:
+        -   The rook has not moved.
+        -   The rook can move to the castling square (but only as a move, not a capture).
+            This means that the only the other castling needs to be checked:
+            -   In the short castling king checks both in-between squares for deployability so delagate check to king.
+            -   In the other castling king checks the same squares, and there is only one square left to check for the rook.
+
+        Args:
+            square: The source square is `self.square` (not necessary).
+
+        Returns:
+            Whether piece is placeable on target square.
+        """
+        castle = square - self.square
+
+    #   Mind that the rook moves the other way the king does.
+        return not self.has_moved \
+            and self.deployable(self.square + Vector(0, +1)) if castle.file > 0 else True
+
 
 @dataclass(init=False, repr=False, eq=False)
 class Bishop(Ranged):

@@ -66,6 +66,20 @@ class Vector:
             self.file // times,
         )
 
+    def __pos__(self):
+        """Vector positive."""
+        return Vector(
+            +self.rank,
+            +self.file,
+        )
+
+    def __neg__(self):
+        """Vector negative."""
+        return Vector(
+            -self.rank,
+            -self.file,
+        )
+
     def __len__(self):
         """Manhattan path length.
 

@@ -73,18 +73,6 @@ class Board:
                     self[f"{file}{main_rank}"] = Main(color)  # The main pieces (rooks, knights, bishops, queen, king)
                     self[f"{file}{pawn_rank}"] = Pawn(color)  # The pawns.
 
-            #   NOTE: Temporarily assign castles to board:
-                self.castle[color] = {
-                    "king-side": Castle(
-                        self[f"e{main_rank}"],  # type: ignore
-                        self[f"h{main_rank}"],  # type: ignore
-                    ),
-                    "queen-side": Castle(
-                        self[f"e{main_rank}"],  # type: ignore
-                        self[f"a{main_rank}"],  # type: ignore
-                    ),
-                }
-
     def __repr__(self) -> str:
         """Represent the board in proper direction and use the representation of each piece.
 
