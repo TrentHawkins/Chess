@@ -4,17 +4,17 @@ A game of chess always has two players, but this class will be able to keep trac
 """
 
 from collections import Counter
-from dataclasses import dataclass
+from re import Pattern, compile
 from types import MethodType
 
 from .board import Board
 from .move import Capture, Move
 from .moves.castle import Castle
-from .moves.pawn import Jump
+from .moves.pawn import Jump, Promotion
 from .piece import Orientation, Piece
-from .pieces.melee import King
+from .pieces.melee import King, Knight
 from .pieces.pawn import Pawn
-from .pieces.ranged import Rook
+from .pieces.ranged import Bishop, Queen, Rook
 from .square import Square
 
 
@@ -29,6 +29,36 @@ class Player:
         captured: A collection of captured pieces hashed by piece type.
             NOTE: All captured pieces are expected to have `square == None` making them distinct only by type.
     """
+
+#   Piece type dictionary:
+    letter_to_Piece = {
+        "B": Bishop,
+        "N": Knight,
+        "R": Rook,
+        "Q": Queen,
+        "K": King,
+        "": Pawn
+    }
+
+#   Base string ranges
+    rank_range = Square.rank_range
+    file_range = Square.file_range
+    officer_range = "BNRQ"
+    piece_range = officer_range + "K"
+
+#   Base notation pattern in string form:
+    move_pattern = f"[{piece_range}]?[{file_range}][{rank_range}]-[{file_range}][{rank_range}]"
+
+#   Patterns for long algebraic notation.
+    moves: Pattern = compile(move_pattern)
+    captures: Pattern = compile(move_pattern.replace("-", "x"))
+
+#   Pawns are a pain in the turbo afterburner.
+    jumps: Pattern = compile(f"(?:([{file_range}])2-(?:\1)4)|(?:([{file_range}])7-(?:\2)5)")
+    promotions: Pattern = compile(f"[{file_range}]8={officer_range}|[{file_range}]1={officer_range}")
+
+#   King specials:
+    castles: Pattern = compile(f"[O-O-O|O-O]")
 
     def __init__(self, name: str, color: str, board: Board):
         """Create collections for player.
@@ -90,12 +120,12 @@ class Player:
                 self.king: King = piece
 
     #   Castles
-        self.castles: set[Castle] = set()
+        self.castlings: set[Castle] = set()
 
     #   Do not allow castles in custom positions as the `has_moved` conditions is unresolvable mathematically.
         for piece in self.pieces:
             if type(piece) is Rook:
-                self.castles.add(Castle(self.king, piece))
+                self.castlings.add(Castle(self.king, piece))
 
     def __repr__(self):
         """Represent a player by name and captured pieces.
@@ -125,8 +155,79 @@ class Player:
         if target_piece is not None:  # If there was a piece there (opponent's),
             self.captured[target_piece] += 1  # Add lost piece to target collection, not that it has lost its square.
 
+    def read(self) -> Move | Castle:
+        """Read move from standard input with a prompt.
+
+        Try forever till a legit move is found.
+        FIXME: This will get stuck upon checkmate.
+
+        Args:
+            move: _description_
+        """
+        message = "your turn"
+
+        while True:
+            input_move = input(f"{self.name}, {message}: ")
+
+        #   If a plain move is given:
+            if Player.moves.match(input_move):
+                for piece in self.pieces:
+                    source = Square(input_move[-5:-3])
+                    target = Square(input_move[-2:])
+
+                    if type(piece) is Player.letter_to_Piece[input_move[:-5]] and piece.square == source:
+                        move = Move(piece, target)
+
+        #   If a capture is given:
+            if Player.captures.match(input_move):
+                for piece in self.pieces:
+                    source = Square(input_move[-5:-3])
+                    target = Square(input_move[-2:])
+
+                    if type(piece) is Player.letter_to_Piece[input_move[:-5]] and piece.square == source:
+                        move = Capture(piece, target)
+
+        #   If a starting pawn jump is given:
+            if Player.jumps.match(input_move):
+                for piece in self.pieces:
+                    source = Square(input_move[-5:-3])
+                    target = Square(input_move[-2:])
+
+                    if type(piece) is Pawn and piece.square == source:
+                        move = Jump(piece, target)
+
+        #   If a pawn promotion is given:
+            if Player.promotions.match(input_move):
+                for piece in self.pieces:
+                    source = Square(input_move[-5:-3])
+                    target = Square(input_move[-2:])
+
+                    if type(piece) is Pawn and piece.square == source:
+                        move = Promotion(piece, target, Player.letter_to_Piece[input_move[:-5]])
+
+        #   If a castle symbol is given (no need for pattern matching here really):
+            if Player.castles.match(input_move):
+                king = self.king
+
+                if input_move == "O-O-O":
+                    rook = self.board[f"a{king.square.rank}"]  # type: ignore
+
+                if input_move == "O-O":
+                    rook = self.board[f"h{king.square.rank}"]  # type: ignore
+
+                move = Castle(king, rook)  # type: ignore
+
+        #   Check move here too to catch the re-try:
+            try:
+                if move.is_legal():  # type: ignore
+                    return move  # type: ignore
+
+            except UnboundLocalError:
+                message = "try again"
+                continue
+
     @property
-    def squares_checked(self) -> set[Square]:
+    def squares(self) -> set[Square]:
         """Get all squares checked by player.
 
         Returns:

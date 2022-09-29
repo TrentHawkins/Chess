@@ -1,11 +1,17 @@
 """A game of chess."""
 
 
+from re import Pattern, compile
 from types import MethodType
 
 from .board import Board
+from .move import Capture, Move
 from .moves.castle import Castle
+from .moves.pawn import Jump, Promotion
 from .piece import Piece
+from .pieces.melee import King, Knight
+from .pieces.pawn import Pawn
+from .pieces.ranged import Bishop, Queen, Rook
 from .player import Player
 from .square import Square
 
@@ -18,6 +24,7 @@ class Chess:
 
         Args:
             board: A custom position if desired. If so, you must specify whose move it is.
+            black: Whether it's blacks move for a custom position. Ignored for default games.
 
         Also defines chessboard-context-sensitive rules for evaluating piece legal moves.
         Because king safety constrains movement of other pieces, king moves are defined seperately.
@@ -33,7 +40,7 @@ class Chess:
 
     #   Switch to blacks turn in  acustom position starting with black.
         if board != Board() and black:
-            next(self)
+            self.current, self.opponent = self.opponent, self.current
 
         def king_safe(source_piece: Piece, target: Square):
             """Check if king of current player is safe.
@@ -47,7 +54,7 @@ class Chess:
 
         #   Check if king is still in danger after the move. If it is not, then the move is legit.
             target_piece, self.board[target], self.board[source] = self.board[target], source_piece, None  # type: ignore
-            king_safe = self.current.king.square not in self.opponent.squares_checked
+            king_safe = self.current.king.square not in self.opponent.squares
             self.board[source], self.board[target] = source_piece, target_piece  # type: ignore
 
             return king_safe
@@ -75,23 +82,23 @@ class Chess:
         def castle_is_legal(castle: Castle):
             castle.is_legal.__doc__
             return castle.__class__.is_legal(castle) \
-                and castle.middle not in self.opponent.squares_checked \
-                and castle.square not in self.opponent.squares_checked
+                and castle.middle not in self.opponent.squares \
+                and castle.square not in self.opponent.squares
 
     #   Update current player's castles with check constraints.
-        for castle in self.current.castles:
+        for castle in self.current.castlings:
             castle.is_legal = MethodType(castle_is_legal, castle)
 
-    def __next__(self):
+    def turn(self):
         """Advance a turn."""
+        print(self.board)  # Lets see the board!
+        self.current(self.current.read())  # Make a move tough guy!
         self.current, self.opponent = self.opponent, self.current
-
-        yield self.current
 
     def round(self):
         """Advance a round, which is two turns, one for black and one for white."""
-        next(self)
-        next(self)
+        self.turn()
+        self.turn()
 
     #   Eliminate any ghost pieces after one full round to eliminate any missed en-passants.
         for piece in self.board:

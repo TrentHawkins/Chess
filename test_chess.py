@@ -115,67 +115,67 @@ class TestChess:
         new_game = Chess(board=board)
 
     #   As is we should be having both castles.
-        assert new_game.current.castles == {
+        assert new_game.current.castlings == {
             Castle(board["e1"], board["a1"]),  # type: ignore
             Castle(board["e1"], board["h1"]),  # type: ignore
         }
 
     #   They should both be deployable:
-        assert all(castle.is_legal() for castle in new_game.current.castles)
+        assert all(castle.is_legal() for castle in new_game.current.castlings)
 
     #   Add some benigh danger to castling long:
         new_game.opponent(Move(board["a8"], "b8"))  # type: ignore
 
     #   They should still be both deployable.
-        assert all(castle.is_legal() for castle in new_game.current.castles)
+        assert all(castle.is_legal() for castle in new_game.current.castlings)
 
     #   Castling long target checked.
         new_game.opponent(Move(board["b8"], "c8"))  # type: ignore
 
     #   Should only see one.
-        assert not all(castle.is_legal() for castle in new_game.current.castles) \
-            and any(castle.is_legal() for castle in new_game.current.castles)
+        assert not all(castle.is_legal() for castle in new_game.current.castlings) \
+            and any(castle.is_legal() for castle in new_game.current.castlings)
 
     #   Castling long flying checked.
         new_game.opponent(Move(board["c8"], "d8"))  # type: ignore
 
     #   Should only see one.
-        assert not all(castle.is_legal() for castle in new_game.current.castles) \
-            and any(castle.is_legal() for castle in new_game.current.castles)
+        assert not all(castle.is_legal() for castle in new_game.current.castlings) \
+            and any(castle.is_legal() for castle in new_game.current.castlings)
 
     #   King checked. Pull other danger away to see if king check kills both castles.
         new_game.opponent(Move(board["d8"], "b8"))  # type: ignore
         new_game.opponent(Move(board["e7"], "b4"))  # type: ignore
 
     #   Should see none.
-        assert not any(castle.is_legal() for castle in new_game.current.castles)
+        assert not any(castle.is_legal() for castle in new_game.current.castlings)
 
     #   Lets see if we can retrive them when the danger is gone.
         new_game.opponent(Move(board["b4"], "e7"))  # type: ignore
 
     #   Should see both.
-        assert all(castle.is_legal() for castle in new_game.current.castles)
+        assert all(castle.is_legal() for castle in new_game.current.castlings)
 
     #   Lets put an obstacle on the long castle near the rook, where the king doesn't even reach.
         new_game.current(Move(board["e6"], "f5"))  # type: ignore
         new_game.current(Move(board["f5"], "b1"))  # type: ignore
 
     #   Should see one.
-        assert any(castle.is_legal() for castle in new_game.current.castles)
+        assert any(castle.is_legal() for castle in new_game.current.castlings)
 
     #   Remove block.
         new_game.current(Move(board["b1"], "f5"))  # type: ignore
         new_game.current(Move(board["f5"], "e6"))  # type: ignore
 
     #   Should see both.
-        assert all(castle.is_legal() for castle in new_game.current.castles)
+        assert all(castle.is_legal() for castle in new_game.current.castlings)
 
     #   Lets move the king back and forth.
         new_game.current(Move(board["e1"], "d1"))  # type: ignore
         new_game.current(Move(board["d1"], "e1"))  # type: ignore
 
     #   Should see none.
-        assert not any(castle.is_legal() for castle in new_game.current.castles)
+        assert not any(castle.is_legal() for castle in new_game.current.castlings)
 
 
 class TestPlayer:
