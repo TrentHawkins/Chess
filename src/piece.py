@@ -83,8 +83,11 @@ class Piece:
         ↑ + ↓ = · center (removed)
     """
 
+#   Piece letter range:
+    piece_range: ClassVar[str] = "BKNQR"
+
 #   Piece value is None:
-    value: int = 0
+    value: ClassVar[int] = 0
 
 #   Piece Notation:
     symbol: ClassVar[str] = "🨅"  # This will be ghosted so that empty space has the right width.

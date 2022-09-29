@@ -57,10 +57,13 @@ Long algebraic notation
 """
 
 from dataclasses import dataclass
+from re import Pattern, compile
+from typing import ClassVar
 
 from .piece import Piece
-from .pieces.melee import King
-from .pieces.ranged import Rook
+from .pieces.melee import King, Knight
+from .pieces.pawn import Pawn
+from .pieces.ranged import Bishop, Queen, Rook
 from .square import Square
 
 
@@ -91,6 +94,22 @@ class Move:
     Methods:
         is_legal: Check if move is legal based on piece and square context.
     """
+
+#   Piece type dictionary:
+    letterPiece = {
+        Bishop.letter: Bishop,
+        Knight.letter: Knight,
+        Rook.letter: Rook,
+        Queen.letter: Queen,
+        King.letter: King,
+        Pawn.letter: Pawn
+    }
+
+#   Ask for any ot the piece letters to appear once or nonce (for pawns).
+    move_range: ClassVar[str] = \
+        f"[{Piece.piece_range}]?[{Square.file_range}][{Square.rank_range}]-[{Square.file_range}][{Square.rank_range}]"
+
+    notation: ClassVar[Pattern] = compile(move_range)
 
     piece: Piece
     square: Square
@@ -132,6 +151,9 @@ class Capture(Move):
     In long algebraic notation, both the starting and ending squares are specified, for example: e2e4.
     Sometimes these are separated by a hyphen, e.g. Nb1-c3, while captures are indicated by an "×", e.g. Rd3×d7.
     """
+
+#   Do the same but use the "x" symbol instead to designate indent of capture.
+    move_range: ClassVar[str] = Move.move_range.replace(" ", "x")
 
     def __repr__(self):
         """Each move of a piece is indicated by the piece's uppercase letter, plus the coordinate of the destination square.

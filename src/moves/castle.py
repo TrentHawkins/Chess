@@ -16,8 +16,10 @@ This implementation attempts at abstracting the castling logic to its fundamenta
 """
 
 from dataclasses import dataclass
+from re import Pattern, compile
+from typing import ClassVar
 
-from ..move import Move
+from ..piece import Piece
 from ..pieces.melee import King
 from ..pieces.ranged import Rook
 from ..square import Square
@@ -53,6 +55,11 @@ class Castle:
     so inheriting from `Move` has little to no use at all. It does a type-hinting headeach but makes for readable code too.
     """
 
+#   Ask for any ot the piece letters to appear once or nonce (for pawns).
+    move_range: ClassVar[str] = "O-O|O-O-O"
+
+    notation: ClassVar[Pattern] = compile(move_range)
+
     piece: King  # reference to a king piece
     other: Rook  # reference to a rook piece (of same color)
 
@@ -72,8 +79,8 @@ class Castle:
     def __repr__(self):
         """Notation for castle moves."""
         return {
-            4: "O-O-O",
             3: "O-O",
+            4: "O-O-O",
         }[self.connection]
 
     def __hash__(self):

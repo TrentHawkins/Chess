@@ -43,6 +43,9 @@ class Pawn(Piece):
             ↑ + → = ↗ capture east
     """
 
+#   Piece letter range:
+    piece_range: ClassVar[str] = "BNQR"
+
 #   Pawn value:
     value: ClassVar[int] = 1
 

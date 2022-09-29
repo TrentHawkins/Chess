@@ -19,10 +19,11 @@ we modify the representations of the two latter to accomodate for promotions.
 """
 
 from dataclasses import dataclass
-from typing import Type
+from typing import ClassVar, Type
 
 from ..move import Capture, Move
-from ..pieces.pawn import Officer, Pawn
+from ..pieces.pawn import Pawn
+from ..square import Square
 
 
 @dataclass(repr=False)
@@ -33,6 +34,13 @@ class Promotion(Capture, Move):
         piece: Override original attribute with one that is `Pawn` specifically.
         Piece: The type of piece the pawn is promoted to.
     """
+
+#   Reading of promotions:
+    move_range: ClassVar[str] = \
+        f"[{Square.file_range}]7-{Square.file_range}]8={Pawn.piece_range}" + "|" + \
+        f"[{Square.file_range}]2-{Square.file_range}]1={Pawn.piece_range}" + "|" + \
+        f"[{Square.file_range}]7x{Square.file_range}]8={Pawn.piece_range}" + "|" + \
+        f"[{Square.file_range}]2x{Square.file_range}]1={Pawn.piece_range}"
 
     piece: Pawn
     Piece: Type
@@ -45,7 +53,7 @@ class Promotion(Capture, Move):
             for example: e8Q (promoting to queen). In standard FIDE notation, no punctuation is used;
             in Portable Game Notation (PGN) and many publications, pawn promotion is indicated by the equals sign (e8=Q).
         """
-        return Move.__repr__(self) + "=" + self.Piece._repr
+        return (Move.__repr__(self) if Move.is_legal(self) else Capture.__repr__(self)) + "=" + self.Piece.symbol
 
     def is_legal(self):
         """Check if pawn can promote either by moving or by capturing."""
@@ -63,6 +71,9 @@ class Jump(Move):
     Attributes:
         piece: The pawn to make jump. It is a jump so square is known.
     """
+
+#   Reading of starting pawn jumps:
+    move_range: ClassVar[str] = f"(?:([{Square.file_range}])2-(?:\1)4)|(?:([{Square.file_range}])7-(?:\2)5)"
 
     piece: Pawn
 

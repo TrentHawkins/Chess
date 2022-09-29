@@ -87,7 +87,7 @@ class Rook(Ranged):
 
     #   Mind that the rook moves the other way the king does.
         return not self.has_moved \
-            and self.deployable(self.square + other) if castle.file > 0 else True  # type: ignore
+            and self.deployable(self.square + self.other) if castle.file > 0 else True  # type: ignore
 
 
 @dataclass(init=False, repr=False, eq=False)
