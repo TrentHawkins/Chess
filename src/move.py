@@ -48,7 +48,7 @@ Checkmate
 
 Long algebraic notation
     In long algebraic notation, both the starting and ending squares are specified, for example: e2e4.
-    Sometimes these are separated by a hyphen, e.g. Nb1-c3, while captures are indicated by an "×", e.g. Rd3×d7.
+    Sometimes these are separated by a hyphen, e.g. Nb1-c3, while captures are indicated by an "×", e.g. Rd3xd7.
     Long algebraic notation takes more space and is no longer commonly used in print; however, it has the advantage of clarity.
     Some books using primarily short algebraic notation use the long notation instead of the short disambiguation forms.
 
@@ -130,7 +130,7 @@ class Move:
 
     def is_legal(self):
         """Check if move is legal based on piece and square context."""
-        return self.square in self.piece.squares  # type: ignore
+        return self.piece.deployable(self.square)
 
 
 @dataclass(repr=False)
@@ -148,7 +148,7 @@ class Capture(Move):
     -   the destination square (not the square of the captured pawn)
 
     In long algebraic notation, both the starting and ending squares are specified, for example: e2e4.
-    Sometimes these are separated by a hyphen, e.g. Nb1-c3, while captures are indicated by an "×", e.g. Rd3×d7.
+    Sometimes these are separated by a hyphen, e.g. Nb1-c3, while captures are indicated by an "x", e.g. Rd3xd7.
     """
 
 #   Do the same but use the "x" symbol instead to designate indent of capture.
@@ -169,4 +169,4 @@ class Capture(Move):
 
     def is_legal(self):
         """Check if move is legal based on piece and square context."""
-        return self.square in self.piece.squares  # type: ignore
+        return self.piece.capturable(self.square)

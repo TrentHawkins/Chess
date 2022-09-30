@@ -144,44 +144,9 @@ class Player:
 
         while True:
             input_move = input(f"\033[A{self.name}, {message}: \033[K")
+            pass
 
-        #   If a plain move is given:
-            if Move.notation.match(input_move):
-                for piece in self.pieces:
-                    source = Square(input_move[-5:-3])
-                    target = Square(input_move[-2:])
-
-                    if type(piece) is Move.letterPiece[input_move[:-5]] and piece.square == source:
-                        move = Move(piece, target)
-
-        #   If a capture is given:
-            if Capture.notation.match(input_move):
-                for piece in self.pieces:
-                    source = Square(input_move[-5:-3])
-                    target = Square(input_move[-2:])
-
-                    if type(piece) is Move.letterPiece[input_move[:-5]] and piece.square == source:
-                        move = Capture(piece, target)
-
-        #   If a starting pawn jump is given:
-            if Jump.notation.match(input_move):
-                for piece in self.pieces:
-                    source = Square(input_move[-5:-3])
-                    target = Square(input_move[-2:])
-
-                    if type(piece) is Pawn and piece.square == source:
-                        move = Jump(piece, target)
-
-        #   If a pawn promotion is given:
-            if Promotion.notation.match(input_move):
-                for piece in self.pieces:
-                    source = Square(input_move[-5:-3])
-                    target = Square(input_move[-2:])
-
-                    if type(piece) is Pawn and piece.square == source:
-                        move = Promotion(piece, target, Move.letterPiece[input_move[:-5]])
-
-        #   If a castle symbol is given (no need for pattern matching here really):
+        #   If castle is given (has special notation):
             if Castle.notation.match(input_move):
                 king = self.king
 
@@ -192,6 +157,43 @@ class Player:
                     rook = self.board[f"a{king.square.rank}"]  # type: ignore
 
                 move = Castle(king, rook)  # type: ignore
+
+        #   If a plain move is given:
+            elif Move.notation.match(input_move):
+                if Jump.notation.match(input_move):
+                    for piece in self.pieces:
+                        source = Square(input_move[-5:-3])
+                        target = Square(input_move[-2:])
+
+                        if type(piece) is Pawn and piece.square == source:
+                            move = Jump(piece, target)
+
+            #   If not a starting pawn jump is given:
+                else:
+                    for piece in self.pieces:
+                        source = Square(input_move[-5:-3])
+                        target = Square(input_move[-2:])
+
+                        if type(piece) is Move.letterPiece[input_move[:-5]] and piece.square == source:
+                            move = Move(piece, target)
+
+        #   If a capturing move is given:
+            elif Capture.notation.match(input_move):
+                for piece in self.pieces:
+                    source = Square(input_move[-5:-3])
+                    target = Square(input_move[-2:])
+
+                    if type(piece) is Move.letterPiece[input_move[:-5]] and piece.square == source:
+                        move = Capture(piece, target)
+
+        #   If a promotion is given (has special notation).
+            elif Promotion.notation.match(input_move):
+                for piece in self.pieces:
+                    source = Square(input_move[-7:-5])
+                    target = Square(input_move[-4:])
+
+                    if type(piece) is Pawn and piece.square == source:
+                        move = Promotion(piece, target, Move.letterPiece[input_move[-1:]])
 
         #   Check move here too to catch the re-try:
             try:

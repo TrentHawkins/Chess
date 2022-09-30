@@ -92,4 +92,4 @@ class Castle:
         Returns:
             Whether castling with the two pieces is still possible.
         """
-        return self.piece.castleable(self.square)
+        return self.piece.castleable(self.square) and self.other.castleable(self.square)
