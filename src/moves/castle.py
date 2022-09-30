@@ -69,7 +69,7 @@ class Castle:
             king: A reference to a king piece.
             rook: A reference to a rook piece (of same color and on the same board).
         """
-        self.connection = (self.piece.square - self.other.square)  # type: ignore
+        self.connection = (self.other.square - self.piece.square)  # type: ignore
         step = self.connection // len(self.connection)  # Take the unit step in the direction from king to rook.
 
         self.middle = self.piece.square + step  # The in-passing square of the king on its way to castling.
@@ -80,7 +80,7 @@ class Castle:
         return {
             3: "O-O",
             4: "O-O-O",
-        }[self.connection]
+        }[len(self.connection)]
 
     def __hash__(self):
         """Hashing for castle moves."""

@@ -144,17 +144,16 @@ class Player:
 
         while True:
             input_move = input(f"\033[A{self.name}, {message}: \033[K")
-            pass
 
         #   If castle is given (has special notation):
             if Castle.notation.match(input_move):
                 king = self.king
 
                 if input_move == "O-O":
-                    rook = self.board[f"h{king.square.rank}"]  # type: ignore
+                    rook = self.board[str(king.square).replace("e", "h")]
 
                 if input_move == "O-O-O":
-                    rook = self.board[f"a{king.square.rank}"]  # type: ignore
+                    rook = self.board[str(king.square).replace("e", "a")]
 
                 move = Castle(king, rook)  # type: ignore
 

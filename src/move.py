@@ -130,7 +130,7 @@ class Move:
 
     def is_legal(self):
         """Check if move is legal based on piece and square context."""
-        return self.piece.deployable(self.square)
+        return self.square in self.piece.squares and self.piece.deployable(self.square)
 
 
 @dataclass(repr=False)
@@ -169,4 +169,4 @@ class Capture(Move):
 
     def is_legal(self):
         """Check if move is legal based on piece and square context."""
-        return self.piece.capturable(self.square)
+        return self.square in self.piece.squares and self.piece.capturable(self.square)

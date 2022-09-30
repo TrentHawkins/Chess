@@ -346,6 +346,54 @@ class TestChess(TestCase):
 
     @patch(
         'builtins.input',
+    #   A variant of king's pawn opening:
+        side_effect=[
+            "e2-e4",  # white's king's opening
+            "e7-e5",  # black's response
+            "Ng1-f3",  # white tries to open up short castling with knight first attacking black's pawn
+            "Nb8-c6",  # black defends pawn with knight
+            "Bf1-c4",  # white opens up short castling with bishop
+            "Ng8-f6",  # black tries to delay white's castling by attacking hanging pawn with knight
+            "O-O",  # white castles short anyways
+            "Nf6xe4",  # white loses hanging pawn to black's knight
+        ],
+    )
+    def test_castling_in_game(self, mock_input):
+        """Test if en-passant works in full. Careful, this is an interactive test."""
+        from src.chess import Chess
+        from src.pieces.ranged import Rook
+        from src.square import Square
+
+    #   New game:
+        new_game = Chess()
+
+    #   Save the board:
+        board = new_game.board
+
+    #   Save white:
+        white = new_game.current
+
+    #   Play the first 3 rounds (6 turns) leading to the castle:
+        new_game.round()
+        new_game.round()
+        new_game.round()
+
+    #   Castling short square:
+        short = Square("g1")
+
+    #   Ascertain castling is possible in various ways:
+        assert short in white.king.squares
+        assert white.king.castleable(short)
+
+    #   Play the castling out:
+        new_game.round()
+
+    #   Ascertain pieces are in proper positions:
+        assert board[short] == white.king
+        assert board["f1"] == Rook("white", "f1")
+
+    @patch(
+        'builtins.input',
         side_effect=[
         #   This is the first game by which white takes their opportunit for in-passing.
             "e2-e4",
