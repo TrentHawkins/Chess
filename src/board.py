@@ -209,7 +209,7 @@ class Board:
         target_piece = self[move.square]
 
     #   If the move is a castling, move the rook first before moving the king.
-        if isinstance(move, Castle) and move.is_legal():
+        if type(move) is Castle:
             assist = move.other.square
             middle = move.middle
 
@@ -221,17 +221,13 @@ class Board:
 
     #   If the source piece is in-board and the target square is legit, make the move and switch its has-moved flag.
         else:
-            if move.piece.square is not None and move.is_legal():
+            if move.piece.square is not None:
                 if type(move) is Promotion and type(move.piece) is Pawn:
                     move.piece.promote(target, move.Piece)
 
             #   If move is anything other than a promotion just move the piece.
                 else:
                     move.piece(target)
-
-        #   If there really is a piece on the target square, prep it for removal:
-            if target_piece is not None:
-                target_piece.square = None
 
     #   Make the move. If a castling, this is the king moving in place.
         self[target], self[source] = move.piece, None  # type: ignore

@@ -347,27 +347,76 @@ class TestChess(TestCase):
     @patch(
         'builtins.input',
         side_effect=[
+        #   This is the first game by which white takes their opportunit for in-passing.
             "e2-e4",
             "c7-c5",
             "e4-e5",
             "d7-d5",
             "e5xd6",  # This is the en-passant move.
-            "e7-e6",  # Just a response to feed an even number of moves.
+            "e7xd6",  # This should work if white successfully in-passed.
+        #   This is the second game by which white passes their opportunity for in-passing.
+            "e2-e4",
+            "c7-c5",
+            "e4-e5",
+            "d7-d5",
+            "Ng1-f3",  # Play something else
+            "Nb8-c6",  # Black continues
         ],
     )
     def test_en_passant(self, mock_input):
         """Test if en-passant works in full. Careful, this is an interactive test."""
         from src.chess import Chess
+        from src.piece import Piece
+        from src.square import Square
 
+    #   A test game with en-passant happening:
         new_game = Chess()
 
+        white_pawn = new_game.board["e2"]
+        black_pawn = new_game.board["d7"]
 
-class TestPlayer:
+        assert white_pawn is not None and white_pawn.square is not None
+        assert black_pawn is not None and black_pawn.square is not None
+
+    #   Run 2 rounds (4 turns) to set-up en-passant for white:
+        new_game.round()
+        new_game.round()
+
+    #   Ascertain that black pawn left a ghost trail, that white pawn sees.
+        assert type(new_game.board["d6"]) is Piece
+        assert Square("d6") in white_pawn.squares
+
+    #   Another round to execute en-passant:
+        new_game.round()
+
+    #   Ascertain that both pawns got proprely captured:
+        assert black_pawn.square is None and black_pawn in new_game.current.captured
+        assert white_pawn.square is None and white_pawn in new_game.opponent.captured
+
+    #   A test game with en-passant being skipped:
+        new_game = Chess()
+
+        white_pawn = new_game.board["e2"]
+        black_pawn = new_game.board["d7"]
+
+        assert white_pawn is not None and white_pawn.square is not None
+        assert black_pawn is not None and black_pawn.square is not None
+
+    #   Run 3 rounds (6 turns) to set-up en-passant for white and miss it:
+        new_game.round()
+        new_game.round()
+        new_game.round()
+
+    #   Ascertain that white pawn can no longer capture black pawn via en-passant:
+        assert new_game.board["d6"] is None
+        assert Square("d6") not in white_pawn.squares
+
+
+class TestPlayer(TestCase):
     """Unit tests for players."""
 
     def test_move(self):
         """Test draft move method."""
-        from src.board import Board
         from src.chess import Chess
         from src.move import Capture, Move
 
@@ -401,7 +450,7 @@ class TestPlayer:
         assert black_pawn in white.captured and white.captured[black_pawn] == 1
 
 
-class TestPieces:
+class TestPieces(TestCase):
     """Unit tests for various pieces."""
 
     def test_pawn_promotion(self):
@@ -448,7 +497,7 @@ class TestPieces:
         }  # Check if pawn has the priviligies of its new rank.
 
 
-class TestSquare:
+class TestSquare(TestCase):
     """Unit tests exclusive to the squares."""
 
     def test_square_operations(self):

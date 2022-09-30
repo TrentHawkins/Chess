@@ -115,6 +115,7 @@ class Piece:
         """
         self.orientation: Orientation = Orientation[orientation] if isinstance(orientation, str) else orientation
         self.square: Square | None = Square(square) if isinstance(square, str) else square
+        self.life: int = 0  # The lifetime of a piece on the board in terms of game turns.
         self.has_moved: bool = False  # Has not moved upon creation.
 
     def __repr__(self) -> str:

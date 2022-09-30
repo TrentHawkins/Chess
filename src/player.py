@@ -10,7 +10,7 @@ from types import MethodType
 from .board import Board
 from .move import Capture, Move
 from .moves.castle import Castle
-from .moves.pawn import Jump, Promotion
+from .moves.pawn import EnPassant, Jump, Promotion
 from .piece import Orientation, Piece
 from .pieces.melee import King
 from .pieces.pawn import Pawn
@@ -56,23 +56,28 @@ class Player:
             source_piece.deployable.__doc__
             target_piece = self.board[target]
 
-            return source_piece.__class__.deployable(source_piece, target) and target_piece is None
+            is_empty = target_piece is None or type(target_piece) is Piece
+
+            return source_piece.__class__.deployable(source_piece, target) and is_empty
 
         def piece_capturable(source_piece: Piece, target: Square):
             source_piece.capturable.__doc__
             target_piece = self.board[target]
 
-            return source_piece.__class__.capturable(source_piece, target) and target_piece is not None \
-                and source_piece.orientation != target_piece.orientation \
-                and type(target_piece) is not Piece  # Ignore ghost pieces.
+            is_not_empty = target_piece is not None and type(target_piece) is not Piece \
+                and source_piece.orientation != target_piece.orientation
+
+            return source_piece.__class__.capturable(source_piece, target) and is_not_empty
 
     #   Add ghost pieces to target of pawns:
         def pawns_capturable(source_piece: Piece, target: Square):
             source_piece.capturable.__doc__
             target_piece = self.board[target]
 
-            return source_piece.__class__.capturable(source_piece, target) and target_piece is not None \
+            is_not_empty = target_piece is not None \
                 and source_piece.orientation != target_piece.orientation
+
+            return source_piece.__class__.capturable(source_piece, target) and is_not_empty
 
         for piece in self.pieces:
             piece.deployable = MethodType(piece_deployable, piece)
@@ -113,13 +118,18 @@ class Player:
         if type(move) is Jump:
             self.board[move.middle] = Piece(self.orientation)  # This will have to go on the next round (2 turns).
 
-    #   Delete the actual pawn that skipped, and add that to the captured pieces, instead of the ghost piece.
-        if type(target_piece) is Piece:  # If pawn is taken by en-passant,
-            target = move.square + Pawn.step * target_piece.orientation  # type: ignore
-            target_piece, self.board[target] = self.board[target], None
+    #   NOTE: The en-passant can only be detected by type-checking, I think...
+        if type(target_piece) is Piece:  # If target piece is a ghost,
+            if type(move.piece) is Pawn:  # If it is a pawn targeting it en-passant,
+                target = move.square + move.piece.step * target_piece.orientation
 
-        if target_piece is not None:  # If there was a piece there (opponent's),
-            self.captured[target_piece] += 1  # Add lost piece to target collection, not that it has lost its square.
+                target_piece, self.board[target] = self.board[target], None
+
+    #   If there was a opponent piece there, properly dispose of it.
+        if target_piece is not None:
+            target_piece.square = None
+
+            self.captured[target_piece] += 1
 
     def read(self) -> Move | Castle:
         """Read move from standard input with a prompt.
@@ -187,6 +197,10 @@ class Player:
             try:
                 if move.is_legal():  # type: ignore
                     return move  # type: ignore
+
+                else:
+                    message = "try again"
+                    continue
 
             except UnboundLocalError:
                 message = "try again"

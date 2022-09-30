@@ -57,7 +57,6 @@ class Castle:
 
 #   Ask for any ot the piece letters to appear once or nonce (for pawns).
     move_range: ClassVar[str] = "O-O|O-O-O"
-
     notation: ClassVar[Pattern] = compile(move_range)
 
     piece: King  # reference to a king piece

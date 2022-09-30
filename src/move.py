@@ -108,7 +108,6 @@ class Move:
 #   Ask for any ot the piece letters to appear once or nonce (for pawns).
     move_range: ClassVar[str] = \
         f"[{Piece.piece_range}]?[{Square.file_range}][{Square.rank_range}]-[{Square.file_range}][{Square.rank_range}]"
-
     notation: ClassVar[Pattern] = compile(move_range)
 
     piece: Piece
@@ -131,7 +130,7 @@ class Move:
 
     def is_legal(self):
         """Check if move is legal based on piece and square context."""
-        return self.piece.deployable(self.square)  # type: ignore
+        return self.square in self.piece.squares  # type: ignore
 
 
 @dataclass(repr=False)
@@ -153,7 +152,9 @@ class Capture(Move):
     """
 
 #   Do the same but use the "x" symbol instead to designate indent of capture.
-    move_range: ClassVar[str] = Move.move_range.replace(" ", "x")
+    move_range: ClassVar[str] = \
+        f"[{Piece.piece_range}]?[{Square.file_range}][{Square.rank_range}]x[{Square.file_range}][{Square.rank_range}]"
+    notation: ClassVar[Pattern] = compile(move_range)
 
     def __repr__(self):
         """Each move of a piece is indicated by the piece's uppercase letter, plus the coordinate of the destination square.
@@ -168,4 +169,4 @@ class Capture(Move):
 
     def is_legal(self):
         """Check if move is legal based on piece and square context."""
-        return self.piece.capturable(self.square)  # type: ignore
+        return self.square in self.piece.squares  # type: ignore

@@ -19,7 +19,7 @@ from .square import Square
 class Chess:
     """A chess game."""
 
-    def __init__(self, board: Board = Board(), black: bool = False):
+    def __init__(self, board: Board | None = None, black: bool = False):
         """Start a chess game.
 
         Args:
@@ -32,15 +32,15 @@ class Chess:
             At the same time, pieces may not expose the king to a check willfully.
             Finally if king does come under check, no piece moves are allowed other than the ones protecting the king.
         """
-        self.board = board
+        self.board = board or Board()
 
-    #   White usually starts first, but this player will alwyas be the current one.
+    #   White usually starts first, but this player will always be the current one.
         self.current = Player("Foo", "white", self.board)  # input("Enter player name for white: ")
         self.opponent = Player("Bar", "black", self.board)  # input("Enter player name for black: ")
 
     #   Each piece has moved in a custom position, except for pawn whose immovability can be discerned by their movement entropy.
-        if board != Board():
-            for piece in board:
+        if board is not None:
+            for piece in self.board:
                 if type(piece) is not Pawn:
                     piece.has_moved = True
 
@@ -102,15 +102,20 @@ class Chess:
     def turn(self):
         """Advance a turn."""
         print(self.board)  # Lets see the board!
+
         self.current(self.current.read())  # Make a move tough guy!
+
+    #   Age pieces by one turn (included freshly created ghosts).
+        for piece in self.board:
+            piece.life += 1
+
+        #   Eliminate any out-lived ghost pieces (2 turns).
+            if type(piece) is Piece and piece.life > 1:
+                del self.board[piece.square]  # type: ignore
+
         self.current, self.opponent = self.opponent, self.current
 
     def round(self):
         """Advance a round, which is two turns, one for black and one for white."""
         self.turn()
         self.turn()
-
-    #   Eliminate any ghost pieces after one full round to eliminate any missed en-passants.
-        for piece in self.board:
-            if type(piece) is Piece:
-                del piece
