@@ -58,14 +58,12 @@ class Board:
     rank_range = "12345678"
     file_range = "ABCDEFGH"
 
-    def __init__(self, *, empty: bool = False, theme: dict[str, int] = default_board_theme):
+    def __init__(self, *, empty: bool = False, theme: dict[str, int] = default_board_theme, flipped: bool = False):
         """Initialize a chessboard with a new game congifuration."""
         self.pieces: list[list[Piece | None]] = [[None for _ in range(8)] for _ in range(8)]
         self.theme = theme  # Set board color theme.
         self.custom = empty  # Whether an empty or custom borad is being used.
-
-    #   NOTE: Temporarily assign castles to board:
-        self.castle = {}
+        self.flipped = flipped  # Whether to display board flipped 180 degrees (from black's viewpoint)
 
         if not self.custom:
             for color in Board.piece_colors:
@@ -108,27 +106,52 @@ class Board:
         )
 
         representation = "\033[A" * 15 + "\n"
-        representation += " ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖ \n"
-        representation += " ▐▌  A B C D E F G H  ▐▌ \n"
 
-        for index, rank in enumerate(self.pieces):
-            representation += " ▐▌" + str(Square.index_to_rank[index]) + next(border_color)
-            representation += (
-                next(square_color) + str(rank[0]) + next(edge_color) +
-                next(square_color) + str(rank[1]) + next(edge_color) +
-                next(square_color) + str(rank[2]) + next(edge_color) +
-                next(square_color) + str(rank[3]) + next(edge_color) +
-                next(square_color) + str(rank[4]) + next(edge_color) +
-                next(square_color) + str(rank[5]) + next(edge_color) +
-                next(square_color) + str(rank[6]) + next(edge_color) +
-                next(square_color) + str(rank[7])
-            )
-            representation += next(border_color) + str(Square.index_to_rank[index]) + "▐▌ \n"
+        if self.flipped:
+            representation += " ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖ \n"
+            representation += " ▐▌  H G F E D C B A  ▐▌ \n"
 
-            next(square_color)  # Flip colors for next rank to make a checkerboard.
+            for index, rank in enumerate(reversed(self.pieces)):
+                representation += " ▐▌" + str(index + 1) + next(border_color)
+                representation += (
+                    next(square_color) + str(rank[7]) + next(edge_color) +
+                    next(square_color) + str(rank[6]) + next(edge_color) +
+                    next(square_color) + str(rank[5]) + next(edge_color) +
+                    next(square_color) + str(rank[4]) + next(edge_color) +
+                    next(square_color) + str(rank[3]) + next(edge_color) +
+                    next(square_color) + str(rank[2]) + next(edge_color) +
+                    next(square_color) + str(rank[1]) + next(edge_color) +
+                    next(square_color) + str(rank[0])
+                )
+                representation += next(border_color) + str(index + 1) + "▐▌ \n"
 
-        representation += " ▐▌  A B C D E F G H  ▐▌ \n"
-        representation += " ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘ \n"
+                next(square_color)  # Flip colors for next rank to make a checkerboard.
+
+            representation += " ▐▌  H G F E D C B A  ▐▌ \n"
+            representation += " ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘ \n"
+
+        else:
+            representation += " ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖ \n"
+            representation += " ▐▌  A B C D E F G H  ▐▌ \n"
+
+            for index, rank in enumerate(self.pieces):
+                representation += " ▐▌" + str(Square.index_to_rank[index]) + next(border_color)
+                representation += (
+                    next(square_color) + str(rank[0]) + next(edge_color) +
+                    next(square_color) + str(rank[1]) + next(edge_color) +
+                    next(square_color) + str(rank[2]) + next(edge_color) +
+                    next(square_color) + str(rank[3]) + next(edge_color) +
+                    next(square_color) + str(rank[4]) + next(edge_color) +
+                    next(square_color) + str(rank[5]) + next(edge_color) +
+                    next(square_color) + str(rank[6]) + next(edge_color) +
+                    next(square_color) + str(rank[7])
+                )
+                representation += next(border_color) + str(Square.index_to_rank[index]) + "▐▌ \n"
+
+                next(square_color)  # Flip colors for next rank to make a checkerboard.
+
+            representation += " ▐▌  A B C D E F G H  ▐▌ \n"
+            representation += " ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘ \n"
 
         return representation.replace("None", "\033[8m🨅\033[0m")
 

@@ -48,8 +48,9 @@ class Chess:
                 if type(piece) is not Pawn:
                     piece.has_moved = True
 
-        #   Switch to blacks turn in  acustom position starting with black.
+        #   Switch to blacks turn in a custom position starting with black.
             if black:
+                self.board.flipped = True
                 self.current, self.opponent = self.opponent, self.current
 
         def king_safe(source_piece: Piece, target: Square):
@@ -118,6 +119,8 @@ class Chess:
             if type(piece) is Piece and piece.life > 1:
                 del self.board[piece.square]  # type: ignore
 
+    #   Prepare for the next turn:
+        self.board.flipped = not self.board.flipped
         self.current, self.opponent = self.opponent, self.current
 
     def round(self):
