@@ -143,7 +143,7 @@ class Player:
         message = "your turn"
 
         while True:
-            input_move = input(f"{self.name}, {message}: ")
+            input_move = input(f"\033[A{self.name}, {message}: \033[K")
 
         #   If a plain move is given:
             if Move.notation.match(input_move):

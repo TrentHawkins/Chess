@@ -54,6 +54,10 @@ class Board:
         "h": Rook,
     }
 
+#   Graphics:
+    rank_range = "12345678"
+    file_range = "ABCDEFGH"
+
     def __init__(self, *, empty: bool = False, theme: dict[str, int] = default_board_theme):
         """Initialize a chessboard with a new game congifuration."""
         self.pieces: list[list[Piece | None]] = [[None for _ in range(8)] for _ in range(8)]
@@ -97,16 +101,18 @@ class Board:
         border_color = cycle(
             [
                 f"\033[0m\033[3{self.theme['white']}m▐",
-                f"\033[0m\033[3{self.theme['black']}m▌\033[0m\n",
+                f"\033[0m\033[3{self.theme['black']}m▌\033[0m",
                 f"\033[0m\033[3{self.theme['black']}m▐",
-                f"\033[0m\033[3{self.theme['white']}m▌\033[0m\n",
+                f"\033[0m\033[3{self.theme['white']}m▌\033[0m",
             ]
         )
 
-        representation = "\n"
+        representation = "\033[A" * 15 + "\n"
+        representation += " ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖ \n"
+        representation += " ▐▌  A B C D E F G H  ▐▌ \n"
 
-        for rank in self.pieces:
-            representation += next(border_color)
+        for index, rank in enumerate(self.pieces):
+            representation += " ▐▌" + str(Square.index_to_rank[index]) + next(border_color)
             representation += (
                 next(square_color) + str(rank[0]) + next(edge_color) +
                 next(square_color) + str(rank[1]) + next(edge_color) +
@@ -117,9 +123,12 @@ class Board:
                 next(square_color) + str(rank[6]) + next(edge_color) +
                 next(square_color) + str(rank[7])
             )
-            representation += next(border_color)
+            representation += next(border_color) + str(Square.index_to_rank[index]) + "▐▌ \n"
 
             next(square_color)  # Flip colors for next rank to make a checkerboard.
+
+        representation += " ▐▌  A B C D E F G H  ▐▌ \n"
+        representation += " ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘ \n"
 
         return representation.replace("None", "\033[8m🨅\033[0m")
 

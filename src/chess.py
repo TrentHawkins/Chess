@@ -34,6 +34,10 @@ class Chess:
         """
         self.board = board or Board()
 
+    #   Make room for the boarf before the game starts:
+        for _ in range(15):
+            print()  # empty line
+
     #   White usually starts first, but this player will always be the current one.
         self.current = Player("Foo", "white", self.board)  # input("Enter player name for white: ")
         self.opponent = Player("Bar", "black", self.board)  # input("Enter player name for black: ")
@@ -102,6 +106,7 @@ class Chess:
     def turn(self):
         """Advance a turn."""
         print(self.board)  # Lets see the board!
+        print()  # empty line
 
         self.current(self.current.read())  # Make a move tough guy!
 
