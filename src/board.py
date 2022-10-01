@@ -219,7 +219,7 @@ class Board:
         """
         return any(piece in rank for rank in self.pieces)
 
-    def __call__(self, move: Move | Castle) -> Piece | None:
+    def move(self, move: Move | Castle) -> Piece | None:
         """Move the source piece to target square if move is valid.
 
         Whatever lies on the target square is saved for further processing, however its square is killed, naturally.
@@ -242,14 +242,14 @@ class Board:
 
     #   If the move is a castling, move the rook first before moving the king.
         if type(move) is Castle:
-            assist = move.other.square
+            assist = move.assist.square
             middle = move.middle
 
             move.piece(target)
-            move.other(middle)
+            move.assist(middle)
 
         #   Move the rook in-place. King will be moved as normal with the main move.
-            self[middle], self[assist] = move.other, None  # type: ignore
+            self[middle], self[assist] = move.assist, None  # type: ignore
 
     #   If the source piece is in-board and the target square is legit, make the move and switch its has-moved flag.
         else:

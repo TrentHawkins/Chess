@@ -60,7 +60,7 @@ class Castle:
     notation: ClassVar[Pattern] = compile(move_range)
 
     piece: King  # reference to a king piece
-    other: Rook  # reference to a rook piece (of same color)
+    assist: Rook  # reference to a rook piece (of same color)
 
     def __post_init__(self):
         """Set up the castling relevant squares.
@@ -69,7 +69,7 @@ class Castle:
             king: A reference to a king piece.
             rook: A reference to a rook piece (of same color and on the same board).
         """
-        self.connection = (self.other.square - self.piece.square)  # type: ignore
+        self.connection = (self.assist.square - self.piece.square)  # type: ignore
         step = self.connection // len(self.connection)  # Take the unit step in the direction from king to rook.
 
         self.middle = self.piece.square + step  # The in-passing square of the king on its way to castling.
@@ -92,4 +92,4 @@ class Castle:
         Returns:
             Whether castling with the two pieces is still possible.
         """
-        return self.piece.castleable(self.square) and self.other.castleable(self.square)
+        return self.piece.castleable(self.square) and self.assist.castleable(self.square)

@@ -53,6 +53,12 @@ class Chess:
                 self.board.flipped = True
                 self.current, self.opponent = self.opponent, self.current
 
+    def update(self):
+        """Define game-context-sensitive rules for evaluating piece legal moves.
+
+        This affects current player who needs opponent info to make decisions about movement legallity.
+        """
+
         def king_safe(source_piece: Piece, target: Square):
             """Check if king of current player is safe.
 
@@ -74,21 +80,30 @@ class Chess:
             source_piece.deployable.__doc__
             target_piece = self.board[target]
 
-            return source_piece.__class__.deployable(source_piece, target) and target_piece is None \
-                and king_safe(source_piece, target)
+            is_empty = target_piece is None or type(target_piece) is Piece
+
+            return Piece.deployable(source_piece, target) and is_empty and \
+                king_safe(source_piece, target)
 
         def piece_capturable(source_piece: Piece, target: Square):
             source_piece.capturable.__doc__
             target_piece = self.board[target]
 
-            return source_piece.__class__.capturable(source_piece, target) and target_piece is not None \
-                and source_piece.orientation != target_piece.orientation \
-                and king_safe(source_piece, target)
+            is_not_empty = target_piece is not None and type(target_piece) is not Piece \
+                and source_piece.orientation != target_piece.orientation
 
-    #   Update all pieces in the current player's collection.
-        for piece in self.current.pieces:
-            piece.deployable = MethodType(piece_deployable, piece)
-            piece.capturable = MethodType(piece_capturable, piece)
+            return Piece.capturable(source_piece, target) and is_not_empty and \
+                king_safe(source_piece, target)
+
+        def pawn_capturable(source_piece: Pawn, target: Square):
+            source_piece.capturable.__doc__
+            target_piece = self.board[target]
+
+            is_not_empty = target_piece is not None \
+                and source_piece.orientation != target_piece.orientation
+
+            return Pawn.capturable(source_piece, target) and is_not_empty and \
+                king_safe(source_piece, target)
 
         def king_castleable(king: King, target: Square):
             king.castleable.__doc__
@@ -99,17 +114,34 @@ class Chess:
             rook = self.board[king.square + king.castles[castle]]  # type: ignore
 
         #   Mind that king cannot escape check with a castle, as it usually can by moving otherwise.
-            return type(rook) is Rook and rook.castleable(middle) \
-                and self.current.king.square not in self.opponent.squares and king.__class__.castleable(king, target)
+            return King.castleable(king, target) and self.current.king.square not in self.opponent.squares \
+                and type(rook) is Rook and Rook.castleable(rook, middle)
 
+    #   Update all pieces in the current player's collection.
+        for piece in self.current.pieces:
+            piece.deployable = MethodType(piece_deployable, piece)
+
+            if type(piece) is Pawn:
+                piece.capturable = MethodType(pawn_capturable, piece)
+
+            else:
+                piece.capturable = MethodType(piece_capturable, piece)
+
+    #   Defining both castleabilities does not create an infinite recursion.
         self.current.king.castleable = MethodType(king_castleable, self.current.king)
+
+    #   Set opponent's basic rules too:
+        self.opponent.update()
 
     def turn(self):
         """Advance a turn."""
+        self.update()  # Update players first with game-context!
+
+    #   Start turn here!
         print(self.board)  # Lets see the board!
         print()  # empty line
 
-        self.current(self.current.read())  # Make a move tough guy!
+        self.current.move(self.current.read())  # Make a move tough guy!
 
     #   Age pieces by one turn (included freshly created ghosts).
         for piece in self.board:
@@ -120,7 +152,9 @@ class Chess:
                 del self.board[piece.square]  # type: ignore
 
     #   Prepare for the next turn:
-        self.board.flipped = not self.board.flipped
+    #   self.board.flipped = not self.board.flipped
+
+    #   Flip player identities, making the next turn invokation proper!
         self.current, self.opponent = self.opponent, self.current
 
     def round(self):
