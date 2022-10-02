@@ -6,7 +6,7 @@ from types import MethodType
 
 from .board import Board
 from .move import Capture, Move
-from .moves.castle import Castle
+from .moves.king import Castle
 from .moves.pawn import Jump, Promotion
 from .piece import Piece
 from .pieces.melee import King, Knight

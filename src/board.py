@@ -7,7 +7,7 @@ from itertools import cycle
 from typing import Generator
 
 from .move import Capture, Move
-from .moves.castle import Castle
+from .moves.king import Castle
 from .moves.pawn import Promotion
 from .piece import Orientation, Piece
 from .pieces.melee import King, Knight
