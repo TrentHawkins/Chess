@@ -93,16 +93,21 @@ class Pawn(Piece):
 
         return squares
 
-    @property
-    def can_promote(self) -> bool:
-        """Check if pawn is promotable."""
-        return self.square is not None and self.square.rank == Square.rank_to_index[str((9 - self.orientation * 5) // 2)]
+    def can_promote(self, pawn_square: Square) -> bool:
+        """Check if pawn is promotable.
+
+        Args:
+            pawn_square: The target square pan will promote unto.
+        """
+        return self.square is not None \
+            and self.square.rank == Square.rank_to_index[str((9 - self.orientation * 5) // 2)]\
+            and pawn_square.rank == Square.rank_to_index[str((9 - self.orientation * 7) // 2)]
 
     def promote(self, target: Square, Piece: Type):
-        super().__call__.__doc__
+        super().move.__doc__
 
         if Piece in Officer.__args__ and self.can_promote:
-            super().__call__(target)
+            super().move(target)
             self.__class__ = Piece  # Promote pawn without changing any of its other attributes.
 
         return self

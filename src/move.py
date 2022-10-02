@@ -96,7 +96,7 @@ class Move:
     """
 
 #   Piece type dictionary:
-    letterPiece = {
+    typePiece = {
         Bishop.letter: Bishop,
         Knight.letter: Knight,
         Rook.letter: Rook,
@@ -106,8 +106,12 @@ class Move:
     }
 
 #   Ask for any ot the piece letters to appear once or nonce (for pawns).
+#   Groups:
+#   -   piece type
+#   -   square of piece
+#   -   target of piece
     move_range: ClassVar[str] = \
-        f"[{Piece.piece_range}]?[{Square.file_range}][{Square.rank_range}]-[{Square.file_range}][{Square.rank_range}]"
+        f"([{Piece.piece_range}]?)([{Square.file_range}][{Square.rank_range}])-([{Square.file_range}][{Square.rank_range}])"
     notation: ClassVar[Pattern] = compile(move_range)
 
     piece: Piece
@@ -127,6 +131,35 @@ class Move:
         NOTE: This needs contextual resolve at `Board` or `Player` level. For now use long algebraic notation.
         """
         return self.piece.symbol + repr(self.piece.square) + "-" + repr(self.square)
+
+    @classmethod
+    def read(cls, input: str, pieces: set[Piece], offest: int = 0):
+        """Alternative constructor by reading (long) chess algebraic notation.
+
+        Args:
+            move: Input move in (long) chess algebraic notation
+            pieces: A set of pieces to look for move.
+
+        Returns:
+            Return move is any, else nothing.
+        """
+        read = cls.notation.match(input)
+
+    #   Try to see if input matches this type of movement:
+        if read:
+            for piece in pieces:
+                typePiece = cls.typePiece[read.group(1)]  # The piece type to move is captured first in the regex pattern.
+
+                source = Square(read.group(2))  # The square the piece to move is on is captured next.
+                target = Square(read.group(3))  # The square the piece shall move to is captured next.
+
+            #   Only generate a move object if the right piece is caught:
+                if type(piece) is typePiece and piece.square == source:
+                    move = cls(piece, target)
+
+                #   Only return this move if it is legal too or else we get overlaps:
+                    if move.is_legal():
+                        return move
 
     def is_legal(self):
         """Check if move is legal based on piece and square context."""
@@ -149,12 +182,9 @@ class Capture(Move):
 
     In long algebraic notation, both the starting and ending squares are specified, for example: e2e4.
     Sometimes these are separated by a hyphen, e.g. Nb1-c3, while captures are indicated by an "x", e.g. Rd3xd7.
+    However, in long notation, reading user input for a move requires no distinction with an "x".
+    If the move is legal, whether there is a piece on the target square or not, read it with a dash.
     """
-
-#   Do the same but use the "x" symbol instead to designate indent of capture.
-    move_range: ClassVar[str] = \
-        f"[{Piece.piece_range}]?[{Square.file_range}][{Square.rank_range}]x[{Square.file_range}][{Square.rank_range}]"
-    notation: ClassVar[Pattern] = compile(move_range)
 
     def __repr__(self):
         """Each move of a piece is indicated by the piece's uppercase letter, plus the coordinate of the destination square.
@@ -165,7 +195,7 @@ class Capture(Move):
 
         NOTE: This needs contextual resolve at `Board` or `Player` level. For now use long algebraic notation.
         """
-        return super().__repr__().replace("-", "×")
+        return super().__repr__().replace("-", "×") if self.piece.capturable(self.square) else super().__repr__()
 
     def is_legal(self):
         """Check if move is legal based on piece and square context."""

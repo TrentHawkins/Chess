@@ -10,7 +10,7 @@ from types import MethodType
 from .board import Board
 from .move import Capture, Move
 from .moves.castle import Castle
-from .moves.pawn import EnPassant, Jump, Promotion
+from .moves.pawn import Jump, Promotion
 from .piece import Orientation, Piece
 from .pieces.melee import King
 from .pieces.pawn import Pawn
@@ -127,59 +127,19 @@ class Player:
         while True:
             input_move = input(f"\033[A{self.name}, {message}: \033[K")
 
-        #   If castle is given (has special notation):
-            if Castle.notation.match(input_move):
-                king = self.king
-
-                if input_move == "O-O":
-                    rook = self.board[str(king.square).replace("e", "h")]
-
-                if input_move == "O-O-O":
-                    rook = self.board[str(king.square).replace("e", "a")]
-
-                move = Castle(king, rook)  # type: ignore
-
-        #   If a plain move is given:
-            elif Move.notation.match(input_move):
-                if Jump.notation.match(input_move):
-                    for piece in self.pieces:
-                        source = Square(input_move[-5:-3])
-                        target = Square(input_move[-2:])
-
-                        if type(piece) is Pawn and piece.square == source:
-                            move = Jump(piece, target)
-
-            #   If not a starting pawn jump is given:
-                else:
-                    for piece in self.pieces:
-                        source = Square(input_move[-5:-3])
-                        target = Square(input_move[-2:])
-
-                        if type(piece) is Move.letterPiece[input_move[:-5]] and piece.square == source:
-                            move = Move(piece, target)
-
-        #   If a capturing move is given:
-            elif Capture.notation.match(input_move):
-                for piece in self.pieces:
-                    source = Square(input_move[-5:-3])
-                    target = Square(input_move[-2:])
-
-                    if type(piece) is Move.letterPiece[input_move[:-5]] and piece.square == source:
-                        move = Capture(piece, target)
-
-        #   If a promotion is given (has special notation).
-            elif Promotion.notation.match(input_move):
-                for piece in self.pieces:
-                    source = Square(input_move[-7:-5])
-                    target = Square(input_move[-4:])
-
-                    if type(piece) is Pawn and piece.square == source:
-                        move = Promotion(piece, target, Move.letterPiece[input_move[-1:]])
+        #   Try to read input move for most special cases down to the most teneric ones.
+        #   Castling is singular in a game and separable from the others so check last.
+            move = \
+                Promotion.read(input_move, self.pieces) or \
+                Capture  .read(input_move, self.pieces) or \
+                Jump     .read(input_move, self.pieces) or \
+                Move     .read(input_move, self.pieces) or \
+                Castle   .read(input_move, self.king)
 
         #   Check move here too to catch the re-try:
             try:
-                if move.is_legal():  # type: ignore
-                    return move  # type: ignore
+                if move is not None:
+                    return move
 
                 else:
                     message = "try again"
@@ -204,7 +164,7 @@ class Player:
         if type(move) is Jump:
             self.board[move.middle] = Piece(self.orientation)  # This will have to go on the next round (2 turns).
 
-    #   NOTE: The en-passant can only be detected by type-checking, I think...
+    #   NOTE: The en-passant can only be detected by type-checking, as it is otherwise a normal capture.
         if type(target_piece) is Piece:  # If target piece is a ghost,
             if type(move.piece) is Pawn:  # If it is a pawn targeting it en-passant,
                 target = move.square + move.piece.step * target_piece.orientation

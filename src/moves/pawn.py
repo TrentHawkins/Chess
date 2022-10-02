@@ -23,6 +23,7 @@ from re import Pattern, compile
 from typing import ClassVar, Type
 
 from ..move import Capture, Move
+from ..piece import Piece
 from ..pieces.pawn import Pawn
 from ..square import Square
 
@@ -38,37 +39,23 @@ class Jump(Move):
         piece: The pawn to make jump. It is a jump so square is known.
     """
 
-#   Reading of starting pawn jumps:
-    move_range: ClassVar[str] = f"(?:([{Square.file_range}])2-(?:\\1)4)|(?:([{Square.file_range}])7-(?:\\2)5)"
-    notation: ClassVar[Pattern] = compile(move_range)
-
     piece: Pawn
+
+    @classmethod
+    def read(cls, input: str, pieces: set[Piece]):
+        f"""{super(Jump, cls).read.__doc__}"""
+        move = super(Jump, cls).read(input, pieces)
+
+        if move is not None and not move.piece.has_moved:
+            return move
 
     def __post_init__(self):
         """Assumes a jump has been made."""
-        self.middle = self.square + (self.piece.square - self.square) // 2  # type: ignore
+        self.middle = self.square + (self.square - self.piece.square) // -2
 
 
 @dataclass(repr=False)
-class EnPassant(Capture):
-    """This class emulates the en-passant move.
-
-    This gives credance to enpassant shall an opposing pawn is lurking near the skipped square.
-    This move has a normal capture representation.
-
-    Attributes:
-        piece: The pawn to make jump. It is a jump so square is known.
-    """
-
-    piece: Pawn
-
-    def __post_init__(self):
-        """Assumes a jump has been made by an oppponent."""
-        self.middle = self.square + self.piece.step * self.piece.orientation
-
-
-@dataclass(repr=False)
-class Promotion(Capture, Move):
+class Promotion(Capture):
     """A promotion move, that required the extra info of which piece to replace the pawn with.
 
     Attributes:
@@ -77,15 +64,11 @@ class Promotion(Capture, Move):
     """
 
 #   Reading of promotions:
-    move_range: ClassVar[str] = \
-        f"[{Square.file_range}]7-{Square.file_range}]8={Pawn.piece_range}" + "|" + \
-        f"[{Square.file_range}]2-{Square.file_range}]1={Pawn.piece_range}" + "|" + \
-        f"[{Square.file_range}]7x{Square.file_range}]8={Pawn.piece_range}" + "|" + \
-        f"[{Square.file_range}]2x{Square.file_range}]1={Pawn.piece_range}"
+    move_range: ClassVar[str] = f"({Move.move_range}|{Capture.move_range})=([{Pawn.piece_range}])"
     notation: ClassVar[Pattern] = compile(move_range)
 
     piece: Pawn
-    Piece: Type
+    promotionPiece: Type
 
     def __repr__(self):
         """Each move of a piece is indicated by the piece's uppercase letter, plus the coordinate of the destination square.
@@ -95,8 +78,31 @@ class Promotion(Capture, Move):
             for example: e8Q (promoting to queen). In standard FIDE notation, no punctuation is used;
             in Portable Game Notation (PGN) and many publications, pawn promotion is indicated by the equals sign (e8=Q).
         """
-        return (Move.__repr__(self) if Move.is_legal(self) else Capture.__repr__(self)) + "=" + self.Piece.symbol
+        return super().__repr__() + "=" + self.promotionPiece.symbol
+
+    @classmethod
+    def read(cls, input: str, pieces: set[Piece]):
+        f"""{super(Promotion, cls).read.__doc__}"""
+        read = cls.notation.match(input)
+
+    #   Try to see if input matches a promotion:
+        if read:
+            for piece in pieces:
+                promotionPiece = cls.typePiece[read.group(-1)]  # The piece type to promote to is captured last,
+
+                offset = 3  # Regex group capturing offset due to the presence of "or" in the pattern.
+
+                source = Square(read.group(2)) or Square(read.group(offset + 2))  # The square the piece to move is on.
+                target = Square(read.group(3)) or Square(read.group(offset + 3))  # The square the piece shall move to.
+
+            #   Only generate a move object if the right pawn is caught:
+                if type(piece) is Pawn and piece.square == source:
+                    move = cls(piece, target, promotionPiece)
+
+                #   Only return this move if it is legal too or else we get overlaps:
+                    if move.is_legal():
+                        return move
 
     def is_legal(self):
         """Check if pawn can promote either by moving or by capturing."""
-        return (Move.is_legal(self) or Capture.is_legal(self)) and self.piece.can_promote
+        return self.square in self.piece.squares and self.piece.can_promote(self.square)

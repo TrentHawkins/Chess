@@ -115,9 +115,12 @@ class King(Meleed):
     steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
 
 #   Castles (key: king move, value: corresponding rook relative position):
+    short = Vector(0, +2)
+    other = Vector(0, -2)
+
     castles: ClassVar[dict[Vector, Vector]] = {
-        Vector(0, +2): Vector(0, +3),
-        Vector(0, -2): Vector(0, -4),
+        short: Vector(0, +3),
+        other: Vector(0, -4),
     }
 
     in_check: bool = False

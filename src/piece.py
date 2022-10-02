@@ -132,13 +132,15 @@ class Piece:
         That means that pieces outside the board will still be distinct by type.
         That is no issue as the only thing we need of pieces outside the board is to count them by type.
 
+        NOTE: Do not mix pieces that are on different boards.
+
         Returns:
             The square the piece is designated to.
         """
 
         return hash((self.__class__.__name__, self.square))
 
-    def __call__(self, target: Square | str):
+    def move(self, target: Square | str):
         """Move the piece to a target square.
 
         Simply updates the piece's square and movement flag.

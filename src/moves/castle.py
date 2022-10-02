@@ -19,14 +19,15 @@ from dataclasses import dataclass
 from re import Pattern, compile
 from typing import ClassVar
 
+from ..move import Move
 from ..piece import Piece
 from ..pieces.melee import King
 from ..pieces.ranged import Rook
-from ..square import Square
+from ..square import Square, Vector
 
 
 @dataclass(repr=False)
-class Castle:
+class Castle(Move):
     """A pair of king and rook for facilitating castling.
 
     For each game, two such pairs are created per player, a king-side and a queen-side castle.
@@ -60,7 +61,6 @@ class Castle:
     notation: ClassVar[Pattern] = compile(move_range)
 
     piece: King  # reference to a king piece
-    assist: Rook  # reference to a rook piece (of same color)
 
     def __post_init__(self):
         """Set up the castling relevant squares.
@@ -69,22 +69,29 @@ class Castle:
             king: A reference to a king piece.
             rook: A reference to a rook piece (of same color and on the same board).
         """
-        self.connection = (self.assist.square - self.piece.square)  # type: ignore
-        step = self.connection // len(self.connection)  # Take the unit step in the direction from king to rook.
+        self.step = self.square - self.piece.square
 
-        self.middle = self.piece.square + step  # The in-passing square of the king on its way to castling.
-        self.square = self.middle + step  # The destination square the king lands upon castling.
+        self.castle = self.piece.square + self.piece.castles[self.step]  # type: ignore
+        self.middle = self.piece.square + self.step // 2  # type: ignore
 
     def __repr__(self):
         """Notation for castle moves."""
         return {
-            3: "O-O",
-            4: "O-O-O",
-        }[len(self.connection)]
+            Vector(0, +2): "O-O",
+            Vector(0, -2): "O-O-O",
+        }[self.step]
 
-    def __hash__(self):
-        """Hashing for castle moves."""
-        return hash((self.piece.orientation, self.connection))
+    @classmethod
+    def read(cls, move: str, king: King):
+        f"""{super(Castle, cls).read.__doc__}"""
+        read = cls.notation.match(move)
+
+        if read:
+            if read.string == "O-O":
+                return cls(king, king.square + king.short)  # type: ignore
+
+            if read.string == "O-O-O":
+                return cls(king, king.square + king.other)  # type: ignore
 
     def is_legal(self) -> bool:
         """Check if castling with the two pieces is still possible.
@@ -92,4 +99,4 @@ class Castle:
         Returns:
             Whether castling with the two pieces is still possible.
         """
-        return self.piece.castleable(self.square) and self.assist.castleable(self.square)
+        return self.piece.castleable(self.square)

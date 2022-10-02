@@ -68,7 +68,7 @@ class TestChess(TestCase):
             Pawn("white"): 4,
         })
 
-    def test_moves(self):
+    def test_squares(self):
         """Test legal moves on initial board.
 
         This board presents a famous game by Michai Tal the moment both players castled.
@@ -306,8 +306,8 @@ class TestChess(TestCase):
             "a6-a5",
             "e5-e6",
             "a5-a4",
-            "e6xd7",  # check
-            "Ke8xd7",  # this the only logical move
+            "e6-d7",  # check
+            "Ke8-d7",  # this the only logical move
         ],
     )
     def test_king_check_with_pawn(self, mock_input):
@@ -447,7 +447,7 @@ class TestChess(TestCase):
             "Bf1-c4",  # white opens up short castling with bishop
             "Ng8-f6",  # black tries to delay white's castling by attacking hanging pawn with knight
             "O-O",  # white castles short anyways
-            "Nf6xe4",  # white loses hanging pawn to black's knight
+            "Nf6-e4",  # white loses hanging pawn to black's knight
         ],
     )
     def test_castling_in_game(self, mock_input):
@@ -491,8 +491,8 @@ class TestChess(TestCase):
             "c7-c5",
             "e4-e5",
             "d7-d5",
-            "e5xd6",  # This is the en-passant move.
-            "e7xd6",  # This should work if white successfully in-passed.
+            "e5-d6",  # This is the en-passant move.
+            "e7-d6",  # This should work if white successfully in-passed.
         #   This is the second game by which white passes their opportunity for in-passing.
             "e2-e4",
             "c7-c5",
