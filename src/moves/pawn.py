@@ -12,10 +12,6 @@ Pawn promotion
     When a pawn promotes, the piece promoted to is indicated at the end of the move notation,
     for example: e8Q (promoting to queen). In standard FIDE notation, no punctuation is used;
     in Portable Game Notation (PGN) and many publications, pawn promotion is indicated by the equals sign (e8=Q).
-
-NOTE: Promotions can be either moves or captures so, either we inherit from both `Move` and `Capture` or,
-we modify the representations of the two latter to accomodate for promotions.
-
 """
 
 from dataclasses import dataclass
@@ -60,7 +56,7 @@ class Promotion(Capture):
 
     Attributes:
         piece: Override original attribute with one that is `Pawn` specifically.
-        Piece: The type of piece the pawn is promoted to.
+        promotionPiece: The type of piece the pawn is promoted to.
     """
 
 #   Reading of promotions:

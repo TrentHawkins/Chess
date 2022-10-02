@@ -1,6 +1,5 @@
-"""Implements castling.
+"""Implements castling and check(mat)ing.
 
-For each game, two such pairs are created per player, a king-side and a queen-side castle.
 This implementation attempts at abstracting the castling logic to its fundamental rules:
 1.  The king must not have moved.
     This is cleared here with the king's `has_moved` flag.
@@ -13,6 +12,8 @@ This implementation attempts at abstracting the castling logic to its fundamenta
     The king's `capturable` method is not needed, as the king can never capture a piece in the process of castling.
 5.  There must not be any obstructing pieces (of any color) between the king and the rook.
     This requires a context at `board` level redefintion of the `deployable` function.
+
+The king checking and checkmating are only wrapped here, evaluation is delayed till game context is available.
 """
 
 from dataclasses import dataclass
@@ -28,7 +29,7 @@ from ..square import Square, Vector
 
 @dataclass(repr=False)
 class Castle(Move):
-    """A pair of king and rook for facilitating castling.
+    """A king skip to castling.
 
     For each game, two such pairs are created per player, a king-side and a queen-side castle.
     This class attempts at abstracting the castling logic to its fundamental rules:
@@ -44,16 +45,11 @@ class Castle(Move):
     5.  There must not be any obstructing pieces (of any color) between the king and the rook.
         This requires a context at `board` level redefintion of the `deployable` function.
 
-    Attributes:
-        king: A reference to a king piece.
-        rook: A reference to a rook piece (of same color and on the same board).
-        squares: The squares the king will access in this castling.
-
     Castling is indicated by the special notations 0-0 (for kingside castling) and 0-0-0 (queenside castling).
     While the FIDE standard [6] is to use the digit zero (0-0 and 0-0-0), PGN uses the uppercase letter O (O-O and O-O-O).
 
-    NOTE: This class is made to look like a `Move` class, but aside from common names it practically overrides everything,
-    so inheriting from `Move` has little to no use at all. It does a type-hinting headeach but makes for readable code too.
+    Attributes:
+        piece: The king that castles.
     """
 
 #   Ask for any ot the piece letters to appear once or nonce (for pawns).
@@ -63,12 +59,7 @@ class Castle(Move):
     piece: King  # reference to a king piece
 
     def __post_init__(self):
-        """Set up the castling relevant squares.
-
-        Args:
-            king: A reference to a king piece.
-            rook: A reference to a rook piece (of same color and on the same board).
-        """
+        """Set up the castling relevant squares."""
         self.step = self.square - self.piece.square
 
         self.castle = self.piece.square + self.piece.castles[self.step]  # type: ignore
@@ -100,3 +91,21 @@ class Castle(Move):
             Whether castling with the two pieces is still possible.
         """
         return self.piece.castleable(self.square)
+
+
+@dataclass(repr=False)
+class Check(Move):
+    """A move that checks the opposing king.
+
+    This particular king of move will require context from the game, so evaluation is delayed.
+    """
+    ...
+
+
+@dataclass(repr=False)
+class Checkmate(Check):
+    """A move that checks the opposing king.
+
+    This particular king of move will require context from the game, so evaluation is delayed.
+    """
+    ...
