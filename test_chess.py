@@ -6,6 +6,79 @@ from unittest.mock import patch  # To mock user input for interactive tests.
 
 class TestChess(TestCase):
     """Unit tests for the game engine."""
+    ...
+
+
+class TestPlayer(TestCase):
+    """Test `Player`-related issues."""
+
+    def test_move(self):
+        """Test draft move method."""
+        from src.chess import Chess
+        from src.move import Capture, Move
+
+        new_game = Chess()
+
+    #   HACK: Do not swirl players, just use both as is for simplicity:
+        white = new_game.current
+        black = new_game.opponent
+        board = new_game.board
+
+        white_pawn = board["e2"]
+        white.move(Move(white_pawn, "e4"))  # type: ignore  # The most famous opening move in the history of chess!
+        assert board["e2"] is None
+        assert board["e4"] is white_pawn
+
+        black_pawn = board["d7"]
+        black.move(Move(black_pawn, "d5"))  # type: ignore  # An untypical response to create a capturing scenario.
+        assert board["d7"] is None
+        assert board["d5"] is black_pawn
+
+        white_pawn = board["e4"]
+        black_pawn = board["d5"]
+        white.move(Capture(white_pawn, "d5"))  # type: ignore  # The pawn at "e4" takes the pawn at "d5".
+        assert board["e4"] is None
+        assert board["d5"] is white_pawn
+
+    #   Ascertain that the captured pawn is properly gone:
+        assert black_pawn is not None
+        assert black_pawn.square is None
+        assert black_pawn not in black.pieces
+        assert black_pawn in white.captured and white.captured[black_pawn] == 1
+
+    def test_captured_counting(self):
+        """Check if reduced implied hashing of captured pieces works on piece counters."""
+        from collections import Counter
+
+        from src.pieces.melee import King, Knight
+        from src.pieces.pawn import Pawn
+        from src.pieces.ranged import Bishop, Queen, Rook
+
+        captured = Counter()
+
+    #   Lets capture some pawns.
+        captured += Counter({Pawn("white")})
+        captured += Counter({Pawn("white")})
+
+    #   Lets get the queen.
+        captured += Counter({Queen("white")})
+
+    #   Emulate pawn promotion to queen?
+        captured -= Counter({Queen("white")})
+        captured += Counter({Pawn("white")})
+
+    #   Notice how color is ignored, as it should; pieces are binned by player.  # NOTE: Probably remove color attribute?
+        captured += Counter({Pawn("black")})
+
+        assert captured == Counter(
+            {
+                Pawn("white"): 4,
+            }
+        )
+
+
+class TestBoard(TestCase):
+    """Test `Board`-related issues."""
 
     def test_simple_chess_game(self):
         """Test initial game setup with players."""
@@ -40,33 +113,205 @@ class TestChess(TestCase):
             Rook("black", "h8"),
         } | set(Pawn("white", f"{file}7") for file in "abcdefgh")
 
-    def test_captured_counting(self):
-        """Check if reduced implied hashing of captured pieces works on piece counters."""
-        from collections import Counter
 
-        from src.pieces.melee import King, Knight
-        from src.pieces.pawn import Pawn
-        from src.pieces.ranged import Bishop, Queen, Rook
+class TestMoves(TestCase):
+    """Test `Move`-related issues."""
 
-        captured = Counter()
+    @patch(
+        'builtins.input',
+    #   A fool's mate:
+        side_effect=[
+            "f2-f3",
+            "e7-e6",
+            "g2-g4",
+            "Qd8-h4",  # oh the fool
+            "Ng1-h3",  # white should not be able to do that
+            "Ng8-f6",  # invalid white move (black shouldn't even be able to reach this move)
+        ],
+    )
+    def test_king_check(self, mock_input):
+        """Test what happens when the king actually comes in check during a game."""
+        from src.chess import Chess
 
-    #   Lets capture some pawns.
-        captured += Counter({Pawn("white")})
-        captured += Counter({Pawn("white")})
+    #   A fool's game:
+        new_game = Chess()
 
-    #   Lets get the queen.
-        captured += Counter({Queen("white")})
+    #   Play 2 rounds (4 turns) leading to check(mate):
+        new_game.round()
+        new_game.round()
 
-    #   Emulate pawn promotion to queen?
-        captured -= Counter({Queen("white")})
-        captured += Counter({Pawn("white")})
+    #   NOTE: remember, switch of methods happen at the beginning of the next turn.
+    #   This means we can no longer check for squares during a normal game.
+    #   To do that we need to run an update manually first:
+        new_game.update()
 
-    #   Notice how color is ignored, as it should; pieces are binned by player.  # NOTE: Probably remove color attribute?
-        captured += Counter({Pawn("black")})
+    #   White should have nowhere to go after the rules update:
+        assert new_game.current.squares == set()
 
-        assert captured == Counter({
-            Pawn("white"): 4,
-        })
+    #   So lets dump some false moves and see what happens:
+        try:
+            new_game.round()
+            assert False  # This should not happen.
+
+    #   Assert board hasn't changed:
+        except StopIteration:
+            assert True  # This should happen, as white could never really move.
+
+    @patch(
+        'builtins.input',
+    #   A fool's mate:
+        side_effect=[
+            "e2-e4",
+            "a7-a6",
+            "e4-e5",
+            "a6-a5",
+            "e5-e6",
+            "a5-a4",
+            "e6-d7",  # check
+            "Ke8-d7",  # this the only logical move
+        ],
+    )
+    def test_king_check_with_pawn(self, mock_input):
+        """Test what happens when the king actually comes in check with a pawn this time."""
+        from src.chess import Chess, Square
+
+    #   A custom fools' game:
+        new_game = Chess()
+
+    #   Play 3 rounds (6 turns) leading to white's checkmate:
+        new_game.round()
+        new_game.round()
+        new_game.round()
+
+    #   Try the fourth round, where black should be immobilized apart from king:
+        new_game.turn()
+
+    #   White has nowhere to go but take the checking pawn:
+        assert new_game.current.king.squares == {Square("d7")}
+
+    #   Attacking squares are evaluated without king safety in-mind, as they are relevant only for opponent.
+        assert new_game.current.squares >= {Square("d7")}
+
+    #   Finish the round with the only available move.
+        new_game.turn()
+
+    @patch(
+        'builtins.input',
+    #   A variant of king's pawn opening:
+        side_effect=[
+            "e2-e4",  # white's king's opening
+            "e7-e5",  # black's response
+            "Ng1-f3",  # white tries to open up short castling with knight first attacking black's pawn
+            "Nb8-c6",  # black defends pawn with knight
+            "Bf1-c4",  # white opens up short castling with bishop
+            "Ng8-f6",  # black tries to delay white's castling by attacking hanging pawn with knight
+            "O-O",  # white castles short anyways
+            "Nf6-e4",  # white loses hanging pawn to black's knight
+        ],
+    )
+    def test_castling_in_game(self, mock_input):
+        """Test if en-passant works in full. Careful, this is an interactive test."""
+        from src.chess import Chess
+        from src.pieces.ranged import Rook
+        from src.square import Square
+
+    #   New game:
+        new_game = Chess()
+
+    #   Save the board:
+        board = new_game.board
+
+    #   Save white:
+        white = new_game.current
+
+    #   Play the first 3 rounds (6 turns) leading to the castle:
+        new_game.round()
+        new_game.round()
+        new_game.round()
+
+    #   Castling short square:
+        short = Square("g1")
+
+    #   Ascertain castling is possible in various ways:
+        assert white.king.castleable(short)
+
+    #   Play the castling out:
+        new_game.round()
+
+    #   Ascertain pieces are in proper positions:
+        assert board[short] == white.king
+        assert board["f1"] == Rook("white", "f1")
+
+    @patch(
+        'builtins.input',
+        side_effect=[
+        #   This is the first game by which white takes their opportunit for in-passing.
+            "e2-e4",
+            "c7-c5",
+            "e4-e5",
+            "d7-d5",
+            "e5-d6",  # This is the en-passant move.
+            "e7-d6",  # This should work if white successfully in-passed.
+        #   This is the second game by which white passes their opportunity for in-passing.
+            "e2-e4",
+            "c7-c5",
+            "e4-e5",
+            "d7-d5",
+            "Ng1-f3",  # Play something else
+            "Nb8-c6",  # Black continues
+        ],
+    )
+    def test_en_passant(self, mock_input):
+        """Test if en-passant works in full. Careful, this is an interactive test."""
+        from src.chess import Chess
+        from src.piece import Piece
+        from src.square import Square
+
+    #   A test game with en-passant happening:
+        new_game = Chess()
+
+        white_pawn = new_game.board["e2"]
+        black_pawn = new_game.board["d7"]
+
+        assert white_pawn is not None and white_pawn.square is not None
+        assert black_pawn is not None and black_pawn.square is not None
+
+    #   Run 2 rounds (4 turns) to set-up en-passant for white:
+        new_game.round()
+        new_game.round()
+
+    #   Ascertain that black pawn left a ghost trail, that white pawn sees.
+        assert type(new_game.board["d6"]) is Piece
+        assert Square("d6") in white_pawn.squares
+
+    #   Another round to execute en-passant:
+        new_game.round()
+
+    #   Ascertain that both pawns got proprely captured:
+        assert black_pawn.square is None and black_pawn in new_game.current.captured
+        assert white_pawn.square is None and white_pawn in new_game.opponent.captured
+
+    #   A test game with en-passant being skipped:
+        new_game = Chess()
+
+        white_pawn = new_game.board["e2"]
+        black_pawn = new_game.board["d7"]
+
+        assert white_pawn is not None and white_pawn.square is not None
+        assert black_pawn is not None and black_pawn.square is not None
+
+    #   Run 3 rounds (6 turns) to set-up en-passant for white and miss it:
+        new_game.round()
+        new_game.round()
+        new_game.round()
+
+    #   Ascertain that white pawn can no longer capture black pawn via en-passant:
+        assert new_game.board["d6"] is None
+        assert Square("d6") not in white_pawn.squares
+
+
+class TestPieces(TestCase):
+    """Test `Piece`-related issues."""
 
     def test_squares(self):
         """Test legal moves on initial board.
@@ -256,84 +501,6 @@ class TestChess(TestCase):
         assert pawn is not None
         assert pawn.squares == set()  # Because it discovers a check to the king from "Ba5".  # FIXME: Not implemented yet.
 
-    @patch(
-        'builtins.input',
-    #   A fool's mate:
-        side_effect=[
-            "f2-f3",
-            "e7-e6",
-            "g2-g4",
-            "Qd8-h4",  # oh the fool
-            "Ng1-h3",  # white should not be able to do that
-            "Ng8-f6",  # invalid white move (black shouldn't even be able to reach this move)
-        ],
-    )
-    def test_king_check(self, mock_input):
-        """Test what happens when the king actually comes in check during a game."""
-        from src.chess import Chess
-
-    #   A fool's game:
-        new_game = Chess()
-
-    #   Play 2 rounds (4 turns) leading to check(mate):
-        new_game.round()
-        new_game.round()
-
-    #   NOTE: remember, switch of methods happen at the beginning of the next turn.
-    #   This means we can no longer check for squares during a normal game.
-    #   To do that we need to run an update manually first:
-        new_game.update()
-
-    #   White should have nowhere to go after the rules update:
-        assert new_game.current.squares == set()
-
-    #   So lets dump some false moves and see what happens:
-        try:
-            new_game.round()
-            assert False  # This should not happen.
-
-    #   Assert board hasn't changed:
-        except StopIteration:
-            assert True  # This should happen, as white could never really move.
-
-    @patch(
-        'builtins.input',
-    #   A fool's mate:
-        side_effect=[
-            "e2-e4",
-            "a7-a6",
-            "e4-e5",
-            "a6-a5",
-            "e5-e6",
-            "a5-a4",
-            "e6-d7",  # check
-            "Ke8-d7",  # this the only logical move
-        ],
-    )
-    def test_king_check_with_pawn(self, mock_input):
-        """Test what happens when the king actually comes in check with a pawn this time."""
-        from src.chess import Chess, Square
-
-    #   A custom fools' game:
-        new_game = Chess()
-
-    #   Play 3 rounds (6 turns) leading to white's checkmate:
-        new_game.round()
-        new_game.round()
-        new_game.round()
-
-    #   Try the fourth round, where black should be immobilized apart from king:
-        new_game.turn()
-
-    #   White has nowhere to go but take the checking pawn:
-        assert new_game.current.king.squares == {Square("d7")}
-
-    #   Attacking squares are evaluated without king safety in-mind, as they are relevant only for opponent.
-        assert new_game.current.squares >= {Square("d7")}
-
-    #   Finish the round with the only available move.
-        new_game.turn()
-
     def test_castling(self):
         """Test castling."""
         from src.board import Board
@@ -436,162 +603,6 @@ class TestChess(TestCase):
         assert not new_game.current.king.castleable(short)
         assert not new_game.current.king.castleable(other)
 
-    @patch(
-        'builtins.input',
-    #   A variant of king's pawn opening:
-        side_effect=[
-            "e2-e4",  # white's king's opening
-            "e7-e5",  # black's response
-            "Ng1-f3",  # white tries to open up short castling with knight first attacking black's pawn
-            "Nb8-c6",  # black defends pawn with knight
-            "Bf1-c4",  # white opens up short castling with bishop
-            "Ng8-f6",  # black tries to delay white's castling by attacking hanging pawn with knight
-            "O-O",  # white castles short anyways
-            "Nf6-e4",  # white loses hanging pawn to black's knight
-        ],
-    )
-    def test_castling_in_game(self, mock_input):
-        """Test if en-passant works in full. Careful, this is an interactive test."""
-        from src.chess import Chess
-        from src.pieces.ranged import Rook
-        from src.square import Square
-
-    #   New game:
-        new_game = Chess()
-
-    #   Save the board:
-        board = new_game.board
-
-    #   Save white:
-        white = new_game.current
-
-    #   Play the first 3 rounds (6 turns) leading to the castle:
-        new_game.round()
-        new_game.round()
-        new_game.round()
-
-    #   Castling short square:
-        short = Square("g1")
-
-    #   Ascertain castling is possible in various ways:
-        assert white.king.castleable(short)
-
-    #   Play the castling out:
-        new_game.round()
-
-    #   Ascertain pieces are in proper positions:
-        assert board[short] == white.king
-        assert board["f1"] == Rook("white", "f1")
-
-    @patch(
-        'builtins.input',
-        side_effect=[
-        #   This is the first game by which white takes their opportunit for in-passing.
-            "e2-e4",
-            "c7-c5",
-            "e4-e5",
-            "d7-d5",
-            "e5-d6",  # This is the en-passant move.
-            "e7-d6",  # This should work if white successfully in-passed.
-        #   This is the second game by which white passes their opportunity for in-passing.
-            "e2-e4",
-            "c7-c5",
-            "e4-e5",
-            "d7-d5",
-            "Ng1-f3",  # Play something else
-            "Nb8-c6",  # Black continues
-        ],
-    )
-    def test_en_passant(self, mock_input):
-        """Test if en-passant works in full. Careful, this is an interactive test."""
-        from src.chess import Chess
-        from src.piece import Piece
-        from src.square import Square
-
-    #   A test game with en-passant happening:
-        new_game = Chess()
-
-        white_pawn = new_game.board["e2"]
-        black_pawn = new_game.board["d7"]
-
-        assert white_pawn is not None and white_pawn.square is not None
-        assert black_pawn is not None and black_pawn.square is not None
-
-    #   Run 2 rounds (4 turns) to set-up en-passant for white:
-        new_game.round()
-        new_game.round()
-
-    #   Ascertain that black pawn left a ghost trail, that white pawn sees.
-        assert type(new_game.board["d6"]) is Piece
-        assert Square("d6") in white_pawn.squares
-
-    #   Another round to execute en-passant:
-        new_game.round()
-
-    #   Ascertain that both pawns got proprely captured:
-        assert black_pawn.square is None and black_pawn in new_game.current.captured
-        assert white_pawn.square is None and white_pawn in new_game.opponent.captured
-
-    #   A test game with en-passant being skipped:
-        new_game = Chess()
-
-        white_pawn = new_game.board["e2"]
-        black_pawn = new_game.board["d7"]
-
-        assert white_pawn is not None and white_pawn.square is not None
-        assert black_pawn is not None and black_pawn.square is not None
-
-    #   Run 3 rounds (6 turns) to set-up en-passant for white and miss it:
-        new_game.round()
-        new_game.round()
-        new_game.round()
-
-    #   Ascertain that white pawn can no longer capture black pawn via en-passant:
-        assert new_game.board["d6"] is None
-        assert Square("d6") not in white_pawn.squares
-
-
-class TestPlayer(TestCase):
-    """Unit tests for players."""
-
-    def test_move(self):
-        """Test draft move method."""
-        from src.chess import Chess
-        from src.move import Capture, Move
-
-        new_game = Chess()
-
-    #   HACK: Do not swirl players, just use both as is for simplicity:
-        white = new_game.current
-        black = new_game.opponent
-        board = new_game.board
-
-        white_pawn = board["e2"]
-        white.move(Move(white_pawn, "e4"))  # type: ignore  # The most famous opening move in the history of chess!
-        assert board["e2"] is None
-        assert board["e4"] is white_pawn
-
-        black_pawn = board["d7"]
-        black.move(Move(black_pawn, "d5"))  # type: ignore  # An untypical response to create a capturing scenario.
-        assert board["d7"] is None
-        assert board["d5"] is black_pawn
-
-        white_pawn = board["e4"]
-        black_pawn = board["d5"]
-        white.move(Capture(white_pawn, "d5"))  # type: ignore  # The pawn at "e4" takes the pawn at "d5".
-        assert board["e4"] is None
-        assert board["d5"] is white_pawn
-
-    #   Ascertain that the captured pawn is properly gone:
-        assert black_pawn is not None
-        assert black_pawn.square is None
-        assert black_pawn not in black.pieces
-        assert black_pawn in white.captured and white.captured[black_pawn] == 1
-
-
-class TestPieces(TestCase):
-    """Unit tests for various pieces."""
-
     def test_pawn_promotion(self):
         """Test that pawn promotion successfully mutates pawn."""
         from src.board import Board
@@ -637,7 +648,7 @@ class TestPieces(TestCase):
 
 
 class TestSquare(TestCase):
-    """Unit tests exclusive to the squares."""
+    """Test `Square`-related issues."""
 
     def test_square_operations(self):
         """Test that squares can safely be operated on and that operations can be stacked."""
