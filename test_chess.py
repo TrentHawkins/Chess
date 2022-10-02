@@ -5,12 +5,13 @@ from unittest.mock import patch  # To mock user input for interactive tests.
 
 
 class TestChess(TestCase):
-    """Unit tests for the game engine."""
+    """Test issues related to the main game loop."""
+
     ...
 
 
 class TestPlayer(TestCase):
-    """Test `Player`-related issues."""
+    """Test issues relate to tracking player stats and status."""
 
     def test_move(self):
         """Test draft move method."""
@@ -78,7 +79,7 @@ class TestPlayer(TestCase):
 
 
 class TestBoard(TestCase):
-    """Test `Board`-related issues."""
+    """Test issues related with the board state."""
 
     def test_simple_chess_game(self):
         """Test initial game setup with players."""
@@ -115,7 +116,7 @@ class TestBoard(TestCase):
 
 
 class TestMoves(TestCase):
-    """Test `Move`-related issues."""
+    """Test issue related to reading and issuing moves."""
 
     @patch(
         'builtins.input',
@@ -311,7 +312,7 @@ class TestMoves(TestCase):
 
 
 class TestPieces(TestCase):
-    """Test `Piece`-related issues."""
+    """Test issues related to creating and managing pieces on a board."""
 
     def test_squares(self):
         """Test legal moves on initial board.
@@ -648,7 +649,7 @@ class TestPieces(TestCase):
 
 
 class TestSquare(TestCase):
-    """Test `Square`-related issues."""
+    """Test issues related to handling squares."""
 
     def test_square_operations(self):
         """Test that squares can safely be operated on and that operations can be stacked."""
