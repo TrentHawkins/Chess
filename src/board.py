@@ -105,7 +105,7 @@ class Board:
             ]
         )
 
-        representation = "\033[A" * 15 + "\n"
+        representation = "\033[15A\n"
 
         if self.flipped:
             representation += " ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖ \n"
@@ -219,7 +219,7 @@ class Board:
         """
         return any(piece in rank for rank in self.pieces)
 
-    def move(self, move: Move | Castle) -> Piece | None:
+    def move(self, move: Move) -> Piece | None:
         """Move the source piece to target square if move is valid.
 
         Whatever lies on the target square is saved for further processing, however its square is killed, naturally.

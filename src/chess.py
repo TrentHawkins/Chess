@@ -1,23 +1,26 @@
 """A game of chess."""
 
 
-from re import Pattern, compile
 from types import MethodType
 
 from .board import Board
-from .move import Capture, Move
-from .moves.king import Castle
-from .moves.pawn import Jump, Promotion
+from .move import Move
 from .piece import Piece
-from .pieces.melee import King, Knight
+from .pieces.melee import King
 from .pieces.pawn import Pawn
-from .pieces.ranged import Bishop, Queen, Rook
+from .pieces.ranged import Rook
 from .player import Player
 from .square import Square
 
 
 class Chess:
-    """A chess game."""
+    """A chess game.
+
+    Attributes:
+        board: The board to play the game on.
+        current: The player whose turn it is.
+        opponent: The other player.
+    """
 
     def __init__(self, board: Board | None = None, black: bool = False):
         """Start a chess game.
@@ -32,15 +35,17 @@ class Chess:
             At the same time, pieces may not expose the king to a check willfully.
             Finally if king does come under check, no piece moves are allowed other than the ones protecting the king.
         """
-        self.board = board or Board()
+        print("\033[H\033[J")  # clear terminal
 
     #   Make room for the boarf before the game starts:
         for _ in range(15):
             print()  # empty line
 
+        self.board: Board = board or Board()
+
     #   White usually starts first, but this player will always be the current one.
-        self.current = Player("Foo", "white", self.board)  # input("Enter player name for white: ")
-        self.opponent = Player("Bar", "black", self.board)  # input("Enter player name for black: ")
+        self.current: Player = Player("Foo", "white", self.board)  # input("Enter player name for white: ")
+        self.opponent: Player = Player("Bar", "black", self.board)  # input("Enter player name for black: ")
 
     #   Each piece has moved in a custom position, except for pawn whose immovability can be discerned by their movement entropy.
         if board is not None:
@@ -62,14 +67,12 @@ class Chess:
         def king_safe(source_piece: Piece, target: Square):
             """Check if king of current player is safe.
 
-            Check for kings safety after proposed move too.
+            Check for king's safety after proposed move.
             This will be used for probiding extra context to both deployability and capturability conditions.
-
-            NOTE: A player's checks rely on the player's pieces' moves, which are affected by what is happening here.
             """
             source = source_piece.square
 
-        #   Check if king is still in danger after the move. If it is not, then the move is legit.
+        #   Check if current king is in danger after the move. If it is not, then the move is legit.
             target_piece, self.board[target], self.board[source] = self.board[target], source_piece, None  # type: ignore
             king_safe = self.current.king.square not in self.opponent.squares
             self.board[source], self.board[target] = source_piece, target_piece  # type: ignore
@@ -105,17 +108,30 @@ class Chess:
             return Pawn.capturable(source_piece, target) and is_not_empty and \
                 king_safe(source_piece, target)
 
-        def king_castleable(king: King, target: Square):
-            king.castleable.__doc__
-            castle = target - king.square
-            middle = king.square + castle // 2  # type: ignore
+        def king_castleable(player_king: King, target: Square):
+            player_king.castleable.__doc__
+            castle = target - player_king.square
+            middle = player_king.square + castle // 2  # type: ignore
 
         #   Escorting rook:
-            rook = self.board[king.square + king.castles[castle]]  # type: ignore
+            rook = self.board[player_king.square + player_king.castles[castle]]  # type: ignore
 
         #   Mind that king cannot escape check with a castle, as it usually can by moving otherwise.
-            return King.castleable(king, target) and self.current.king.square not in self.opponent.squares \
+            return King.castleable(player_king, target) and self.current.king.square not in self.opponent.squares \
                 and type(rook) is Rook and Rook.castleable(rook, middle)
+
+        def piece_checking(source_piece: Piece, target: Square):
+            source_piece.checking.__doc__
+            target_piece = self.board[target]
+
+            return Piece.checking(source_piece, target) and self.opponent.king in self.current.squares
+
+        def piece_stalemating(source_piece: Piece, target: Square):
+            source_piece.stalemating.__doc__
+            target_piece = self.board[target]
+
+        #   NOTE: This probably does not work as intended.
+            return Piece.stalemating(source_piece, target) and self.opponent.squares == set()
 
     #   Update all pieces in the current player's collection.
         for piece in self.current.pieces:
@@ -126,6 +142,9 @@ class Chess:
 
             else:
                 piece.capturable = MethodType(piece_capturable, piece)
+
+            piece.checking = MethodType(piece_checking, piece)
+            piece.stalemating = MethodType(piece_stalemating, piece)
 
     #   Defining both castleabilities does not create an infinite recursion.
         self.current.king.castleable = MethodType(king_castleable, self.current.king)

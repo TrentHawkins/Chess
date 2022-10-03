@@ -165,8 +165,8 @@ class Piece:
     def deployable(self, square: Square) -> bool:
         """Check if current piece is placeable on target square.
 
-        This method is to be lazily-defined in board, access to current piece data makes it appropriate to sign it in here.
-        If this check fails, the capturability check will kick in as a next step.
+        This method will be updated by both player and game context (whenever opponent info is needed),
+        to account for king safety and obstacles (friendly pieces).
 
         Args:
             square: The source square is `self.square` (not necessary).
@@ -174,13 +174,13 @@ class Piece:
         Returns:
             Whether piece is placeable on target square.
         """
-        return self.square is not None and square is not None  # Make sure you check a piece that is on a board.
+        return self.square is not None and square is not None  # Make sure piece and square are on a board.
 
     def capturable(self, square: Square) -> bool:
         """Check if piece on target square is capturable by current piece.
 
-        This method is to be lazily-defined in board, access to current piece data makes it appropriate to sign it in here.
-        If this check fails... NOTE: Implement special checks.
+        This method will be updated by both player and game context (whenever opponent info is needed),
+        to account for king safety and opponent pieces (targets).
 
         Args:
             square: The source square is `self.square` (necessary for cross-checking color).
@@ -188,7 +188,47 @@ class Piece:
         Returns:
             Whether piece on target square is capturable by current piece.
         """
-        return self.square is not None and square is not None  # Make sure you check a piece that is on a board.
+        return self.square is not None and square is not None  # Make sure piece and square are on a board.
+
+    def checking(self, square: Square) -> bool:
+        """Check if opponent's king is checked by moving this piece on target square.
+
+        This method will be updated by game context to account for opponent's king's status.
+
+        Args:
+            square: The source square is `self.square` (necessary for cross-checking color).
+
+        Returns:
+            Whether opponent's king is checked by moving this piece on target square.
+        """
+        return self.deployable(square) or self.capturable(square)  # Make sure square is visitable.
+
+    def stalemating(self, square: Square) -> bool:
+        """Check if opponent's king is stalemated by moving this piece on target square.
+
+        This method will be updated by game context to account for opponent's king's status.
+
+        Args:
+            square: The source square is `self.square` (necessary for cross-checking color).
+
+        Returns:
+            Whether opponent's king is stalemated by moving this piece on target square.
+        """
+        return self.deployable(square) or self.capturable(square)  # Make sure square is visitable.
+
+    def ckeckmating(self, square: Square) -> bool:
+        """Check if opponent's king is checkmated by moving this piece on target square.
+
+        Checkmating literally combines ckecking (king being attacked) and stalemating (player cannot move),
+        so it can be resolved here, so long aforementioned methods get updated by game context.
+
+        Args:
+            square: The source square is `self.square` (necessary for cross-checking color).
+
+        Returns:
+            Whether opponent's king is checkmated by moving this piece on target square.
+        """
+        return self.checking(square) and self.stalemating(square)  # Make sure king is in check and player cannot move.
 
     @property
     def squares(self) -> set[Square]:

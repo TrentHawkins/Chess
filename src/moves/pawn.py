@@ -38,9 +38,9 @@ class Jump(Move):
     piece: Pawn
 
     @classmethod
-    def read(cls, input: str, pieces: set[Piece]):
+    def read(cls, notation: str, pieces: set[Piece]):
         f"""{super(Jump, cls).read.__doc__}"""
-        move = super(Jump, cls).read(input, pieces)
+        move = super(Jump, cls).read(notation, pieces)
 
         if move is not None and not move.piece.has_moved:
             return move
@@ -51,7 +51,7 @@ class Jump(Move):
 
 
 @dataclass(repr=False)
-class Promotion(Capture):
+class Promotion(Capture, Move):
     """A promotion move, that required the extra info of which piece to replace the pawn with.
 
     Attributes:
@@ -77,9 +77,9 @@ class Promotion(Capture):
         return super().__repr__() + "=" + self.promotionPiece.symbol
 
     @classmethod
-    def read(cls, input: str, pieces: set[Piece]):
+    def read(cls, notation: str, pieces: set[Piece]):
         f"""{super(Promotion, cls).read.__doc__}"""
-        read = cls.notation.match(input)
+        read = cls.notation.match(notation)
 
     #   Try to see if input matches a promotion:
         if read:
@@ -100,5 +100,9 @@ class Promotion(Capture):
                         return move
 
     def is_legal(self):
-        """Check if pawn can promote either by moving or by capturing."""
+        """Check if pawn can promote either by moving or by capturing.
+
+        Returns:
+            Whether pawn can promote either by moving or by capturing.
+        """
         return self.square in self.piece.squares and self.piece.can_promote(self.square)

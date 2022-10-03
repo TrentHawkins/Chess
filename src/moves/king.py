@@ -14,13 +14,22 @@ This implementation attempts at abstracting the castling logic to its fundamenta
     This requires a context at `board` level redefintion of the `deployable` function.
 
 The king checking and checkmating are only wrapped here, evaluation is delayed till game context is available.
+
+Check
+    A move that places the opponent's king in check usually has the symbol "†" appended.
+
+Stalemate
+    Stalemate has no notation on move level, game simply ends.
+
+Checkmate
+    Checkmate at the completion of moves is represented by the symbol "‡".
 """
 
 from dataclasses import dataclass
 from re import Pattern, compile
 from typing import ClassVar
 
-from ..move import Move
+from ..move import Capture, Move
 from ..piece import Piece
 from ..pieces.melee import King
 from ..pieces.ranged import Rook
@@ -73,9 +82,9 @@ class Castle(Move):
         }[self.step]
 
     @classmethod
-    def read(cls, move: str, king: King):
+    def read(cls, notation: str, king: King):
         f"""{super(Castle, cls).read.__doc__}"""
-        read = cls.notation.match(move)
+        read = cls.notation.match(notation)
 
         if read:
             if read.string == "O-O":
@@ -94,18 +103,66 @@ class Castle(Move):
 
 
 @dataclass(repr=False)
-class Check(Move):
+class Check(Capture, Move):
     """A move that checks the opposing king.
+
+    The opponent has to play a move that will protect their king from this check,
 
     This particular king of move will require context from the game, so evaluation is delayed.
     """
-    ...
+
+    piece: King
+
+    def __repr__(self):
+        """A move that places the opponent's king in check usually has the symbol "†" appended."""
+        return super().__repr__() + "†"
+
+    def is_legal(self):
+        """Check if move has the opponent king checked.
+
+        Returns:
+            Whether move is legal based on piece and square context.
+        """
+        return self.square in self.piece.squares and self.piece.checking(self.square)
 
 
 @dataclass(repr=False)
-class Checkmate(Check):
-    """A move that checks the opposing king.
+class Stalemate(Capture, Move):
+    """A move that stalemates the opposing king.
+
+    Opponent has no moves left, but their king is also not in check. This is a draw.
 
     This particular king of move will require context from the game, so evaluation is delayed.
     """
-    ...
+
+    piece: King
+
+    def is_legal(self):
+        """Check if move is legal based on piece and square context.
+
+        Returns:
+            Whether move is legal based on piece and square context.
+        """
+        return self.square in self.piece.squares and self.piece.stalemating(self.square)
+
+
+@dataclass(repr=False)
+class Checkmate(Stalemate, Check):
+    """A move that checkmates the opposing king.
+
+    Opponent has not moves left, and their king is checked, so their king dies no matter what. Game ends here with a winner.
+
+    This particular king of move will require context from the game, so evaluation is delayed.
+    """
+
+    def __repr__(self):
+        """Checkmate at the completion of moves is represented by the symbol "‡"."""
+        return super().__repr__() + "‡"
+
+    def is_legal(self):
+        """Check if move is legal based on piece and square context.
+
+        Returns:
+            Whether move is legal based on piece and square context.
+        """
+        return self.square in self.piece.squares and self.piece.checking(self.square)

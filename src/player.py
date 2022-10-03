@@ -9,7 +9,7 @@ from types import MethodType
 
 from .board import Board
 from .move import Capture, Move
-from .moves.king import Castle
+from .moves.king import Castle, Check, Checkmate, Stalemate
 from .moves.pawn import Jump, Promotion
 from .piece import Orientation, Piece
 from .pieces.melee import King
@@ -45,6 +45,9 @@ class Player:
         self.pieces: set[Piece] = set(piece for piece in self.board if piece.orientation == self.orientation)
         self.captured: Counter[Piece] = Counter()  # NOTE: Not yet implemented.
 
+    #   Keep track of moves made here, indexed by rounds.
+        self.history: list[Move] = []
+
     #   Keep the player's king registered, as it is a special piece.
         for piece in self.pieces:
             if type(piece) is King:
@@ -58,7 +61,6 @@ class Player:
         Returns:
             Players name followed by a color window and captured pieces
         """
-        ...
 
     def update(self):
         """Define player-context-sensitive rules for evaluating piece legal moves.
@@ -113,54 +115,46 @@ class Player:
     #   Castling is not a cpaturing move to so completely reset it for opponent's sake.
         self.king.castleable = MethodType(King.castleable, self.king)
 
-    def read(self) -> Move | Castle:
+    def read(self) -> Move:
         """Read move from standard input with a prompt.
 
-        Try forever till a legit move is found.
-        FIXME: This will get stuck upon checkmate.
+        Infinite movement reading till the user gets it right.
 
-        Args:
-            move: _description_
+        Returns:
+            A valid movemement or nothing at all.
         """
-        message = "your turn"
-
         while True:
-            input_move = input(f"\033[A{self.name}, {message}: \033[K")
+            notation = input("\033[A\033[K")
 
-        #   Try to read input move for most special cases down to the most teneric ones.
-        #   Castling is singular in a game and separable from the others so check last.
             move = \
-                Promotion.read(input_move, self.pieces) or \
-                Capture  .read(input_move, self.pieces) or \
-                Jump     .read(input_move, self.pieces) or \
-                Move     .read(input_move, self.pieces) or \
-                Castle   .read(input_move, self.king)
+                Checkmate.read(notation, self.pieces) or \
+                Stalemate.read(notation, self.pieces) or \
+                Check    .read(notation, self.pieces) or \
+                Promotion.read(notation, self.pieces) or \
+                Capture  .read(notation, self.pieces) or \
+                Jump     .read(notation, self.pieces) or \
+                Move     .read(notation, self.pieces) or \
+                Castle   .read(notation, self.king)
 
         #   Check move here too to catch the re-try:
-            try:
-                if move is not None:
-                    return move
+            if move is not None:
+                self.history.append(move)  # Add move to history.
 
-                else:
-                    message = "try again"
-                    continue
+                return move
 
-            except UnboundLocalError:
-                message = "try again"
+            else:
                 continue
 
-    def move(self, move: Move | Castle):
+    def move(self, move: Move):
         """Move the source piece to target square if move is valid.
 
         Jumps should be checked here, because a ghost piece of the same color as the player must be generated with them.
 
         Args:
-            source_piece: The piece to move.
-            target: The square in notation the piece wants to go to.
+            move: The move to make.
         """
         target_piece = self.board.move(move)  # Make the move.
 
-    #   If move is a pawn jump, add a trailing ghost piece temporarily.
         if type(move) is Jump:
             self.board[move.middle] = Piece(self.orientation)  # This will have to go on the next round (2 turns).
 

@@ -44,7 +44,7 @@ Check
     A move that places the opponent's king in check usually has the symbol "†" appended.
 
 Checkmate
-    Checkmate at the completion of moves is represented by the symbol "‡" .
+    Checkmate at the completion of moves is represented by the symbol "‡".
 
 Long algebraic notation
     In long algebraic notation, both the starting and ending squares are specified, for example: e2e4.
@@ -133,17 +133,17 @@ class Move:
         return self.piece.symbol + repr(self.piece.square) + "-" + repr(self.square)
 
     @classmethod
-    def read(cls, input: str, pieces: set[Piece], offest: int = 0):
+    def read(cls, notation: str, pieces: set[Piece], offest: int = 0):
         """Alternative constructor by reading (long) chess algebraic notation.
 
         Args:
-            move: Input move in (long) chess algebraic notation
+            notation: Input move in (long) chess algebraic notation
             pieces: A set of pieces to look for move.
 
         Returns:
             Return move is any, else nothing.
         """
-        read = cls.notation.match(input)
+        read = cls.notation.match(notation)
 
     #   Try to see if input matches this type of movement:
         if read:
@@ -162,7 +162,11 @@ class Move:
                         return move
 
     def is_legal(self):
-        """Check if move is legal based on piece and square context."""
+        """Check if move is legal based on piece and square context.
+
+        Returns:
+            Whether move is legal based on piece and square context.
+        """
         return self.square in self.piece.squares and self.piece.deployable(self.square)
 
 
@@ -193,10 +197,14 @@ class Capture(Move):
         For pawn moves, a letter indicating pawn is not used, only the destination square is given.
         For example, c5 (pawn moves to c5).
 
-        NOTE: This needs contextual resolve at `Board` or `Player` level. For now use long algebraic notation.
+        NOTE: This needs contextual resolution at `Player` or `Chess` level. For now use long algebraic notation.
         """
         return super().__repr__().replace("-", "×") if self.piece.capturable(self.square) else super().__repr__()
 
-    def is_legal(self):
-        """Check if move is legal based on piece and square context."""
+    def is_legal(self) -> bool:
+        """Check if move is legal based on piece and square context.
+
+        Returns:
+            Whether move is legal based on piece and square context.
+        """
         return self.square in self.piece.squares and self.piece.capturable(self.square)
