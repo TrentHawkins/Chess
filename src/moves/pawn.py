@@ -47,7 +47,8 @@ class Jump(Move):
 
     def __post_init__(self):
         """Assumes a jump has been made."""
-        self.middle = self.square + (self.square - self.piece.square) // -2
+        super().__post_init__()
+        self.middle = self.target + (self.target - self.piece.square) // -2
 
 
 @dataclass(repr=False)
@@ -105,4 +106,4 @@ class Promotion(Capture, Move):
         Returns:
             Whether pawn can promote either by moving or by capturing.
         """
-        return self.square in self.piece.squares and self.piece.can_promote(self.square)
+        return self.target in self.piece.squares and self.piece.can_promote(self.target)

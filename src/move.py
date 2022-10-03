@@ -115,11 +115,14 @@ class Move:
     notation: ClassVar[Pattern] = compile(move_range)
 
     piece: Piece
-    square: Square
+    target: Square
 
     def __post_init__(self):
         """Recode square in notation to a `Square` object."""
-        self.square = Square(self.square)
+        self.target = Square(self.target)
+
+    #   Save source square for immutability:
+        self.source = self.piece.square
 
     def __repr__(self):
         """Each move of a piece is indicated by the piece's uppercase letter, plus the coordinate of the destination square.
@@ -130,7 +133,7 @@ class Move:
 
         NOTE: This needs contextual resolve at `Board` or `Player` level. For now use long algebraic notation.
         """
-        return self.piece.symbol + repr(self.piece.square) + "-" + repr(self.square)
+        return repr(self.piece) + repr(self.source) + "-" + repr(self.target)
 
     @classmethod
     def read(cls, notation: str, pieces: set[Piece], offest: int = 0):
@@ -167,7 +170,7 @@ class Move:
         Returns:
             Whether move is legal based on piece and square context.
         """
-        return self.square in self.piece.squares and self.piece.deployable(self.square)
+        return self.target in self.piece.squares and self.piece.deployable(self.target)
 
 
 @dataclass(repr=False)
@@ -199,7 +202,7 @@ class Capture(Move):
 
         NOTE: This needs contextual resolution at `Player` or `Chess` level. For now use long algebraic notation.
         """
-        return super().__repr__().replace("-", "×") if self.piece.capturable(self.square) else super().__repr__()
+        return super().__repr__().replace("-", "×") if self.piece.capturable(self.target) else super().__repr__()
 
     def is_legal(self) -> bool:
         """Check if move is legal based on piece and square context.
@@ -207,4 +210,4 @@ class Capture(Move):
         Returns:
             Whether move is legal based on piece and square context.
         """
-        return self.square in self.piece.squares and self.piece.capturable(self.square)
+        return self.target in self.piece.squares and self.piece.capturable(self.target)

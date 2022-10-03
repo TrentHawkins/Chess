@@ -1,7 +1,8 @@
 """A game of chess."""
 
-
+from itertools import compress, tee, zip_longest
 from types import MethodType
+from typing import Iterable
 
 from .board import Board
 from .move import Move
@@ -35,17 +36,18 @@ class Chess:
             At the same time, pieces may not expose the king to a check willfully.
             Finally if king does come under check, no piece moves are allowed other than the ones protecting the king.
         """
-        print("\033[H\033[J")  # clear terminal
-
-    #   Make room for the boarf before the game starts:
-        for _ in range(15):
-            print()  # empty line
-
         self.board: Board = board or Board()
 
     #   White usually starts first, but this player will always be the current one.
         self.current: Player = Player("Foo", "white", self.board)  # input("Enter player name for white: ")
         self.opponent: Player = Player("Bar", "black", self.board)  # input("Enter player name for black: ")
+
+    #   Keep track of who is black and white:
+        self.white: Player = self.current
+        self.black: Player = self.opponent
+
+    #   Round counter:
+        self.round_index: int = 0
 
     #   Each piece has moved in a custom position, except for pawn whose immovability can be discerned by their movement entropy.
         if board is not None:
@@ -156,9 +158,18 @@ class Chess:
         """Advance a turn."""
         self.update()  # Update players first with game-context!
 
-    #   Start turn here!
+        print("\033[H\033[J")  # Reset printing head.
+
+    #   Print the current game state:
         print(self.board)  # Lets see the board!
-        print()  # empty line
+
+    #   Print current history of moves:
+        for round, (white, black) in enumerate(zip_longest(self.white.history, self.black.history)):
+            print(f"{round+1:03d} ║ {str(white):19s} │ {str(black) if black is not None else '':19s}  ")
+
+        else:
+            print()  # empty line
+            print()  # empty line
 
         self.current.move(self.current.read())  # Make a move tough guy!
 
@@ -178,5 +189,7 @@ class Chess:
 
     def round(self):
         """Advance a round, which is two turns, one for black and one for white."""
+        self.round_index += 1
+
         self.turn()
         self.turn()

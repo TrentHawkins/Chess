@@ -69,7 +69,7 @@ class Castle(Move):
 
     def __post_init__(self):
         """Set up the castling relevant squares."""
-        self.step = self.square - self.piece.square
+        self.step = self.target - self.piece.square
 
         self.castle = self.piece.square + self.piece.castles[self.step]  # type: ignore
         self.middle = self.piece.square + self.step // 2  # type: ignore
@@ -99,7 +99,7 @@ class Castle(Move):
         Returns:
             Whether castling with the two pieces is still possible.
         """
-        return self.piece.castleable(self.square)
+        return self.piece.castleable(self.target)
 
 
 @dataclass(repr=False)
@@ -123,7 +123,7 @@ class Check(Capture, Move):
         Returns:
             Whether move is legal based on piece and square context.
         """
-        return self.square in self.piece.squares and self.piece.checking(self.square)
+        return self.target in self.piece.squares and self.piece.checking(self.target)
 
 
 @dataclass(repr=False)
@@ -143,7 +143,7 @@ class Stalemate(Capture, Move):
         Returns:
             Whether move is legal based on piece and square context.
         """
-        return self.square in self.piece.squares and self.piece.stalemating(self.square)
+        return self.target in self.piece.squares and self.piece.stalemating(self.target)
 
 
 @dataclass(repr=False)
@@ -165,4 +165,4 @@ class Checkmate(Stalemate, Check):
         Returns:
             Whether move is legal based on piece and square context.
         """
-        return self.square in self.piece.squares and self.piece.checking(self.square)
+        return self.target in self.piece.squares and self.piece.checking(self.target)
