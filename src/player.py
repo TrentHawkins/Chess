@@ -165,7 +165,7 @@ class Player:
     #   NOTE: The en-passant can only be detected by type-checking, as it is otherwise a normal capture.
         if type(target_piece) is Piece:  # If target piece is a ghost,
             if type(move.piece) is Pawn:  # If it is a pawn targeting it en-passant,
-                target = move.target + move.piece.step * target_piece.orientation
+                target = move.square + move.piece.step * target_piece.orientation
 
                 target_piece, self.board[target] = self.board[target], None
 

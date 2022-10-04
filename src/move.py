@@ -115,14 +115,12 @@ class Move:
     notation: ClassVar[Pattern] = compile(move_range)
 
     piece: Piece
-    target: Square
+    square: Square
 
     def __post_init__(self):
-        """Recode square in notation to a `Square` object."""
-        self.target = Square(self.target)
-
-    #   Save source square for immutability:
-        self.source = self.piece.square
+        """Set frozen copy of representation to avoid live alteration."""
+        self.square = Square(self.square)
+        self.representation = repr(self.piece) + repr(self.piece.square) + "-" + repr(self.square)
 
     def __repr__(self):
         """Each move of a piece is indicated by the piece's uppercase letter, plus the coordinate of the destination square.
@@ -133,10 +131,10 @@ class Move:
 
         NOTE: This needs contextual resolve at `Board` or `Player` level. For now use long algebraic notation.
         """
-        return repr(self.piece) + repr(self.source) + "-" + repr(self.target)
+        return self.representation
 
     @classmethod
-    def read(cls, notation: str, pieces: set[Piece], offest: int = 0):
+    def read(cls, notation: str, pieces: set[Piece]):
         """Alternative constructor by reading (long) chess algebraic notation.
 
         Args:
@@ -170,7 +168,7 @@ class Move:
         Returns:
             Whether move is legal based on piece and square context.
         """
-        return self.target in self.piece.squares and self.piece.deployable(self.target)
+        return self.square in self.piece.squares and self.piece.deployable(self.square)
 
 
 @dataclass(repr=False)
@@ -193,16 +191,10 @@ class Capture(Move):
     If the move is legal, whether there is a piece on the target square or not, read it with a dash.
     """
 
-    def __repr__(self):
-        """Each move of a piece is indicated by the piece's uppercase letter, plus the coordinate of the destination square.
-
-        For example, Be5 (bishop moves to e5), Nf3 (knight moves to f3).
-        For pawn moves, a letter indicating pawn is not used, only the destination square is given.
-        For example, c5 (pawn moves to c5).
-
-        NOTE: This needs contextual resolution at `Player` or `Chess` level. For now use long algebraic notation.
-        """
-        return super().__repr__().replace("-", "×") if self.piece.capturable(self.target) else super().__repr__()
+    def __post_init__(self):
+        """Reset frozen copy of representation to avoid live alteration."""
+        super().__post_init__()
+        self.representation = self.representation.replace("-", "×") if self.piece.capturable(self.square) else self.representation
 
     def is_legal(self) -> bool:
         """Check if move is legal based on piece and square context.
@@ -210,4 +202,4 @@ class Capture(Move):
         Returns:
             Whether move is legal based on piece and square context.
         """
-        return self.target in self.piece.squares and self.piece.capturable(self.target)
+        return self.square in self.piece.squares and self.piece.capturable(self.square)

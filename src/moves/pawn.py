@@ -46,9 +46,8 @@ class Jump(Move):
             return move
 
     def __post_init__(self):
-        """Assumes a jump has been made."""
         super().__post_init__()
-        self.middle = self.target + (self.target - self.piece.square) // -2
+        self.middle = self.square + (self.square - self.piece.square) // -2
 
 
 @dataclass(repr=False)
@@ -67,6 +66,9 @@ class Promotion(Capture, Move):
     piece: Pawn
     promotionPiece: Type
 
+    def __post_init__(self):
+        super().__post_init__()
+
     def __repr__(self):
         """Each move of a piece is indicated by the piece's uppercase letter, plus the coordinate of the destination square.
 
@@ -75,7 +77,7 @@ class Promotion(Capture, Move):
             for example: e8Q (promoting to queen). In standard FIDE notation, no punctuation is used;
             in Portable Game Notation (PGN) and many publications, pawn promotion is indicated by the equals sign (e8=Q).
         """
-        return super().__repr__() + "=" + self.promotionPiece.symbol
+        return super().__repr__() + repr(self.promotionPiece)
 
     @classmethod
     def read(cls, notation: str, pieces: set[Piece]):
@@ -106,4 +108,4 @@ class Promotion(Capture, Move):
         Returns:
             Whether pawn can promote either by moving or by capturing.
         """
-        return self.target in self.piece.squares and self.piece.can_promote(self.target)
+        return self.square in self.piece.squares and self.piece.can_promote(self.square)

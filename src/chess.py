@@ -1,5 +1,6 @@
 """A game of chess."""
 
+from datetime import datetime
 from itertools import compress, tee, zip_longest
 from types import MethodType
 from typing import Iterable
@@ -36,6 +37,10 @@ class Chess:
             At the same time, pieces may not expose the king to a check willfully.
             Finally if king does come under check, no piece moves are allowed other than the ones protecting the king.
         """
+        print("\033[H\033[J")  # Clear entire screen before procceding.
+        print(f"CHESS {datetime.today().replace(microsecond=0)}")
+        print("═════════════════════════")
+
         self.board: Board = board or Board()
 
     #   White usually starts first, but this player will always be the current one.
@@ -124,16 +129,24 @@ class Chess:
 
         def piece_checking(source_piece: Piece, target: Square):
             source_piece.checking.__doc__
-            target_piece = self.board[target]
+            source = source_piece.square
 
-            return Piece.checking(source_piece, target) and self.opponent.king in self.current.squares
+            target_piece, self.board[target], self.board[source] = self.board[target], source_piece, None  # type: ignore
+            checking = Piece.checking(source_piece, target) and self.opponent.king.square in self.current.squares
+            self.board[source], self.board[target] = source_piece, target_piece  # type: ignore
+
+            return checking
 
         def piece_stalemating(source_piece: Piece, target: Square):
             source_piece.stalemating.__doc__
-            target_piece = self.board[target]
+            source = source_piece.square
 
         #   NOTE: This probably does not work as intended.
-            return Piece.stalemating(source_piece, target) and self.opponent.squares == set()
+            target_piece, self.board[target], self.board[source] = self.board[target], source_piece, None  # type: ignore
+            stalemating = Piece.stalemating(source_piece, target) and self.opponent.squares == set()
+            self.board[source], self.board[target] = source_piece, target_piece  # type: ignore
+
+            return stalemating
 
     #   Update all pieces in the current player's collection.
         for piece in self.current.pieces:
@@ -156,22 +169,24 @@ class Chess:
 
     def turn(self):
         """Advance a turn."""
-        self.update()  # Update players first with game-context!
-
-        print("\033[H\033[J")  # Reset printing head.
+        print("\033[H\033[2B")  # Reset printing head.
 
     #   Print the current game state:
         print(self.board)  # Lets see the board!
+        print()
+
+        self.update()  # Update players first with game-context!
+        move = self.current.read()  # Make a move tough guy!
 
     #   Print current history of moves:
+        print()
+        print(f" ###   {self.white.name:9s} {self.black.name:9s}")
+        print("─────╥─────────┬─────────")
+
         for round, (white, black) in enumerate(zip_longest(self.white.history, self.black.history)):
-            print(f"{round+1:03d} ║ {str(white):19s} │ {str(black) if black is not None else '':19s}  ")
+            print(f" {round+1:03d} ║ {str(white):18s} │ {str(black) if black is not None else '':18s} ")
 
-        else:
-            print()  # empty line
-            print()  # empty line
-
-        self.current.move(self.current.read())  # Make a move tough guy!
+        self.current.move(move)
 
     #   Age pieces by one turn (included freshly created ghosts).
         for piece in self.board:

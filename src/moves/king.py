@@ -68,8 +68,7 @@ class Castle(Move):
     piece: King  # reference to a king piece
 
     def __post_init__(self):
-        """Set up the castling relevant squares."""
-        self.step = self.target - self.piece.square
+        self.step = self.square - self.piece.square
 
         self.castle = self.piece.square + self.piece.castles[self.step]  # type: ignore
         self.middle = self.piece.square + self.step // 2  # type: ignore
@@ -99,7 +98,7 @@ class Castle(Move):
         Returns:
             Whether castling with the two pieces is still possible.
         """
-        return self.piece.castleable(self.target)
+        return self.piece.castleable(self.square)
 
 
 @dataclass(repr=False)
@@ -113,6 +112,9 @@ class Check(Capture, Move):
 
     piece: King
 
+    def __post_init__(self):
+        super().__post_init__()
+
     def __repr__(self):
         """A move that places the opponent's king in check usually has the symbol "†" appended."""
         return super().__repr__() + "†"
@@ -123,7 +125,7 @@ class Check(Capture, Move):
         Returns:
             Whether move is legal based on piece and square context.
         """
-        return self.target in self.piece.squares and self.piece.checking(self.target)
+        return self.square in self.piece.squares and self.piece.checking(self.square)
 
 
 @dataclass(repr=False)
@@ -143,7 +145,7 @@ class Stalemate(Capture, Move):
         Returns:
             Whether move is legal based on piece and square context.
         """
-        return self.target in self.piece.squares and self.piece.stalemating(self.target)
+        return self.square in self.piece.squares and self.piece.stalemating(self.square)
 
 
 @dataclass(repr=False)
@@ -155,6 +157,9 @@ class Checkmate(Stalemate, Check):
     This particular king of move will require context from the game, so evaluation is delayed.
     """
 
+    def __post_init__(self):
+        super().__post_init__()
+
     def __repr__(self):
         """Checkmate at the completion of moves is represented by the symbol "‡"."""
         return super().__repr__() + "‡"
@@ -165,4 +170,4 @@ class Checkmate(Stalemate, Check):
         Returns:
             Whether move is legal based on piece and square context.
         """
-        return self.target in self.piece.squares and self.piece.checking(self.target)
+        return self.square in self.piece.squares and self.piece.checking(self.square)

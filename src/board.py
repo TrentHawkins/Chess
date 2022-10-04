@@ -105,7 +105,7 @@ class Board:
             ]
         )
 
-        representation = "\n"
+        representation = ""
 
         if self.flipped:
             representation += " ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖ \n"
@@ -235,10 +235,10 @@ class Board:
             Lost piece on target square if any.
         """
         source = move.piece.square  # This is defined for all kinds of moves.
-        target = move.target  # This is defined for all kinds of moves either implicitely or explicitely.
+        target = move.square  # This is defined for all kinds of moves either implicitely or explicitely.
 
     #   Save the piece captured in the move, if any.
-        target_piece = self[move.target]
+        target_piece = self[move.square]
 
     #   If the move is a castling, move the rook first before moving the king.
         if type(move) is Castle:
