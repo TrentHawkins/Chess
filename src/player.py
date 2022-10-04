@@ -9,7 +9,7 @@ from types import MethodType
 
 from .board import Board
 from .move import Capture, Move
-from .moves.king import Castle, Check, Checkmate, Stalemate
+from .moves.king import Castle
 from .moves.pawn import Jump, Promotion
 from .piece import Orientation, Piece
 from .pieces.melee import King
@@ -129,9 +129,6 @@ class Player:
             notation = input(f"\033[A{self.name}, {prompt}: \033[K")
 
             move = \
-                Checkmate.read(notation, self.pieces) or \
-                Stalemate.read(notation, self.pieces) or \
-                Check    .read(notation, self.pieces) or \
                 Promotion.read(notation, self.pieces) or \
                 Capture  .read(notation, self.pieces) or \
                 Jump     .read(notation, self.pieces) or \

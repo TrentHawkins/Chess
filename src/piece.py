@@ -190,46 +190,6 @@ class Piece:
         """
         return self.square is not None and square is not None  # Make sure piece and square are on a board.
 
-    def checking(self, square: Square) -> bool:
-        """Check if opponent's king is checked by moving this piece on target square.
-
-        This method will be updated by game context to account for opponent's king's status.
-
-        Args:
-            square: The source square is `self.square` (necessary for cross-checking color).
-
-        Returns:
-            Whether opponent's king is checked by moving this piece on target square.
-        """
-        return self.deployable(square) or self.capturable(square)  # Make sure square is visitable.
-
-    def stalemating(self, square: Square) -> bool:
-        """Check if opponent's king is stalemated by moving this piece on target square.
-
-        This method will be updated by game context to account for opponent's king's status.
-
-        Args:
-            square: The source square is `self.square` (necessary for cross-checking color).
-
-        Returns:
-            Whether opponent's king is stalemated by moving this piece on target square.
-        """
-        return self.deployable(square) or self.capturable(square)  # Make sure square is visitable.
-
-    def ckeckmating(self, square: Square) -> bool:
-        """Check if opponent's king is checkmated by moving this piece on target square.
-
-        Checkmating literally combines ckecking (king being attacked) and stalemating (player cannot move),
-        so it can be resolved here, so long aforementioned methods get updated by game context.
-
-        Args:
-            square: The source square is `self.square` (necessary for cross-checking color).
-
-        Returns:
-            Whether opponent's king is checkmated by moving this piece on target square.
-        """
-        return self.checking(square) and self.stalemating(square)  # Make sure king is in check and player cannot move.
-
     @property
     def squares(self) -> set[Square]:
         f"""Generate all legal moves a {self.__class__.__name__} can apriori make.

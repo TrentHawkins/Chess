@@ -127,27 +127,6 @@ class Chess:
             return King.castleable(player_king, target) and self.current.king.square not in self.opponent.squares \
                 and type(rook) is Rook and Rook.castleable(rook, middle)
 
-        def piece_checking(source_piece: Piece, target: Square):
-            source_piece.checking.__doc__
-            source = source_piece.square
-
-            target_piece, self.board[target], self.board[source] = self.board[target], source_piece, None  # type: ignore
-            checking = Piece.checking(source_piece, target) and self.opponent.king.square in self.current.squares
-            self.board[source], self.board[target] = source_piece, target_piece  # type: ignore
-
-            return checking
-
-        def piece_stalemating(source_piece: Piece, target: Square):
-            source_piece.stalemating.__doc__
-            source = source_piece.square
-
-        #   NOTE: This probably does not work as intended.
-            target_piece, self.board[target], self.board[source] = self.board[target], source_piece, None  # type: ignore
-            stalemating = Piece.stalemating(source_piece, target) and self.opponent.squares == set()
-            self.board[source], self.board[target] = source_piece, target_piece  # type: ignore
-
-            return stalemating
-
     #   Update all pieces in the current player's collection.
         for piece in self.current.pieces:
             piece.deployable = MethodType(piece_deployable, piece)
@@ -157,9 +136,6 @@ class Chess:
 
             else:
                 piece.capturable = MethodType(piece_capturable, piece)
-
-            piece.checking = MethodType(piece_checking, piece)
-            piece.stalemating = MethodType(piece_stalemating, piece)
 
     #   Defining both castleabilities does not create an infinite recursion.
         self.current.king.castleable = MethodType(king_castleable, self.current.king)
@@ -180,7 +156,7 @@ class Chess:
 
     #   Print current history of moves:
         print()
-        print(f" ###   {self.white.name:9s} {self.black.name:9s}")
+        print(f" ###   {self.white.name:7s}   {self.black.name:7s} ")
         print("─────╥─────────┬─────────")
 
         for round, (white, black) in enumerate(zip_longest(self.white.history, self.black.history)):
