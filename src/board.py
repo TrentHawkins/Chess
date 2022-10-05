@@ -81,9 +81,6 @@ class Board:
         Returns:
             The board representation.
         """
-        white = 3
-        black = 1
-
         square_color = cycle(
             [
                 f"\033[0m\033[4{self.theme['white']}m",  # white

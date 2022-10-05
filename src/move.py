@@ -112,7 +112,7 @@ class Move:
 #   -   target of piece
     move_range: ClassVar[str] = \
         f"([{Piece.piece_range}]?)([{Square.file_range}][{Square.rank_range}])-([{Square.file_range}][{Square.rank_range}])"
-    notation: ClassVar[Pattern] = compile(move_range)
+    notation_range: ClassVar[Pattern] = compile(move_range)
 
     piece: Piece
     square: Square
@@ -144,7 +144,7 @@ class Move:
         Returns:
             Return move is any, else nothing.
         """
-        read = cls.notation.match(notation)
+        read = cls.notation_range.match(notation)
 
     #   Try to see if input matches this type of movement:
         if read:
@@ -159,10 +159,10 @@ class Move:
                     move = cls(piece, target)
 
                 #   Only return this move if it is legal too or else we get overlaps:
-                    if move.is_legal():
+                    if move:
                         return move
 
-    def is_legal(self):
+    def __bool__(self):
         """Check if move is legal based on piece and square context.
 
         Returns:
@@ -196,7 +196,7 @@ class Capture(Move):
         super().__post_init__()
         self.representation = self.representation.replace("-", "×") if self.piece.capturable(self.square) else self.representation
 
-    def is_legal(self) -> bool:
+    def __bool__(self) -> bool:
         """Check if move is legal based on piece and square context.
 
         Returns:

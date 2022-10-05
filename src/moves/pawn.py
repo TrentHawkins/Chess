@@ -99,10 +99,10 @@ class Promotion(Capture, Move):
                     move = cls(piece, target, promotionPiece)
 
                 #   Only return this move if it is legal too or else we get overlaps:
-                    if move.is_legal():
+                    if move:
                         return move
 
-    def is_legal(self):
+    def __bool__(self):
         """Check if pawn can promote either by moving or by capturing.
 
         Returns:

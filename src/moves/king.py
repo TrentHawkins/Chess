@@ -68,6 +68,8 @@ class Castle(Move):
     piece: King  # reference to a king piece
 
     def __post_init__(self):
+        super().__post_init__()
+
         self.step = self.square - self.piece.square
 
         self.castle = self.piece.square + self.piece.castles[self.step]  # type: ignore
@@ -87,12 +89,18 @@ class Castle(Move):
 
         if read:
             if read.string == "O-O":
-                return cls(king, king.square + king.short)  # type: ignore
+                move = cls(king, king.square + king.short)  # type: ignore
+
+                if move:
+                    return move
 
             if read.string == "O-O-O":
-                return cls(king, king.square + king.other)  # type: ignore
+                move = cls(king, king.square + king.other)  # type: ignore
 
-    def is_legal(self) -> bool:
+                if move:
+                    return move
+
+    def __bool__(self) -> bool:
         """Check if castling with the two pieces is still possible.
 
         Returns:

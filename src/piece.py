@@ -114,7 +114,8 @@ class Piece:
             square: Location on a board (which board is irrelevant).
         """
         self.orientation: Orientation = Orientation[orientation] if isinstance(orientation, str) else orientation
-        self.square: Square | None = Square(square) if isinstance(square, str) else square
+        self.square: Square | None = Square(square) if square is not None else None
+
         self.life: int = 0  # The lifetime of a piece on the board in terms of game turns.
         self.has_moved: bool = False  # Has not moved upon creation.
 
