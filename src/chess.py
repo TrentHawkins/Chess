@@ -1,7 +1,7 @@
 """A game of chess."""
 
 from datetime import datetime
-from itertools import compress, tee, zip_longest
+from itertools import zip_longest
 from types import MethodType
 from typing import Iterable
 

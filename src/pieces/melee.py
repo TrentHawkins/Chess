@@ -10,7 +10,6 @@ Remember pawns are kind of special.
 
 from dataclasses import dataclass
 from itertools import product
-from pickletools import long1
 from typing import ClassVar
 
 from ..piece import Piece

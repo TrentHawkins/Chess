@@ -29,11 +29,9 @@ from dataclasses import dataclass
 from re import Pattern, compile
 from typing import ClassVar
 
-from ..move import Capture, Move
-from ..piece import Piece
+from ..move import Move
 from ..pieces.melee import King
-from ..pieces.ranged import Rook
-from ..square import Square, Vector
+from ..square import Vector
 
 
 @dataclass(repr=False)

@@ -4,7 +4,6 @@ A game of chess always has two players, but this class will be able to keep trac
 """
 
 from collections import Counter
-from re import Pattern, compile
 from types import MethodType
 
 from .board import Board
