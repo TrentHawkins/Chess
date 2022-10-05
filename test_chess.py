@@ -26,18 +26,18 @@ class TestPlayer(TestCase):
         board = new_game.board
 
         white_pawn = board["e2"]
-        white.move(Move(white_pawn, "e4"))  # type: ignore  # The most famous opening move in the history of chess!
+        white(Move(white_pawn, "e4"))  # type: ignore  # The most famous opening move in the history of chess!
         assert board["e2"] is None
         assert board["e4"] is white_pawn
 
         black_pawn = board["d7"]
-        black.move(Move(black_pawn, "d5"))  # type: ignore  # An untypical response to create a capturing scenario.
+        black(Move(black_pawn, "d5"))  # type: ignore  # An untypical response to create a capturing scenario.
         assert board["d7"] is None
         assert board["d5"] is black_pawn
 
         white_pawn = board["e4"]
         black_pawn = board["d5"]
-        white.move(Capture(white_pawn, "d5"))  # type: ignore  # The pawn at "e4" takes the pawn at "d5".
+        white(Capture(white_pawn, "d5"))  # type: ignore  # The pawn at "e4" takes the pawn at "d5".
         assert board["e4"] is None
         assert board["d5"] is white_pawn
 
@@ -545,60 +545,60 @@ class TestPieces(TestCase):
         assert new_game.current.king.castleable(other)
 
     #   Add some benigh danger to castling long:
-        new_game.opponent.move(Move(board["a8"], "b8"))  # type: ignore
+        new_game.opponent(Move(board["a8"], "b8"))  # type: ignore
 
     #   They should still be both deployable.
         assert new_game.current.king.castleable(short)
         assert new_game.current.king.castleable(other)
 
     #   Castling other square checked.
-        new_game.opponent.move(Move(board["b8"], "c8"))  # type: ignore
+        new_game.opponent(Move(board["b8"], "c8"))  # type: ignore
 
     #   Should only see one.
         assert new_game.current.king.castleable(short)
         assert not new_game.current.king.castleable(other)
 
     #   Castling other middle checked.
-        new_game.opponent.move(Move(board["c8"], "d8"))  # type: ignore
+        new_game.opponent(Move(board["c8"], "d8"))  # type: ignore
 
     #   Should only see one.
         assert new_game.current.king.castleable(short)
         assert not new_game.current.king.castleable(other)
 
     #   King checked. Pull other danger away to see if king check kills both castles.
-        new_game.opponent.move(Move(board["d8"], "b8"))  # type: ignore
-        new_game.opponent.move(Move(board["e7"], "b4"))  # type: ignore
+        new_game.opponent(Move(board["d8"], "b8"))  # type: ignore
+        new_game.opponent(Move(board["e7"], "b4"))  # type: ignore
 
     #   Should see none.
         assert not new_game.current.king.castleable(short)
         assert not new_game.current.king.castleable(other)
 
     #   Lets see if we can retrive them when the danger is gone.
-        new_game.opponent.move(Move(board["b4"], "e7"))  # type: ignore
+        new_game.opponent(Move(board["b4"], "e7"))  # type: ignore
 
     #   Should see both.
         assert new_game.current.king.castleable(short)
         assert new_game.current.king.castleable(other)
 
     #   Lets put an obstacle on the other castle near the rook, where the king doesn't even reach.
-        new_game.current.move(Move(board["e6"], "f5"))  # type: ignore
-        new_game.current.move(Move(board["f5"], "b1"))  # type: ignore
+        new_game.current(Move(board["e6"], "f5"))  # type: ignore
+        new_game.current(Move(board["f5"], "b1"))  # type: ignore
 
     #   Should see one.
         assert new_game.current.king.castleable(short)
         assert not new_game.current.king.castleable(other)
 
     #   Remove block.
-        new_game.current.move(Move(board["b1"], "f5"))  # type: ignore
-        new_game.current.move(Move(board["f5"], "e6"))  # type: ignore
+        new_game.current(Move(board["b1"], "f5"))  # type: ignore
+        new_game.current(Move(board["f5"], "e6"))  # type: ignore
 
     #   Should see both.
         assert new_game.current.king.castleable(short)
         assert new_game.current.king.castleable(other)
 
     #   Lets move the king back and forth.
-        new_game.current.move(Move(board["e1"], "d1"))  # type: ignore
-        new_game.current.move(Move(board["d1"], "e1"))  # type: ignore
+        new_game.current(Move(board["e1"], "d1"))  # type: ignore
+        new_game.current(Move(board["d1"], "e1"))  # type: ignore
 
     #   Should see none.
         assert not new_game.current.king.castleable(short)
@@ -619,7 +619,7 @@ class TestPieces(TestCase):
 
         assert pawn.square == Square("e7")
 
-        board.move(Promotion(pawn, Square("e8"), Queen))
+        board(Promotion(pawn, Square("e8"), Queen))
 
         assert pawn.square == Square("e8")  # Check if promoted pawn is still in-place.
         assert type(pawn) is Queen  # Check if pawn was indeed promoted.

@@ -141,7 +141,7 @@ class Piece:
 
         return hash((self.__class__.__name__, self.square))
 
-    def move(self, target: Square | str):
+    def __call__(self, target: Square | str):
         """Move the piece to a target square.
 
         Simply updates the piece's square and movement flag.

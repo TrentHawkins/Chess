@@ -146,7 +146,7 @@ class Player:
 
                 continue
 
-    def move(self, move: Move):
+    def __call__(self, move: Move):
         """Move the source piece to target square if move is valid.
 
         Jumps should be checked here, because a ghost piece of the same color as the player must be generated with them.
@@ -154,7 +154,7 @@ class Player:
         Args:
             move: The move to make.
         """
-        target_piece = self.board.move(move)  # Make the move.
+        target_piece = self.board(move)  # Make the move.
 
         if type(move) is Jump:
             self.board[move.middle] = Piece(self.orientation)  # This will have to go on the next round (2 turns).

@@ -162,7 +162,7 @@ class Chess:
         for round, (white, black) in enumerate(zip_longest(self.white.history, self.black.history)):
             print(f" {round+1:03d} ║ {str(white):18s} │ {str(black) if black is not None else '':18s} ")
 
-        self.current.move(move)
+        self.current(move)
 
     #   Age pieces by one turn (included freshly created ghosts).
         for piece in self.board:

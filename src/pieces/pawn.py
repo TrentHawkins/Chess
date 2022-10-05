@@ -104,10 +104,10 @@ class Pawn(Piece):
             and pawn_square.rank == Square.rank_to_index[str((9 - self.orientation * 7) // 2)]
 
     def promote(self, target: Square, Piece: Type):
-        super().move.__doc__
+        super().__call__.__doc__
 
         if Piece in Officer.__args__ and self.can_promote:
-            super().move(target)
+            super().__call__(target)
             self.__class__ = Piece  # Promote pawn without changing any of its other attributes.
 
         return self

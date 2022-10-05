@@ -216,7 +216,7 @@ class Board:
         """
         return any(piece in rank for rank in self.pieces)
 
-    def move(self, move: Move) -> Piece | None:
+    def __call__(self, move: Move) -> Piece | None:
         """Move the source piece to target square if move is valid.
 
         Whatever lies on the target square is saved for further processing, however its square is killed, naturally.
@@ -242,7 +242,7 @@ class Board:
             rook = self[move.castle]
 
         #   Move the rook in-place. King will be moved as normal with the main move.
-            self[move.middle], self[move.castle] = rook.move(move.castle), None  # type: ignore
+            self[move.middle], self[move.castle] = rook(move.castle), None  # type: ignore
 
     #   If the source piece is in-board and the target square is legit, make the move and switch its has-moved flag.
         else:
@@ -251,7 +251,7 @@ class Board:
 
         #   If move is anything other than a promotion just move the piece.
             else:
-                move.piece.move(target)
+                move.piece(target)
 
     #   Make the move. If a castling, this is the king moving in place.
         self[target], self[source] = move.piece, None  # type: ignore
