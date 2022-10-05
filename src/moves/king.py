@@ -25,13 +25,13 @@ Checkmate
     Checkmate at the completion of moves is represented by the symbol "‡".
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from re import Pattern, compile
 from typing import ClassVar
 
 from ..move import Move
 from ..pieces.melee import King
-from ..square import Vector
+from ..square import Square, Vector
 
 
 @dataclass(repr=False)
@@ -63,12 +63,19 @@ class Castle(Move):
     move_range: ClassVar[str] = "O-O|O-O-O"
     notation: ClassVar[Pattern] = compile(move_range)
 
-    piece: King  # reference to a king piece
+#   Only a king can castle:
+    piece: King = field()  # reference to a king piece
+
+#   Castling requires two extra squares to define, the origin of the paired rook and its destination.
+    step: Square = field(init=False)
+
+    castle: Square = field(init=False)
+    middle: Square = field(init=False)
 
     def __post_init__(self):
         super().__post_init__()
 
-        self.step = self.square - self.piece.square
+        self.step = self.square - self.piece.square  # type: ignore
 
         self.castle = self.piece.square + self.piece.castles[self.step]  # type: ignore
         self.middle = self.piece.square + self.step // 2  # type: ignore

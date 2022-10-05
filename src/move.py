@@ -56,7 +56,7 @@ Long algebraic notation
     which is a common way for graphical chess programs to communicate with chess engines (e.g., for AI).
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from re import Pattern, compile
 from typing import ClassVar
 
@@ -114,8 +114,15 @@ class Move:
         f"([{Piece.piece_range}]?)([{Square.file_range}][{Square.rank_range}])-([{Square.file_range}][{Square.rank_range}])"
     notation_range: ClassVar[Pattern] = compile(move_range)
 
-    piece: Piece
-    square: Square
+#   A move is defined by the piece you want to move (and thus the square it is on) and the target square.
+    piece: Piece = field()
+    square: Square = field()
+
+#   Custom flags for terminating game conditions.
+    draw: bool = field(default=False, init=False)
+
+#   Frozen representation of move:
+    representation: str = field(init=False)
 
     def __post_init__(self):
         """Set frozen copy of representation to avoid live alteration."""

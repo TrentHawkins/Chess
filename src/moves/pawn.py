@@ -14,7 +14,7 @@ Pawn promotion
     in Portable Game Notation (PGN) and many publications, pawn promotion is indicated by the equals sign (e8=Q).
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from re import Pattern, compile
 from typing import ClassVar, Type
 
@@ -35,7 +35,15 @@ class Jump(Move):
         piece: The pawn to make jump. It is a jump so square is known.
     """
 
-    piece: Pawn
+#   Jumping is a starting pawn's property.
+    piece: Pawn = field()
+
+#   Keep track of the ghost's square.
+    middle: Square = field(init=False)
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.middle = self.square + (self.square - self.piece.square) // -2
 
     @classmethod
     def read(cls, notation: str, pieces: set[Piece]):
@@ -44,10 +52,6 @@ class Jump(Move):
 
         if move is not None and not move.piece.has_moved:
             return move
-
-    def __post_init__(self):
-        super().__post_init__()
-        self.middle = self.square + (self.square - self.piece.square) // -2
 
 
 @dataclass(repr=False)
@@ -63,8 +67,8 @@ class Promotion(Capture, Move):
     move_range: ClassVar[str] = f"({Move.move_range}|{Capture.move_range})=([{Pawn.piece_range}])"
     notation: ClassVar[Pattern] = compile(move_range)
 
-    piece: Pawn
-    promotionPiece: Type
+    piece: Pawn = field()
+    promotionPiece: Type = field()
 
     def __post_init__(self):
         super().__post_init__()
