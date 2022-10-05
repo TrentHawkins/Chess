@@ -3,8 +3,17 @@
 Referencing with chess algebraic notation is possible.
 """
 
-from .pieces import Bishop, Color, King, Knight, Pawn, Piece, Queen, Rook
-from .square import Square, Vector
+from itertools import cycle
+from typing import Generator
+
+from .move import Capture, Move
+from .moves.king import Castle
+from .moves.pawn import Promotion
+from .piece import Orientation, Piece
+from .pieces.melee import King, Knight
+from .pieces.pawn import Pawn
+from .pieces.ranged import Bishop, Queen, Rook
+from .square import Square
 
 
 class Board:
@@ -21,49 +30,50 @@ class Board:
         Item at [7][0] is referenced as ["a1"].
     """
 
-    def __init__(self):
+#   Decide theme statically for now.
+    default_board_theme = {
+        'white': 3,
+        'black': 1,
+    }
+
+#   Convinient piece color list.
+    piece_colors = [
+        "white",
+        "black",
+    ]
+
+#   Convinient main piece file dictionary, as pieces' file by type match.
+    main_pieces = {
+        "a": Rook,
+        "b": Knight,
+        "c": Bishop,
+        "d": Queen,
+        "e": King,
+        "f": Bishop,
+        "g": Knight,
+        "h": Rook,
+    }
+
+#   Graphics:
+    rank_range = "12345678"
+    file_range = "ABCDEFGH"
+
+    def __init__(self, *, empty: bool = False, theme: dict[str, int] = default_board_theme, flipped: bool = False):
         """Initialize a chessboard with a new game congifuration."""
-        self._board: list[list[Piece | None]] = [[None for _ in range(8)] for _ in range(8)]
+        self.pieces: list[list[Piece | None]] = [[None for _ in range(8)] for _ in range(8)]
+        self.theme = theme  # Set board color theme.
+        self.custom = empty  # Whether an empty or custom borad is being used.
+        self.flipped = flipped  # Whether to display board flipped 180 degrees (from black's viewpoint)
 
-    #   White pieces on the first rank.
-        self["a1"] = Rook(Color.white)
-        self["b1"] = Knight(Color.white)
-        self["c1"] = Bishop(Color.white)
-        self["d1"] = Queen(Color.white)
-        self["e1"] = King(Color.white)
-        self["f1"] = Bishop(Color.white)
-        self["g1"] = Knight(Color.white)
-        self["h1"] = Rook(Color.white)
+        if not self.custom:
+            for color in Board.piece_colors:
+                pawn_rank = (Orientation[color] * 5 + 9) // 2  # Pawn rank per color.
+                main_rank = (Orientation[color] * 7 + 9) // 2  # Main rank per color.
 
-    #   White pawns on the second rank.
-        self["a2"] = Pawn(Color.white)
-        self["b2"] = Pawn(Color.white)
-        self["c2"] = Pawn(Color.white)
-        self["d2"] = Pawn(Color.white)
-        self["e2"] = Pawn(Color.white)
-        self["f2"] = Pawn(Color.white)
-        self["g2"] = Pawn(Color.white)
-        self["h2"] = Pawn(Color.white)
-
-    #   Black pawns on the seventh rank.
-        self["a8"] = Rook(Color.black)
-        self["b8"] = Knight(Color.black)
-        self["c8"] = Bishop(Color.black)
-        self["d8"] = Queen(Color.black)
-        self["e8"] = King(Color.black)
-        self["f8"] = Bishop(Color.black)
-        self["g8"] = Knight(Color.black)
-        self["h8"] = Rook(Color.black)
-
-    #   Black pieces on the eighth rank.
-        self["a7"] = Pawn(Color.black)
-        self["b7"] = Pawn(Color.black)
-        self["c7"] = Pawn(Color.black)
-        self["d7"] = Pawn(Color.black)
-        self["e7"] = Pawn(Color.black)
-        self["f7"] = Pawn(Color.black)
-        self["g7"] = Pawn(Color.black)
-        self["h7"] = Pawn(Color.black)
+            #   All the pieces:
+                for file, Main in Board.main_pieces.items():
+                    self[f"{file}{main_rank}"] = Main(color)  # The main pieces (rooks, knights, bishops, queen, king)
+                    self[f"{file}{pawn_rank}"] = Pawn(color)  # The pawns.
 
     def __repr__(self) -> str:
         """Represent the board in proper direction and use the representation of each piece.
@@ -71,29 +81,96 @@ class Board:
         Returns:
             The board representation.
         """
-        return (
-            "\n▐\033[7m  A B C D E F G H  \033[0m▌\n" +
-            "\n".join(
-                f"▐\033[7m{Square.index_to_rank[index]}\033[27m\033[4m▌" +
-                "│".join(str(piece) for piece in rank) +
-                f"▐\033[24m\033[7m{Square.index_to_rank[index]}\033[0m▌"
-                for index, rank in enumerate(self._board)
-            ) +
-            "\n▐\033[7m  A B C D E F G H  \033[0m▌\n\n"
-        ).replace("None", " ")
+        white = 3
+        black = 1
 
-    def __setitem__(self, square: Square | str | None, piece: Piece | None):
+        square_color = cycle(
+            [
+                f"\033[0m\033[4{self.theme['white']}m",  # white
+                f"\033[0m\033[4{self.theme['black']}m",  # black
+            ]
+        )
+        edge_color = cycle(
+            [
+                f"\033[0m\033[3{self.theme['black']};4{self.theme['white']}m▐",
+                f"\033[0m\033[3{self.theme['white']};4{self.theme['black']}m▐",
+            ]
+        )
+        border_color = cycle(
+            [
+                f"\033[0m\033[3{self.theme['white']}m▐",
+                f"\033[0m\033[3{self.theme['black']}m▌\033[0m",
+                f"\033[0m\033[3{self.theme['black']}m▐",
+                f"\033[0m\033[3{self.theme['white']}m▌\033[0m",
+            ]
+        )
+
+        representation = "\033[A" * 15 + "\n"
+
+        if self.flipped:
+            representation += " ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖ \n"
+            representation += " ▐▌  H G F E D C B A  ▐▌ \n"
+
+            for index, rank in enumerate(reversed(self.pieces)):
+                representation += " ▐▌" + str(index + 1) + next(border_color)
+                representation += (
+                    next(square_color) + str(rank[7]) + next(edge_color) +
+                    next(square_color) + str(rank[6]) + next(edge_color) +
+                    next(square_color) + str(rank[5]) + next(edge_color) +
+                    next(square_color) + str(rank[4]) + next(edge_color) +
+                    next(square_color) + str(rank[3]) + next(edge_color) +
+                    next(square_color) + str(rank[2]) + next(edge_color) +
+                    next(square_color) + str(rank[1]) + next(edge_color) +
+                    next(square_color) + str(rank[0])
+                )
+                representation += next(border_color) + str(index + 1) + "▐▌ \n"
+
+                next(square_color)  # Flip colors for next rank to make a checkerboard.
+
+            representation += " ▐▌  H G F E D C B A  ▐▌ \n"
+            representation += " ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘ \n"
+
+        else:
+            representation += " ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖ \n"
+            representation += " ▐▌  A B C D E F G H  ▐▌ \n"
+
+            for index, rank in enumerate(self.pieces):
+                representation += " ▐▌" + str(Square.index_to_rank[index]) + next(border_color)
+                representation += (
+                    next(square_color) + str(rank[0]) + next(edge_color) +
+                    next(square_color) + str(rank[1]) + next(edge_color) +
+                    next(square_color) + str(rank[2]) + next(edge_color) +
+                    next(square_color) + str(rank[3]) + next(edge_color) +
+                    next(square_color) + str(rank[4]) + next(edge_color) +
+                    next(square_color) + str(rank[5]) + next(edge_color) +
+                    next(square_color) + str(rank[6]) + next(edge_color) +
+                    next(square_color) + str(rank[7])
+                )
+                representation += next(border_color) + str(Square.index_to_rank[index]) + "▐▌ \n"
+
+                next(square_color)  # Flip colors for next rank to make a checkerboard.
+
+            representation += " ▐▌  A B C D E F G H  ▐▌ \n"
+            representation += " ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘ \n"
+
+        return representation.replace("None", "\033[8m🨅\033[0m")
+
+    def __setitem__(self, square: Square | str, piece: Piece | None):
         """Add a piece to a square.
 
         Args:
             square: The rank and file of the square.
             piece: The piece to be placed on the square.
         """
-        if square:
-            square = Square(square)
-            self._board[square.rank][square.file] = piece
+        square = Square(square)
 
-    def __getitem__(self, square: Square | str | None) -> Piece | None:
+        self.pieces[square.rank][square.file] = piece
+
+    #   If a true piece is assigned, update its square.
+        if piece is not None:
+            piece.square = square
+
+    def __getitem__(self, square: Square | str) -> Piece | None:
         """Get the piece of a given square.
 
         Args:
@@ -102,19 +179,34 @@ class Board:
         Returns:
             The piece on the given square.
         """
-        if square:
-            square = Square(square)
-            return self._board[square.rank][square.file]
+        square = Square(square)
 
-    def __delitem__(self, square: Square | str | None):
+    #   HACK: A square outside the board may be requested.
+        if square is not None:
+            return self.pieces[square.rank][square.file]
+
+    def __delitem__(self, square: Square | str):
         """Remove the piece of a given square.
 
         Args:
             square: The rank and file of the square on which to remove a piece (if any).
         """
-        if square:
-            square = Square(square)
-            self._board[square.rank][square.file] = None
+        square = Square(square)
+
+        piece = self[square]
+
+    #   If there truly is a piece on that square, and referenced elsewhere, best do the book-keeping of taking it off-board.
+        if piece is not None:
+            piece.square = None
+
+        self.pieces[square.rank][square.file] = None
+
+    def __iter__(self):
+        """Iterate through existent pieces on the board."""
+        for rank in self.pieces:
+            for piece in rank:
+                if piece is not None:
+                    yield piece
 
     def __contains__(self, piece: Piece | None) -> bool:
         """Check if a piece is on the board.
@@ -125,18 +217,46 @@ class Board:
         Returns:
             If piece is in board.
         """
-        return any(piece in rank for rank in self._board)
+        return any(piece in rank for rank in self.pieces)
 
-    def square_of(self, piece: Piece | None) -> Square | None:
-        """Return the square of a specific piece.
+    def move(self, move: Move | Castle) -> Piece | None:
+        """Move the source piece to target square if move is valid.
+
+        Whatever lies on the target square is saved for further processing, however its square is killed, naturally.
+
+        Promotions should be checked here, as the move/capture happesn normally, and even the color doesn't change.
+        What changes is simply the subclass of the pawn involved.
 
         Args:
-            piece: Piece object to fetch the square of.
+            source_piece: The piece to move.
+            target: The square in notation the piece wants to go to.
 
         Returns:
-            The square of the piece in chess notation or indices or None if it is not on the board.
+            Lost piece on target square if any.
         """
-        for rank, board_rank in enumerate(self._board):
-            for file, board_square in enumerate(board_rank):
-                if board_square is piece:
-                    return Square(Vector(rank, file))  # HACK: I do not like that I have to chain constructors like this.
+        source = move.piece.square  # This is defined for all kinds of moves.
+        target = move.square  # This is defined for all kinds of moves either implicitely or explicitely.
+
+    #   Save the piece captured in the move, if any.
+        target_piece = self[move.square]
+
+    #   If the move is a castling, move the rook first before moving the king.
+        if type(move) is Castle:
+            rook = self[move.castle]
+
+        #   Move the rook in-place. King will be moved as normal with the main move.
+            self[move.middle], self[move.castle] = rook.move(move.castle), None  # type: ignore
+
+    #   If the source piece is in-board and the target square is legit, make the move and switch its has-moved flag.
+        else:
+            if type(move) is Promotion and type(move.piece) is Pawn:
+                move.piece.promote(target, move.promotionPiece)
+
+        #   If move is anything other than a promotion just move the piece.
+            else:
+                move.piece.move(target)
+
+    #   Make the move. If a castling, this is the king moving in place.
+        self[target], self[source] = move.piece, None  # type: ignore
+
+        return target_piece

@@ -1,11 +1,17 @@
 """Implement square logic.
 
-A different type is used for displacements on squares since they are also semantically distinct.
+Naming the squares
+    Each square of the chessboard is identified by a unique coordinate pair—a letter and a number—from White's point of view.
+    The vertical columns of squares, called files, are labeled a through h from the queenside to the kingside.
+    The horizontal rows of squares, called ranks, are numbered 1 to 8 starting from White's side of the board.
+    Thus each square has a unique identification of file letter followed by rank number.
+    For example, the initial square of White's king is designated as "e1".
 """
 
 
-import re
 from dataclasses import dataclass
+from re import Pattern, compile
+from typing import ClassVar
 
 Rank = int
 File = int
@@ -46,13 +52,43 @@ class Vector:
             self.file - other.file,
         )
 
-#   NOTE: This may be unnecessary.
     def __mul__(self, times: int):
         """Vector multiplication with an factor."""
         return Vector(
             self.rank * times,
             self.file * times,
         )
+
+    def __floordiv__(self, times: int):
+        """Vector integer (euclidean) division with an factor."""
+        return Vector(
+            self.rank // times,
+            self.file // times,
+        )
+
+    def __pos__(self):
+        """Vector positive."""
+        return Vector(
+            +self.rank,
+            +self.file,
+        )
+
+    def __neg__(self):
+        """Vector negative."""
+        return Vector(
+            -self.rank,
+            -self.file,
+        )
+
+    def __len__(self):
+        """Manhattan path length.
+
+        Returns:
+            Integer number of steps from start to end.
+        """
+        return \
+            abs(self.rank) + \
+            abs(self.file)
 
 
 @dataclass(init=False, repr=False, frozen=True)
@@ -68,35 +104,53 @@ class Square(Vector):
     You can operate on squares with squares, but results will be unpredictable unless you know what you are doing.
     """
 
-    rank_range = "87654321"
-    file_range = "abcdefgh"
+    rank_range: ClassVar[str] = "87654321"
+    file_range: ClassVar[str] = "abcdefgh"
 
-    index_to_file = {index_: file_ for index_, file_ in zip(range(8), file_range)}  # translate range index to file in chess
-    file_to_index = {file_: index_ for index_, file_ in zip(range(8), file_range)}  # translate file in chess to range index
-    index_to_rank = {index_: rank_ for index_, rank_ in zip(range(8), rank_range)}  # translate range index to rank in chess
-    rank_to_index = {rank_: index_ for index_, rank_ in zip(range(8), rank_range)}  # translate rank in chess to range index
+    index_to_file: ClassVar[dict[int, str]] = {index_: file_ for index_, file_ in zip(range(8), file_range)}
+    file_to_index: ClassVar[dict[str, int]] = {file_: index_ for index_, file_ in zip(range(8), file_range)}
+    index_to_rank: ClassVar[dict[int, str]] = {index_: rank_ for index_, rank_ in zip(range(8), rank_range)}
+    rank_to_index: ClassVar[dict[str, int]] = {rank_: index_ for index_, rank_ in zip(range(8), rank_range)}
 
-    notation_range = re.compile(f"[{file_range}][{rank_range}]")
+    notation_range: ClassVar[Pattern] = compile(f"[{file_range}][{rank_range}]")
 
-    def __init__(self, square: str | Vector):
+    def __new__(cls, square: Vector | str):
+        """Abort if attempted square is illegal.
+
+        This is used to make `Square` objects self-correcting upon behavior.
+        Failure of creation will be its own validity check.
+
+        Args:
+            square: A square in notation form or a vector (assuming the board origin is top-left in the latter case).
+
+        Returns:
+            `None` if square specification is illegal.
+        """
+        match square:
+            case Vector(rank, file):
+                return super().__new__(cls) if rank in range(8) and file in range(8) else None
+
+            case str():
+                return super().__new__(cls) if Square.notation_range.match(square) else None
+
+    def __init__(self, square: Vector | str):
         """Make square.
 
         Args:
             square: A square in notation form or a vector (assuming the board origin is top-left in the latter case).
         """
-    #   Extract rank and file from notation if given in that form.
-        if isinstance(square, str):
-            assert Square.notation_range.match(square)
-            super().__init__(
-                Square.rank_to_index[square[1]],
-                Square.file_to_index[square[0]],
-            )
-    #   Trivially use the super-constructor otherwise (assuming a `Vector` object).
-        else:
-            super().__init__(
-                square.rank,
-                square.file,
-            )
+        match square:
+            case Vector(rank, file):
+                super().__init__(
+                    rank,
+                    file,
+                )
+
+            case str():
+                super().__init__(
+                    Square.rank_to_index[square[1]],
+                    Square.file_to_index[square[0]],
+                )
 
     def __repr__(self):
         """Represent square in chess notation.
@@ -112,14 +166,3 @@ class Square(Vector):
     def __add__(self, other: Vector):
         """Add vector (displacement) to a square."""
         return Square(super().__add__(other))
-
-    def is_in_board(self) -> bool:
-        """Agnostic conditions that apply to all squares.
-
-        In particular this contains boundary checks, since they are decipherable from square notation basically.
-        NOTE: This could go to `Board` instead too, I'm just trying to semantically allocate conditioning across objects.
-
-        Returns:
-            If square respects conditions.
-        """
-        return 0 <= self.rank < 8 and 0 <= self.file < 8
