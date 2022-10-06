@@ -79,51 +79,54 @@ class Chess:
             source = source_piece.square
 
         #   Check if current king is in danger after the move. If it is not, then the move is legit.
-            target_piece, self.board[target], self.board[source] = self.board[target], source_piece, None  # type: ignore
-            king_safe = self.current.king.square not in self.opponent.squares
-            self.board[source], self.board[target] = source_piece, target_piece  # type: ignore
+            self.board[source], self.board[target], target_piece = None, source_piece, self.board[target]  # type: ignore
+            king_safe = self.current.king.square not in self.opponent.squares()
+            self.board[target], self.board[source] = target_piece, source_piece  # type: ignore
 
             return king_safe
 
         def piece_deployable(source_piece: Piece, target: Square):
-            source_piece.deployable.__doc__
-            target_piece = self.board[target]
+            f"""{source_piece.deployable.__doc__}"""
+            target_piece = self.board[target] if target is not None else None
 
             is_empty = target_piece is None or type(target_piece) is Piece
 
-            return Piece.deployable(source_piece, target) and is_empty and \
+            return source_piece.__class__.deployable(source_piece, target) and is_empty and \
                 king_safe(source_piece, target)
 
         def piece_capturable(source_piece: Piece, target: Square):
-            source_piece.capturable.__doc__
-            target_piece = self.board[target]
+            f"""{source_piece.capturable.__doc__}"""
+            target_piece = self.board[target] if target is not None else None
 
             is_not_empty = target_piece is not None and type(target_piece) is not Piece \
                 and source_piece.orientation != target_piece.orientation
 
-            return Piece.capturable(source_piece, target) and is_not_empty and \
+            return source_piece.__class__.capturable(source_piece, target) and is_not_empty and \
                 king_safe(source_piece, target)
 
         def pawn_capturable(source_piece: Pawn, target: Square):
-            source_piece.capturable.__doc__
-            target_piece = self.board[target]
+            f"""{source_piece.capturable.__doc__}"""
+            target_piece = self.board[target] if target is not None else None
 
             is_not_empty = target_piece is not None \
                 and source_piece.orientation != target_piece.orientation
 
-            return Pawn.capturable(source_piece, target) and is_not_empty and \
+            return source_piece.__class__.capturable(source_piece, target) and is_not_empty and \
                 king_safe(source_piece, target)
 
         def king_castleable(player_king: King, target: Square):
-            player_king.castleable.__doc__
+            f"""{player_king.castleable.__doc__}"""
             castle = target - player_king.square
             middle = player_king.square + castle // 2  # type: ignore
 
         #   Escorting rook:
             rook = self.board[player_king.square + player_king.castles[castle]]  # type: ignore
 
+        #   King is safe:
+            king_safe = self.current.king.square not in self.opponent.squares()
+
         #   Mind that king cannot escape check with a castle, as it usually can by moving otherwise.
-            return King.castleable(player_king, target) and self.current.king.square not in self.opponent.squares \
+            return player_king.__class__.castleable(player_king, target) and king_safe \
                 and type(rook) is Rook and Rook.castleable(rook, middle)
 
     #   Update all pieces in the current player's collection.
@@ -158,7 +161,6 @@ class Chess:
     #   Reset draw offers only for current player (to give the chance to opponent player to respond).
         self.current.draw = False
 
-        self.update()  # Update players first with game-context!
         print("─────────┬───────────────")
 
     #   Get material differences:
@@ -179,7 +181,10 @@ class Chess:
         for round, (white, black) in enumerate(zip_longest(self.white.history, self.black.history)):
             print(f" {round+1:03d} ║ {str(white):18s} │ {str(black) if black is not None else '':18s} ")
 
-    #   Make a move:
+    #   Update players first with game-context!
+        self.update()
+
+    #   Make a move tough guy!
         move = self.current.read()
         self.current(move)
 

@@ -91,31 +91,31 @@ class Player:
         """
 
         def piece_deployable(source_piece: Piece, target: Square):
-            source_piece.deployable.__doc__
-            target_piece = self.board[target]
+            f"""{source_piece.deployable.__doc__}"""
+            target_piece = self.board[target] if target is not None else None
 
             is_empty = target_piece is None or type(target_piece) is Piece
 
-            return Piece.deployable(source_piece, target) and is_empty
+            return source_piece.__class__.deployable(source_piece, target) and is_empty
 
         def piece_capturable(source_piece: Piece, target: Square):
-            source_piece.capturable.__doc__
-            target_piece = self.board[target]
+            f"""{source_piece.capturable.__doc__}"""
+            target_piece = self.board[target] if target is not None else None
 
             is_not_empty = target_piece is not None and type(target_piece) is not Piece \
                 and source_piece.orientation != target_piece.orientation
 
-            return Piece.capturable(source_piece, target) and is_not_empty
+            return source_piece.__class__.capturable(source_piece, target) and is_not_empty
 
     #   Add ghost pieces to target of pawns:
         def pawns_capturable(source_piece: Pawn, target: Square):
-            source_piece.capturable.__doc__
-            target_piece = self.board[target]
+            f"""{source_piece.capturable.__doc__}"""
+            target_piece = self.board[target] if target is not None else None
 
             is_not_empty = target_piece is not None \
                 and source_piece.orientation != target_piece.orientation
 
-            return Pawn.capturable(source_piece, target) and is_not_empty
+            return source_piece.__class__.capturable(source_piece, target) and is_not_empty
 
         for piece in self.pieces:
             piece.deployable = MethodType(piece_deployable, piece)
@@ -127,7 +127,7 @@ class Player:
                 piece.capturable = MethodType(piece_capturable, piece)
 
     #   Castleability has to be reset too to avoid infinite recursion.
-    #   Castling is not a cpaturing move to so completely reset it for opponent's sake.
+    #   Castling is not a capturing move, so completely reset it for opponent's sake.
         self.king.castleable = MethodType(King.castleable, self.king)
 
     #   Count material off-line to allow contextual editing (to make this a material difference).
@@ -193,11 +193,10 @@ class Player:
 
                 continue
 
-    @property
     def squares(self) -> set[Square]:
         """Get all squares checked by player.
 
         Returns:
             A flattened union of all squares the player has access to.
         """
-        return {square for piece in self.pieces for square in piece.squares}
+        return {square for piece in self.pieces for square in piece.squares()}

@@ -161,11 +161,14 @@ class Board:
         """
         square = Square(square)
 
-        self.pieces[square.rank][square.file] = piece
+    #   Remove whatever was there before it.
+        del self[square]
 
     #   If a true piece is assigned, update its square.
         if piece is not None:
             piece.square = square
+
+        self.pieces[square.rank][square.file] = piece
 
     def __getitem__(self, square: Square | str) -> Piece | None:
         """Get the piece of a given square.
@@ -178,7 +181,7 @@ class Board:
         """
         square = Square(square)
 
-    #   HACK: A square outside the board may be requested.
+    #   HACK: FIXME: I have not found why this check is necessary yet, looking to get rid of it.
         if square is not None:
             return self.pieces[square.rank][square.file]
 
@@ -189,7 +192,6 @@ class Board:
             square: The rank and file of the square on which to remove a piece (if any).
         """
         square = Square(square)
-
         piece = self[square]
 
     #   If there truly is a piece on that square, and referenced elsewhere, best do the book-keeping of taking it off-board.
@@ -235,14 +237,14 @@ class Board:
         target = move.square  # This is defined for all kinds of moves either implicitely or explicitely.
 
     #   Save the piece captured in the move, if any.
-        target_piece = self[move.square]
+        target_piece = self[target]
 
     #   If the move is a castling, move the rook first before moving the king.
         if type(move) is Castle:
             rook = self[move.castle]
 
         #   Move the rook in-place. King will be moved as normal with the main move.
-            self[move.middle], self[move.castle] = rook(move.castle), None  # type: ignore
+            self[move.castle], self[move.middle] = None, rook(move.castle)  # type: ignore
 
     #   If the source piece is in-board and the target square is legit, make the move and switch its has-moved flag.
         else:
@@ -254,6 +256,6 @@ class Board:
                 move.piece(target)
 
     #   Make the move. If a castling, this is the king moving in place.
-        self[target], self[source] = move.piece, None  # type: ignore
+        self[source], self[target] = None, move.piece  # type: ignore
 
         return target_piece

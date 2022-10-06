@@ -177,7 +177,7 @@ class Move:
         Returns:
             Whether move is legal based on piece and square context.
         """
-        return self.square in self.piece.squares and self.piece.deployable(self.square)
+        return self.square in self.piece.squares() and self.piece.deployable(self.square)
 
 
 @dataclass(repr=False)
@@ -211,4 +211,4 @@ class Capture(Move):
         Returns:
             Whether move is legal based on piece and square context.
         """
-        return self.square in self.piece.squares and self.piece.capturable(self.square)
+        return self.square in self.piece.squares() and self.piece.capturable(self.square)

@@ -113,4 +113,4 @@ class Promotion(Capture, Move):
         Returns:
             Whether pawn can promote either by moving or by capturing.
         """
-        return self.square in self.piece.squares and self.piece.can_promote(self.square)
+        return self.square in self.piece.squares() and self.piece.can_promote(self.square)

@@ -62,16 +62,15 @@ class Pawn(Piece):
     }
 
     def __repr__(self) -> str:
-        super().__repr__.__doc__
+        f"""{super().__repr__.__doc__}"""
         return {
             "white": f"\033[37;1m{self.symbol}\033[0m",
             "black": f"\033[30;1m{self.symbol}\033[0m",
         }[self.orientation.name]
 
-    @property
     def squares(self) -> set[Square]:
         f"""{super().squares.__doc__}"""
-        squares = super().squares
+        squares = super().squares()
 
         if self.square is not None:  # If pawn is on a board,
             for step in self.captures:  # For all target squares (diagonally with respect to pawn),
@@ -104,7 +103,7 @@ class Pawn(Piece):
             and pawn_square.rank == Square.rank_to_index[str((9 - self.orientation * 7) // 2)]
 
     def promote(self, target: Square, Piece: Type):
-        super().__call__.__doc__
+        f"""{super().__call__.__doc__}"""
 
         if Piece in Officer.__args__ and self.can_promote:
             super().__call__(target)

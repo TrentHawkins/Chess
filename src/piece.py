@@ -163,7 +163,7 @@ class Piece:
         if target is not None:  # If target square is given
             target = Square(target)
 
-        if target in self.squares:
+        if target in self.squares():
             self.square = target  # Update the piece's square.
             self.has_moved = True  # The pawns at their start and kings and rooks for castling use this flag.
 
@@ -197,7 +197,6 @@ class Piece:
         """
         return self.square is not None and square is not None  # Make sure piece and square are on a board.
 
-    @property
     def squares(self) -> set[Square]:
         f"""Generate all legal moves a {self.__class__.__name__} can apriori make.
 
@@ -207,8 +206,7 @@ class Piece:
             condition: A condition that depends on a square, usually a target square.
 
         Returns:
-            2 sets of moves:
-                squares: any empty potential square the piece can move to
-                targets: any potential square in squares that the piece can target another piece
+            squares: any empty potential square the piece can move to
+            targets: any potential square in squares that the piece can target another piece
         """
         return set()  # A ghost piece cannot move or capture.

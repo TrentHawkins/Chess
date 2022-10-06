@@ -10,6 +10,34 @@ class TestChess(TestCase):
     @patch(
         'builtins.input',
         side_effect=[
+            "e2-e4",
+            "d7-d5",
+            "e4-d5",
+            "Nb8-c6",
+            "d5-c6",
+            "Qd8-d2",
+            "Qd1-d2",
+        ],
+    )
+    def test_game(self, mock_input):
+        """Test random game."""
+        from src.chess import Chess
+
+    #   Some game-breaking game:
+        new_game = Chess()
+
+    #   Start rolling:
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+
+    @patch(
+        'builtins.input',
+        side_effect=[
             "e2-e4#",  # White resigns.
             "e2-e4",
             "e7-e5#",  # Black resigns.
@@ -84,18 +112,18 @@ class TestPlayer(TestCase):
         new_game = Chess()
 
         white_pawn = new_game.board["e2"]
-        white(Move(white_pawn, "e4"))  # type: ignore  # The most famous opening move in the history of chess!
+        new_game.white(Move(white_pawn, "e4"))  # type: ignore  # The most famous opening move in the history of chess!
         assert new_game.board["e2"] is None
         assert new_game.board["e4"] is white_pawn
 
         black_pawn = new_game.board["d7"]
-        black(Move(black_pawn, "d5"))  # type: ignore  # An untypical response to create a capturing scenario.
+        new_game.black(Move(black_pawn, "d5"))  # type: ignore  # An untypical response to create a capturing scenario.
         assert new_game.board["d7"] is None
         assert new_game.board["d5"] is black_pawn
 
         white_pawn = new_game.board["e4"]
         black_pawn = new_game.board["d5"]
-        white(Capture(white_pawn, "d5"))  # type: ignore  # The pawn at "e4" takes the pawn at "d5".
+        new_game.white(Capture(white_pawn, "d5"))  # type: ignore  # The pawn at "e4" takes the pawn at "d5".
         assert new_game.board["e4"] is None
         assert new_game.board["d5"] is white_pawn
 
@@ -207,7 +235,7 @@ class TestMoves(TestCase):
         new_game.update()
 
     #   White should have nowhere to go after the rules update:
-        assert new_game.current.squares == set()
+        assert new_game.current.squares() == set()
 
     #   So lets dump some false moves and see what happens:
         try:
@@ -252,10 +280,10 @@ class TestMoves(TestCase):
         new_game.turn()
 
     #   White has nowhere to go but take the checking pawn:
-        assert new_game.current.king.squares == {Square("d7")}
+        assert new_game.current.king.squares() == {Square("d7")}
 
     #   Attacking squares are evaluated without king safety in-mind, as they are relevant only for opponent.
-        assert new_game.current.squares >= {Square("d7")}
+        assert new_game.current.squares() >= {Square("d7")}
 
     #   Finish the round with the only available move.
         new_game.turn()
@@ -353,7 +381,7 @@ class TestMoves(TestCase):
 
     #   Ascertain that black pawn left a ghost trail, that white pawn sees.
         assert type(new_game.board["d6"]) is Piece
-        assert Square("d6") in white_pawn.squares
+        assert Square("d6") in white_pawn.squares()
 
     #   Another round to execute en-passant:
         new_game.turn()
@@ -382,7 +410,7 @@ class TestMoves(TestCase):
 
     #   Ascertain that white pawn can no longer capture black pawn via en-passant:
         assert new_game.board["d6"] is None
-        assert Square("d6") not in white_pawn.squares
+        assert Square("d6") not in white_pawn.squares()
 
 
 class TestPieces(TestCase):
@@ -441,13 +469,13 @@ class TestPieces(TestCase):
 
         piece = tal["c1"]
         assert piece is not None
-        assert piece.squares == {  # King (white)
+        assert piece.squares() == {  # King (white)
             Square("d2"),  # ↗
             Square("b1"),  # ←
         }
         piece = tal["d4"]
         assert piece is not None
-        assert piece.squares == {  # Queen (white)
+        assert piece.squares() == {  # Queen (white)
             Square("e5"),  # ↗
             Square("f6"),  # ↗  # capture
             Square("d5"),  # ↑
@@ -466,7 +494,7 @@ class TestPieces(TestCase):
         }
         piece = tal["f1"]
         assert piece is not None
-        assert piece.squares == {  # Bishop (white/white)
+        assert piece.squares() == {  # Bishop (white/white)
             Square("e2"),  # ↖
             Square("d3"),  # ↖
             Square("c4"),  # ↖
@@ -475,7 +503,7 @@ class TestPieces(TestCase):
         }
         piece = tal["g5"]
         assert piece is not None
-        assert piece.squares == {  # Bishop (white/black)
+        assert piece.squares() == {  # Bishop (white/black)
             Square("f6"),  # ↖  # capture
             Square("f4"),  # ↙
             Square("e3"),  # ↙
@@ -485,7 +513,7 @@ class TestPieces(TestCase):
         }
         piece = tal["e4"]
         assert piece is not None
-        assert piece.squares == {  # Knight (white/white)
+        assert piece.squares() == {  # Knight (white/white)
             Square("f6"),  # ↗ + ↑  # capture
             Square("g3"),  # ↘ + →
             Square("d2"),  # ↙ + ↓
@@ -495,7 +523,7 @@ class TestPieces(TestCase):
         }
         piece = tal["f3"]
         assert piece is not None
-        assert piece.squares == {  # Knight (white/black)
+        assert piece.squares() == {  # Knight (white/black)
             Square("h4"),  # ↗ + →
             Square("g1"),  # ↘ + ↓
             Square("e1"),  # ↙ + ↓
@@ -504,46 +532,46 @@ class TestPieces(TestCase):
         }
         piece = tal["h1"]
         assert piece is not None
-        assert piece.squares == {  # Rook (white/white)
+        assert piece.squares() == {  # Rook (white/white)
             Square("g1"),  # ↑
         }
         piece = tal["d1"]
         assert piece is not None
-        assert piece.squares == {  # Rook (white/black)
+        assert piece.squares() == {  # Rook (white/black)
             Square("e1"),  # ↑
             Square("d2"),  # ↑
             Square("d3"),  # ↑
         }
         piece = tal["a2"]
         assert piece is not None
-        assert piece.squares == {  # Pawn (white/A)
+        assert piece.squares() == {  # Pawn (white/A)
             Square("a3"),  # ↑
             Square("a4"),  # ↑
         }
         piece = tal["b2"]
         assert piece is not None
-        assert piece.squares == {  # Pawn (white/B)
+        assert piece.squares() == {  # Pawn (white/B)
             Square("b3"),  # ↑
             Square("b4"),  # ↑
         }
         piece = tal["c2"]
         assert piece is not None
-        assert piece.squares == {  # Pawn (white/C)
+        assert piece.squares() == {  # Pawn (white/C)
             Square("c3"),  # ↑
             Square("c4"),  # ↑
         }
         piece = tal["f2"]
         assert piece is not None
-        assert piece.squares == set()  # Pawn (white/F)
+        assert piece.squares() == set()  # Pawn (white/F)
         piece = tal["g2"]
         assert piece is not None
-        assert piece.squares == {  # Pawn (white/G)
+        assert piece.squares() == {  # Pawn (white/G)
             Square("g3"),  # ↑
             Square("g4"),  # ↑
         }
         piece = tal["h2"]
         assert piece is not None
-        assert piece.squares == {  # Pawn (white/H)
+        assert piece.squares() == {  # Pawn (white/H)
             Square("h3"),  # ↑
             Square("h4"),  # ↑
         }
@@ -572,9 +600,9 @@ class TestPieces(TestCase):
         set_game.update()
 
         assert king is not None
-        assert king.squares == set()  # Because it puts the king in check from "Ba6".
+        assert king.squares() == set()  # Because it puts the king in check from "Ba6".
         assert pawn is not None
-        assert pawn.squares == set()  # Because it discovers a check to the king from "Ba5".  # FIXME: Not implemented yet.
+        assert pawn.squares() == set()  # Because it discovers a check to the king from "Ba5".  # FIXME: Not implemented yet.
 
     def test_castling(self):
         """Test castling."""
@@ -697,7 +725,7 @@ class TestPieces(TestCase):
 
         assert pawn.square == Square("e8")  # Check if promoted pawn is still in-place.
         assert type(pawn) is Queen  # Check if pawn was indeed promoted.
-        assert pawn.squares == {
+        assert pawn.squares() == {
             Square("d8"),
             Square("c8"),
             Square("b8"),

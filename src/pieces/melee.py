@@ -27,16 +27,15 @@ class Melee(Piece):
     """
 
     def __repr__(self) -> str:
-        super().__repr__.__doc__
+        f"""{super().__repr__.__doc__}"""
         return {
             "white": f"\033[37;1m{self.symbol}\033[0m",
             "black": f"\033[30;1m{self.symbol}\033[0m",
         }[self.orientation.name]
 
-    @property
     def squares(self) -> set[Square]:
         f"""{super().squares.__doc__}"""
-        squares = super().squares
+        squares = super().squares()
 
         if self.square is not None:  # If meleed piece is on a board,
             for step in self.steps:  # For all target squares,
@@ -146,10 +145,9 @@ class King(Melee):
             and self.deployable(square) \
             and self.deployable(square + (square - self.square) // -2)
 
-    @property
     def squares(self) -> set[Square]:
         f"""{super().squares.__doc__}"""
-        squares = super().squares
+        squares = super().squares()
 
         if self.square is not None:
             for castle in self.castles:
