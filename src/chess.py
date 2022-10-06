@@ -159,10 +159,11 @@ class Chess:
         self.current.draw = False
 
         self.update()  # Update players first with game-context!
-        move = self.current.read()  # Make a move tough guy!
-        self.current(move)
-
         print("─────────┬───────────────")
+
+    #   Get material differences:
+        self.white.material -= self.black.material
+        self.black.material -= self.white.material - self.black.material
 
     #   Print captured pieces and material info:
         print(self.white)
@@ -177,6 +178,10 @@ class Chess:
 
         for round, (white, black) in enumerate(zip_longest(self.white.history, self.black.history)):
             print(f" {round+1:03d} ║ {str(white):18s} │ {str(black) if black is not None else '':18s} ")
+
+    #   Make a move:
+        move = self.current.read()
+        self.current(move)
 
     #   Age pieces by one turn (included freshly created ghosts).
         for piece in self.board:

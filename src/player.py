@@ -52,6 +52,8 @@ class Player:
                 Queen(-self.orientation): 0,
             }
         )
+        self.material: int = 0  # Total material in terms of captured pieces' values.
+
     #   Keep track of moves made here, indexed by rounds.
         self.history: list[Move] = []
 
@@ -73,12 +75,7 @@ class Player:
             Players name followed by a color window and captured pieces
         """
         return f"         │ {' '.join(str(piece) for piece in self.captured.keys())}     \n" + \
-        f" {self.name:7s} │ {' '.join(str(count) for count in self.captured.values())}  {self.material:+2d} "
-
-    @property
-    def material(self) -> int:
-        """Count captured material in terms of piece value."""
-        return sum(piece.value * count for piece, count in self.captured.items())
+        f" {self.name:7s} │ {' '.join(str(count) for count in self.captured.values())} {self.material:+03d} "
 
     def update(self):
         """Define player-context-sensitive rules for evaluating piece legal moves.
@@ -133,6 +130,9 @@ class Player:
     #   Castling is not a cpaturing move to so completely reset it for opponent's sake.
         self.king.castleable = MethodType(King.castleable, self.king)
 
+    #   Count material off-line to allow contextual editing (to make this a material difference).
+        self.material = sum(piece.value * count for piece, count in self.captured.items())
+
     def __call__(self, move: Move):
         """Move the source piece to target square if move is valid.
 
@@ -170,7 +170,7 @@ class Player:
         prompt = "your turn"
 
         while True:
-            notation = input(f"\033[A{self.name}, {prompt}: \033[K")
+            notation = input(f"\033[H\033[18B{self.name}, {prompt}: \033[K")
 
             move = \
                 Promotion.read(notation, self.pieces) or \
@@ -183,6 +183,8 @@ class Player:
             if move is not None:
                 self.history.append(move)  # Add move to history.
                 self.draw = move.draw  # Delegate draw offer intent or response to player.
+
+                print("033[12B")
 
                 return move
 
