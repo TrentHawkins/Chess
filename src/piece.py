@@ -46,6 +46,12 @@ class Orientation(IntEnum):
     white = -1  # Array indexing goes down the board, but white goes up.
     black = +1  # Array indexing goes down the board, and so does black.
 
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        return self.__class__["white"] if self.name == "black" else self.__class__["black"]
+
 
 @dataclass(init=False, repr=False)
 class Piece:

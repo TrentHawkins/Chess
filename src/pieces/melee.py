@@ -18,7 +18,7 @@ from .ranged import Bishop, Queen, Rook
 
 
 @dataclass(init=False, repr=False, eq=False)
-class Meleed(Piece):
+class Melee(Piece):
     """A close ranged piece:
         - King
         - Knight (has reach)
@@ -49,7 +49,7 @@ class Meleed(Piece):
 
 
 @dataclass(init=False, repr=False, eq=False)
-class Knight(Meleed):
+class Knight(Melee):
     """A knight.
 
     Moves two squares in any direction and one square in a vertical to that direction as one move.
@@ -87,7 +87,7 @@ class Knight(Meleed):
 
 
 @dataclass(init=False, repr=False, eq=False)
-class King(Meleed):
+class King(Melee):
     """A King.
 
     Moves one square in any direction that is not blocked by same side piece or targeted by enemy piece.

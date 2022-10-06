@@ -38,8 +38,6 @@ class Chess:
             Finally if king does come under check, no piece moves are allowed other than the ones protecting the king.
         """
         print("\033[H\033[J")  # Clear entire screen before procceding.
-        print(f"CHESS {datetime.today().replace(microsecond=0)}")
-        print("═════════════════════════")
 
         self.board: Board = board or Board()
 
@@ -148,8 +146,13 @@ class Chess:
         """Advance a turn."""
         print("\033[H\033[2B")  # Reset printing head.
 
+        print(f"CHESS {datetime.today().replace(microsecond=0)}")
+        print("═════════════════════════")
+
     #   Print the current game state:
         print(self.board)  # Lets see the board!
+
+        print("═════════════════════════")
         print()
 
     #   Reset draw offers only for current player (to give the chance to opponent player to respond).
@@ -159,9 +162,17 @@ class Chess:
         move = self.current.read()  # Make a move tough guy!
         self.current(move)
 
+        print("─────────┬───────────────")
+
+    #   Print captured pieces and material info:
+        print(self.white)
+        print(self.black)
+
+        print("─────────┴───────────────")
+
     #   Print current history of moves:
-        print()
         print(f" ###   {self.white.name:7s}   {self.black.name:7s} ")
+
         print("─────╥─────────┬─────────")
 
         for round, (white, black) in enumerate(zip_longest(self.white.history, self.black.history)):

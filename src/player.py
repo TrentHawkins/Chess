@@ -11,8 +11,9 @@ from .move import Capture, Move
 from .moves.king import Castle
 from .moves.pawn import Jump, Promotion
 from .piece import Orientation, Piece
-from .pieces.melee import King
+from .pieces.melee import King, Knight
 from .pieces.pawn import Pawn
+from .pieces.ranged import Bishop, Queen, Rook
 from .square import Square
 
 
@@ -42,8 +43,15 @@ class Player:
 
     #   Assign pieces to player agnostically, so that custom position can also be loaded.
         self.pieces: set[Piece] = set(piece for piece in self.board if piece.orientation == self.orientation)
-        self.captured: Counter[Piece] = Counter()  # NOTE: Not yet implemented.
-
+        self.captured: Counter[Piece] = Counter(
+            {
+                Pawn(-self.orientation): 0,
+                Bishop(-self.orientation): 0,
+                Knight(-self.orientation): 0,
+                Rook(-self.orientation): 0,
+                Queen(-self.orientation): 0,
+            }
+        )
     #   Keep track of moves made here, indexed by rounds.
         self.history: list[Move] = []
 
@@ -64,6 +72,13 @@ class Player:
         Returns:
             Players name followed by a color window and captured pieces
         """
+        return f"         │ {' '.join(str(piece) for piece in self.captured.keys())}     \n" + \
+        f" {self.name:7s} │ {' '.join(str(count) for count in self.captured.values())}  {self.material:+2d} "
+
+    @property
+    def material(self) -> int:
+        """Count captured material in terms of piece value."""
+        return sum(piece.value * count for piece, count in self.captured.items())
 
     def update(self):
         """Define player-context-sensitive rules for evaluating piece legal moves.

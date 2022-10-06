@@ -148,7 +148,7 @@ class Board:
                 next(square_color)  # Flip colors for next rank to make a checkerboard.
 
             representation += " ▐▌  A B C D E F G H  ▐▌ \n"
-            representation += " ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘ \n"
+            representation += " ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘ "
 
         return representation.replace("None", "\033[8m🨅\033[0m")
 
