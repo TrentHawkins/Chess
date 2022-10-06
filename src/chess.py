@@ -114,20 +114,20 @@ class Chess:
             return source_piece.__class__.capturable(source_piece, target) and is_not_empty and \
                 king_safe(source_piece, target)
 
-        def king_castleable(player_king: King, target: Square):
-            f"""{player_king.castleable.__doc__}"""
-            castle = target - player_king.square
-            middle = player_king.square + castle // 2  # type: ignore
+        def king_castleable(current_king: King, target: Square):
+            f"""{current_king.castleable.__doc__}"""
 
-        #   Escorting rook:
-            rook = self.board[player_king.square + player_king.castles[castle]]  # type: ignore
+        #   Cascade the checks to save power:
+            if current_king.__class__.castleable(current_king, target):  # Check basics first to save power
+                castle = target - current_king.square  # Target square is assumed legit
+                middle = current_king.square + castle // 2  # type: ignore
+                current_rook = self.board[current_king.square + current_king.castles[castle]]  # type: ignore
 
-        #   King is safe:
-            king_safe = self.current.king.square not in self.opponent.squares()
+                if type(current_rook) is Rook and current_rook.__class__.castleable(current_rook, middle):
+                    return self.current.king.square not in self.opponent.squares()  # The king is safe.
 
-        #   Mind that king cannot escape check with a castle, as it usually can by moving otherwise.
-            return player_king.__class__.castleable(player_king, target) and king_safe \
-                and type(rook) is Rook and Rook.castleable(rook, middle)
+            else:
+                return False
 
     #   Update all pieces in the current player's collection.
         for piece in self.current.pieces:

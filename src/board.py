@@ -181,9 +181,7 @@ class Board:
         """
         square = Square(square)
 
-    #   HACK: FIXME: I have not found why this check is necessary yet, looking to get rid of it.
-        if square is not None:
-            return self.pieces[square.rank][square.file]
+        return self.pieces[square.rank][square.file]
 
     def __delitem__(self, square: Square | str):
         """Remove the piece of a given square.
