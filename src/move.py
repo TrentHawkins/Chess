@@ -111,7 +111,7 @@ class Move:
 #   -   square of piece
 #   -   target of piece
     move_range: ClassVar[str] = \
-        f"([{Piece.piece_range}]?)([{Square.file_range}][{Square.rank_range}])-([{Square.file_range}][{Square.rank_range}])"
+        f"([{Piece.piece_range}]?)([{Square.file_range}][{Square.rank_range}])-([{Square.file_range}][{Square.rank_range}])[=#]?"
     notation_range: ClassVar[Pattern] = compile(move_range)
 
 #   A move is defined by the piece you want to move (and thus the square it is on) and the target square.
@@ -119,7 +119,8 @@ class Move:
     square: Square = field()
 
 #   Custom flags for terminating game conditions.
-    draw: bool = field(default=False, init=False)
+    draw: bool = field(default=False, kw_only=True)
+    resign: bool = field(default=False, kw_only=True)
 
 #   Frozen representation of move:
     representation: str = field(init=False)
@@ -128,6 +129,7 @@ class Move:
         """Set frozen copy of representation to avoid live alteration."""
         self.square = Square(self.square)
         self.representation = repr(self.piece) + repr(self.piece.square) + "-" + repr(self.square)
+        self.representation += "⊜" if self.draw else "🏳" if self.resign else ""
 
     def __repr__(self):
         """Each move of a piece is indicated by the piece's uppercase letter, plus the coordinate of the destination square.
@@ -163,7 +165,7 @@ class Move:
 
             #   Only generate a move object if the right piece is caught:
                 if type(piece) is typePiece and piece.square == source:
-                    move = cls(piece, target)
+                    move = cls(piece, target, draw="=" in notation, resign="+" in notation)
 
                 #   Only return this move if it is legal too or else we get overlaps:
                     if move:

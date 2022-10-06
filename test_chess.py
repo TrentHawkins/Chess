@@ -138,8 +138,10 @@ class TestMoves(TestCase):
         new_game = Chess()
 
     #   Play 2 rounds (4 turns) leading to check(mate):
-        new_game.round()
-        new_game.round()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
 
     #   NOTE: remember, switch of methods happen at the beginning of the next turn.
     #   This means we can no longer check for squares during a normal game.
@@ -151,7 +153,8 @@ class TestMoves(TestCase):
 
     #   So lets dump some false moves and see what happens:
         try:
-            new_game.round()
+            new_game.turn()
+            new_game.turn()
             assert False  # This should not happen.
 
     #   Assert board hasn't changed:
@@ -180,9 +183,12 @@ class TestMoves(TestCase):
         new_game = Chess()
 
     #   Play 3 rounds (6 turns) leading to white's checkmate:
-        new_game.round()
-        new_game.round()
-        new_game.round()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
 
     #   Try the fourth round, where black should be immobilized apart from king:
         new_game.turn()
@@ -226,9 +232,12 @@ class TestMoves(TestCase):
         white = new_game.current
 
     #   Play the first 3 rounds (6 turns) leading to the castle:
-        new_game.round()
-        new_game.round()
-        new_game.round()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
 
     #   Castling short square:
         short = Square("g1")
@@ -237,7 +246,8 @@ class TestMoves(TestCase):
         assert white.king.castleable(short)
 
     #   Play the castling out:
-        new_game.round()
+        new_game.turn()
+        new_game.turn()
 
     #   Ascertain pieces are in proper positions:
         assert board[short] == white.king
@@ -278,15 +288,18 @@ class TestMoves(TestCase):
         assert black_pawn is not None and black_pawn.square is not None
 
     #   Run 2 rounds (4 turns) to set-up en-passant for white:
-        new_game.round()
-        new_game.round()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
 
     #   Ascertain that black pawn left a ghost trail, that white pawn sees.
         assert type(new_game.board["d6"]) is Piece
         assert Square("d6") in white_pawn.squares
 
     #   Another round to execute en-passant:
-        new_game.round()
+        new_game.turn()
+        new_game.turn()
 
     #   Ascertain that both pawns got proprely captured:
         assert black_pawn.square is None and black_pawn in new_game.current.captured
@@ -302,9 +315,12 @@ class TestMoves(TestCase):
         assert black_pawn is not None and black_pawn.square is not None
 
     #   Run 3 rounds (6 turns) to set-up en-passant for white and miss it:
-        new_game.round()
-        new_game.round()
-        new_game.round()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
 
     #   Ascertain that white pawn can no longer capture black pawn via en-passant:
         assert new_game.board["d6"] is None

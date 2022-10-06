@@ -47,6 +47,10 @@ class Player:
     #   Keep track of moves made here, indexed by rounds.
         self.history: list[Move] = []
 
+    #   Keep track of draw offer or resignation intent, as consent from both players is needed (for draw):
+        self.draw: bool = False
+        self.victory: bool = False
+
     #   Keep the player's king registered, as it is a special piece.
         for piece in self.pieces:
             if type(piece) is King:
@@ -114,37 +118,6 @@ class Player:
     #   Castling is not a cpaturing move to so completely reset it for opponent's sake.
         self.king.castleable = MethodType(King.castleable, self.king)
 
-    def read(self) -> Move:
-        """Read move from standard input with a prompt.
-
-        Infinite movement reading till the user gets it right.
-
-        Returns:
-            A valid movemement or nothing at all.
-        """
-        prompt = "your turn"
-
-        while True:
-            notation = input(f"\033[A{self.name}, {prompt}: \033[K")
-
-            move = \
-                Promotion.read(notation, self.pieces) or \
-                Capture  .read(notation, self.pieces) or \
-                Jump     .read(notation, self.pieces) or \
-                Move     .read(notation, self.pieces) or \
-                Castle   .read(notation, self.king)
-
-        #   Check move here too to catch the re-try:
-            if move is not None:
-                self.history.append(move)  # Add move to history.
-
-                return move
-
-            else:
-                prompt = "try again"
-
-                continue
-
     def __call__(self, move: Move):
         """Move the source piece to target square if move is valid.
 
@@ -170,6 +143,38 @@ class Player:
             target_piece.square = None
 
             self.captured[target_piece] += 1
+
+    def read(self) -> Move:
+        """Read move from standard input with a prompt.
+
+        Infinite movement reading till the user gets it right.
+
+        Returns:
+            A valid movemement or nothing at all.
+        """
+        prompt = "your turn"
+
+        while True:
+            notation = input(f"\033[A{self.name}, {prompt}: \033[K")
+
+            move = \
+                Promotion.read(notation, self.pieces) or \
+                Capture  .read(notation, self.pieces) or \
+                Jump     .read(notation, self.pieces) or \
+                Move     .read(notation, self.pieces) or \
+                Castle   .read(notation, self.king)
+
+        #   Check move here too to catch the re-try:
+            if move is not None:
+                self.history.append(move)  # Add move to history.
+                self.draw = move.draw  # Delegate draw offer intent or response to player.
+
+                return move
+
+            else:
+                prompt = "try again"
+
+                continue
 
     @property
     def squares(self) -> set[Square]:

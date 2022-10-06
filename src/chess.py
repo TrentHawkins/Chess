@@ -51,8 +51,9 @@ class Chess:
         self.white: Player = self.current
         self.black: Player = self.opponent
 
-    #   Round counter:
-        self.round_index: int = 0
+    #   Game termination flags:
+        self.draw: bool = False
+        self.gameover: bool = False
 
     #   Each piece has moved in a custom position, except for pawn whose immovability can be discerned by their movement entropy.
         if board is not None:
@@ -151,8 +152,12 @@ class Chess:
         print(self.board)  # Lets see the board!
         print()
 
+    #   Reset draw offers only for current player (to give the chance to opponent player to respond).
+        self.current.draw = False
+
         self.update()  # Update players first with game-context!
         move = self.current.read()  # Make a move tough guy!
+        self.current(move)
 
     #   Print current history of moves:
         print()
@@ -161,8 +166,6 @@ class Chess:
 
         for round, (white, black) in enumerate(zip_longest(self.white.history, self.black.history)):
             print(f" {round+1:03d} ║ {str(white):18s} │ {str(black) if black is not None else '':18s} ")
-
-        self.current(move)
 
     #   Age pieces by one turn (included freshly created ghosts).
         for piece in self.board:
@@ -175,12 +178,8 @@ class Chess:
     #   Prepare for the next turn:
     #   self.board.flipped = not self.board.flipped
 
+        self.draw = self.current.draw and self.opponent.draw
+        self.gameover = self.draw or move.resign
+
     #   Flip player identities, making the next turn invokation proper!
         self.current, self.opponent = self.opponent, self.current
-
-    def round(self):
-        """Advance a round, which is two turns, one for black and one for white."""
-        self.round_index += 1
-
-        self.turn()
-        self.turn()

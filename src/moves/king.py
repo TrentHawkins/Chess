@@ -60,7 +60,7 @@ class Castle(Move):
     """
 
 #   Ask for any ot the piece letters to appear once or nonce (for pawns).
-    move_range: ClassVar[str] = "O-O|O-O-O"
+    move_range: ClassVar[str] = "(O-O|O-O-O)[=#]?"
     notation: ClassVar[Pattern] = compile(move_range)
 
 #   Only a king can castle:
@@ -85,7 +85,7 @@ class Castle(Move):
         return {
             Vector(0, +2): "O-O",
             Vector(0, -2): "O-O-O",
-        }[self.step]
+        }[self.step] + ("⊜" if self.draw else "🏳" if self.resign else "")
 
     @classmethod
     def read(cls, notation: str, king: King):
@@ -93,17 +93,14 @@ class Castle(Move):
         read = cls.notation.match(notation)
 
         if read:
-            if read.string == "O-O":
-                move = cls(king, king.square + king.short)  # type: ignore
+            if "O-O-O" in read.string:
+                move = cls(king, king.square + king.other, draw="=" in notation, resign="#" in notation)  # type: ignore
 
-                if move:
-                    return move
+            else:
+                move = cls(king, king.square + king.short, draw="=" in notation, resign="#" in notation)  # type: ignore
 
-            if read.string == "O-O-O":
-                move = cls(king, king.square + king.other)  # type: ignore
-
-                if move:
-                    return move
+            if move:
+                return move
 
     def __bool__(self) -> bool:
         """Check if castling with the two pieces is still possible.
