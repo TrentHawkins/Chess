@@ -165,7 +165,7 @@ class Move:
 
             #   Only generate a move object if the right piece is caught:
                 if type(piece) is typePiece and piece.square == source:
-                    move = cls(piece, target, draw="=" in notation, resign="+" in notation)
+                    move = cls(piece, target, draw="=" in notation, resign="#" in notation)
 
                 #   Only return this move if it is legal too or else we get overlaps:
                     if move:

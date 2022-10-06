@@ -7,7 +7,70 @@ from unittest.mock import patch  # To mock user input for interactive tests.
 class TestChess(TestCase):
     """Test issues related to the main game loop."""
 
-    ...
+    @patch(
+        'builtins.input',
+        side_effect=[
+            "e2-e4#",  # White resigns.
+            "e2-e4",
+            "e7-e5#",  # Black resigns.
+        ],
+    )
+    def test_resignation(self, mock_input):
+        """Test resignation action."""
+        from src.chess import Chess
+
+    #   In this game, white resigns:
+        new_game = Chess()
+
+    #   Execute game:
+        new_game.turn()
+
+        assert new_game.black.victory
+
+    #   In this game, black resigns:
+        new_game = Chess()
+
+    #   Execute game:
+        new_game.turn()
+        new_game.turn()
+
+        assert new_game.gameover
+        assert new_game.white.victory
+
+    @patch(
+        'builtins.input',
+        side_effect=[
+            "e2-e4=",  # White offers draw.
+            "e7-e5=",  # Black accepts.
+            "e2-e4=",  # White offers draw.
+            "e7-e5=",  # Black rejects.
+            "Ng1-f3",  # White continues.
+        ],
+    )
+    def test_draw(self, mock_input):
+        """Test resignation action."""
+        from src.chess import Chess
+
+    #   In this game, white offers truce and black accepts:
+        new_game = Chess()
+
+    #   Execute game:
+        new_game.turn()
+        new_game.turn()
+
+        assert new_game.gameover
+        assert new_game.white.draw and new_game.black.draw
+
+    #   In this game, white offers truce and black rejects:
+        new_game = Chess()
+
+    #   Execute game:
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+
+        assert not new_game.gameover
+        assert not new_game.white.draw or not new_game.black.draw
 
 
 class TestPlayer(TestCase):
@@ -20,32 +83,27 @@ class TestPlayer(TestCase):
 
         new_game = Chess()
 
-    #   HACK: Do not swirl players, just use both as is for simplicity:
-        white = new_game.current
-        black = new_game.opponent
-        board = new_game.board
-
-        white_pawn = board["e2"]
+        white_pawn = new_game.board["e2"]
         white(Move(white_pawn, "e4"))  # type: ignore  # The most famous opening move in the history of chess!
-        assert board["e2"] is None
-        assert board["e4"] is white_pawn
+        assert new_game.board["e2"] is None
+        assert new_game.board["e4"] is white_pawn
 
-        black_pawn = board["d7"]
+        black_pawn = new_game.board["d7"]
         black(Move(black_pawn, "d5"))  # type: ignore  # An untypical response to create a capturing scenario.
-        assert board["d7"] is None
-        assert board["d5"] is black_pawn
+        assert new_game.board["d7"] is None
+        assert new_game.board["d5"] is black_pawn
 
-        white_pawn = board["e4"]
-        black_pawn = board["d5"]
+        white_pawn = new_game.board["e4"]
+        black_pawn = new_game.board["d5"]
         white(Capture(white_pawn, "d5"))  # type: ignore  # The pawn at "e4" takes the pawn at "d5".
-        assert board["e4"] is None
-        assert board["d5"] is white_pawn
+        assert new_game.board["e4"] is None
+        assert new_game.board["d5"] is white_pawn
 
     #   Ascertain that the captured pawn is properly gone:
         assert black_pawn is not None
         assert black_pawn.square is None
-        assert black_pawn not in black.pieces
-        assert black_pawn in white.captured and white.captured[black_pawn] == 1
+        assert black_pawn not in new_game.black.pieces
+        assert black_pawn in new_game.white.captured and new_game.white.captured[black_pawn] == 1
 
     def test_captured_counting(self):
         """Check if reduced implied hashing of captured pieces works on piece counters."""

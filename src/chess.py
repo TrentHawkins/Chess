@@ -181,5 +181,8 @@ class Chess:
         self.draw = self.current.draw and self.opponent.draw
         self.gameover = self.draw or move.resign
 
+        if move.resign:
+            self.opponent.victory = True
+
     #   Flip player identities, making the next turn invokation proper!
         self.current, self.opponent = self.opponent, self.current
