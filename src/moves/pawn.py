@@ -50,7 +50,8 @@ class Jump(Move):
         f"""{super(Jump, cls).read.__doc__}"""
         move = super(Jump, cls).read(notation, pieces)
 
-        if move is not None and not move.piece.has_moved:
+    #   Mind that the movement gap has to be 2 squares otherwise it is not a jump.
+        if move is not None and not move.piece.has_moved and len(move.square - move.piece.square) > 1:
             return move
 
 
