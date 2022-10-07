@@ -202,6 +202,29 @@ class Chess:
     #   Set opponent's basic rules too:
         self.opponent.update()
 
+    #   Reset draw offers only for current player (to give the chance to opponent player to respond).
+        self.current.draw = False
+
+    def terminate(self):
+        """Terminate game based on its state and each of the player states:
+
+        Draw by:
+        -   mutual agreement
+        -   three-fold movement repetition
+        -   stalemate
+
+        Game over by:
+        -   reisgnation
+        -   checkmate
+        """
+    #   Set draw flags:
+        self.agreement = self.current.draw and self.opponent.draw
+        self.draw = self.draw or self.current.stalemate or self.agreement
+
+    #   Set termination flags:
+        self.current.checkmate = self.current.squares() == set()
+        self.gameover = self.current.checkmate or self.current.resignation or self.draw
+
     def turn(self):
         """Advance a turn."""
         self.update()
@@ -224,15 +247,11 @@ class Chess:
             if type(piece) is Piece and piece.life > 1:
                 del self.board[piece.square]  # type: ignore
 
+    #   Attempt to terminate game:
+        self.terminate()
+
     #   Prepare for the next turn:
     #   self.board.flipped = not self.board.flipped
-
-    #   Set draw flags:
-        self.agreement = self.current.draw and self.opponent.draw
-        self.draw = self.draw or self.current.stalemate or self.agreement
-
-    #   Set termination flags:
-        self.gameover = self.current.checkmate or self.current.resignation or self.draw
 
     #   Flip player identities, making the next turn invokation proper!
         self.current, self.opponent = self.opponent, self.current
