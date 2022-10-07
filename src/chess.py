@@ -50,6 +50,7 @@ class Chess:
         self.black: Player = self.opponent
 
     #   Game termination flags:
+        self.agreement: bool = False
         self.draw: bool = False
         self.gameover: bool = False
 
@@ -63,6 +64,60 @@ class Chess:
             if black:
                 self.board.flipped = True
                 self.current, self.opponent = self.opponent, self.current
+
+    def __repr__(self):
+        """ Representation of a game.
+
+        Includes:
+        -   a game header (with a running datetime),
+        -   the board (state),
+        -   the prompt for current player to input a move
+        -   a run down of captured material for both players
+        -   a side-by-side running move history of both players
+        """
+        representation = "\033[H"  # Reset printing head.
+
+        representation += f"CHESS {datetime.today().replace(microsecond=0)}\n"
+        representation += "═════════════════════════\n"
+        representation += f"{self.board}\n"  # Lets see the board!
+        representation += "═════════════════════════\n"
+
+        if self.gameover:
+            if self.draw:
+                representation += " Game draw"
+
+                if self.agreement:
+                    representation += " by agreement"
+
+                representation += "!\033[K"
+
+        #   Checks verify a losing player therefore, but then roles are flipped at the end of the turn.
+            elif self.current.victory:
+                representation += f" {self.current.name} won"
+
+                if self.opponent.resignation:
+                    representation += f" by resignation"
+
+                representation += f"!\033[K"
+
+        representation += "\n"
+        representation += "─────────┬───────────────\n"
+
+    #   Get material differences:
+        self.white.material -= self.black.material
+        self.black.material -= self.white.material - self.black.material
+
+        representation += f"{self.white}\n"
+        representation += f"{self.black}\n"
+
+        representation += "─────────┴───────────────\n"
+        representation += f" ###   {self.white.name:7s}   {self.black.name:7s} \n"
+        representation += "─────╥─────────┬─────────\n"
+
+        for round, (white, black) in enumerate(zip_longest(self.white.history, self.black.history)):
+            representation += f" {round+1:03d} ║ {str(white):18s} │ {str(black) if black is not None else '':18s} \n"
+
+        return representation
 
     def update(self):
         """Define game-context-sensitive rules for evaluating piece legal moves.
@@ -147,42 +202,13 @@ class Chess:
 
     def turn(self):
         """Advance a turn."""
-        print("\033[H\033[2B")  # Reset printing head.
-
-        print(f"CHESS {datetime.today().replace(microsecond=0)}")
-        print("═════════════════════════")
-
-    #   Print the current game state:
-        print(self.board)  # Lets see the board!
-
-        print("═════════════════════════")
-        print()
+        self.update()
 
     #   Reset draw offers only for current player (to give the chance to opponent player to respond).
         self.current.draw = False
 
-        print("─────────┬───────────────")
-
-    #   Get material differences:
-        self.white.material -= self.black.material
-        self.black.material -= self.white.material - self.black.material
-
-    #   Print captured pieces and material info:
-        print(self.white)
-        print(self.black)
-
-        print("─────────┴───────────────")
-
-    #   Print current history of moves:
-        print(f" ###   {self.white.name:7s}   {self.black.name:7s} ")
-
-        print("─────╥─────────┬─────────")
-
-        for round, (white, black) in enumerate(zip_longest(self.white.history, self.black.history)):
-            print(f" {round+1:03d} ║ {str(white):18s} │ {str(black) if black is not None else '':18s} ")
-
-    #   Update players first with game-context!
-        self.update()
+    #   Update players first with game-context before printing!
+        print(self)
 
     #   Make a move tough guy!
         move = self.current.read()
@@ -199,11 +225,14 @@ class Chess:
     #   Prepare for the next turn:
     #   self.board.flipped = not self.board.flipped
 
-        self.draw = self.current.draw and self.opponent.draw
-        self.gameover = self.draw or move.resign
+    #   Set draw flags:
+        self.agreement = self.current.draw and self.opponent.draw
+        self.draw = self.agreement
 
-        if move.resign:
-            self.opponent.victory = True
+    #   Set termination flags:
+        self.current.resignation = move.resign
+        self.opponent.victory = self.current.resignation
+        self.gameover = self.draw or self.opponent.victory
 
     #   Flip player identities, making the next turn invokation proper!
         self.current, self.opponent = self.opponent, self.current

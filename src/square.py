@@ -159,8 +159,8 @@ class Square(Vector):
             The rank and file of square in chess notation.
         """
         return (
-            Square.index_to_file[self.file] +
-            Square.index_to_rank[self.rank]
+            Square.index_to_file[self.file].upper() +
+            Square.index_to_rank[self.rank].upper()
         )
 
     def __add__(self, other: Vector):

@@ -57,8 +57,9 @@ class Player:
     #   Keep track of moves made here, indexed by rounds.
         self.history: list[Move] = []
 
-    #   Keep track of draw offer or resignation intent, as consent from both players is needed (for draw):
+    #   Keep track of dgame termination flags:
         self.draw: bool = False
+        self.resignation: bool = False
         self.victory: bool = False
 
     #   Keep the player's king registered, as it is a special piece.
@@ -155,8 +156,6 @@ class Player:
 
     #   If there was a opponent piece there, properly dispose of it.
         if target_piece is not None:
-            target_piece.square = None
-
             self.captured[target_piece] += 1
 
     def read(self) -> Move:
@@ -170,7 +169,7 @@ class Player:
         prompt = "your turn"
 
         while True:
-            notation = input(f"\033[H\033[18B{self.name}, {prompt}: \033[K")
+            notation = input(f"\033[H\033[15B {self.name}, {prompt}: \033[K")
 
             move = \
                 Promotion.read(notation, self.pieces) or \
