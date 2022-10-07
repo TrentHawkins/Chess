@@ -89,12 +89,18 @@ class Chess:
                 if self.agreement:
                     representation += " by agreement"
 
+                elif self.current.stalemate:
+                    representation += " by stalemate"
+
         #   Checks verify a losing player therefore, but then roles are flipped at the end of the turn.
-            elif self.current.victory:
+            else:
                 representation += f" {self.current.name} won"
 
                 if self.opponent.resignation:
                     representation += f" by resignation"
+
+                elif self.opponent.checkmate:
+                    representation += f" by checkmate"
 
         representation += "!\033[K\n"
         representation += "─────────┬───────────────\n"
@@ -223,12 +229,10 @@ class Chess:
 
     #   Set draw flags:
         self.agreement = self.current.draw and self.opponent.draw
-        self.draw = self.agreement
+        self.draw = self.draw or self.current.stalemate or self.agreement
 
     #   Set termination flags:
-        self.current.resignation = move.resign
-        self.opponent.victory = self.current.resignation
-        self.gameover = self.draw or self.opponent.victory
+        self.gameover = self.current.checkmate or self.current.resignation or self.draw
 
     #   Flip player identities, making the next turn invokation proper!
         self.current, self.opponent = self.opponent, self.current

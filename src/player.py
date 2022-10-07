@@ -57,10 +57,11 @@ class Player:
     #   Keep track of moves made here, indexed by rounds.
         self.history: list[Move] = []
 
-    #   Keep track of dgame termination flags:
+    #   Keep track of game termination flags:
         self.draw: bool = False
         self.resignation: bool = False
-        self.victory: bool = False
+        self.stalemate: bool = False
+        self.checkmate: bool = False
 
     #   Keep the player's king registered, as it is a special piece.
         for piece in self.pieces:
@@ -134,6 +135,11 @@ class Player:
     #   Count material off-line to allow contextual editing (to make this a material difference).
         self.material = sum(piece.value * count for piece, count in self.captured.items())
 
+    #   Player lost to checkmate:
+    #   When used by opponent player, opponent will always have more squares, otherwise the game would have ended a turn ago.
+        self.stalemate = self.stalemate or self.squares() == set()
+        self.checkmate = self.checkmate or (self.stalemate and self.king.in_check)
+
     def __call__(self, move: Move):
         """Move the source piece to target square if move is valid.
 
@@ -157,6 +163,8 @@ class Player:
     #   If there was a opponent piece there, properly dispose of it.
         if target_piece is not None:
             self.captured[target_piece] += 1
+
+        self.resignation = move.resign
 
     def read(self) -> Move:
         """Read move from standard input with a prompt.

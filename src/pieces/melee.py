@@ -113,7 +113,7 @@ class King(Melee):
     steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
 
 #   Castles (key: king move, value: corresponding rook relative position):
-    short = Vector(0, +2)
+    short: ClassVar[Vector] = Vector(0, +2)
     other = Vector(0, -2)
 
     castles: ClassVar[dict[Vector, Vector]] = {
@@ -121,6 +121,7 @@ class King(Melee):
         other: Vector(0, -4),
     }
 
+#   King is in check flag.
     in_check: bool = False
 
     def castleable(self, square: Square) -> bool:

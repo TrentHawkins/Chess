@@ -53,7 +53,8 @@ class TestChess(TestCase):
     #   Execute game:
         new_game.turn()
 
-        assert new_game.black.victory
+        assert new_game.gameover
+        assert new_game.white.resignation
 
     #   In this game, black resigns:
         new_game = Chess()
@@ -63,7 +64,7 @@ class TestChess(TestCase):
         new_game.turn()
 
         assert new_game.gameover
-        assert new_game.white.victory
+        assert new_game.black.resignation
 
     @patch(
         'builtins.input',
@@ -71,7 +72,7 @@ class TestChess(TestCase):
             "e2-e4=",  # White offers draw.
             "e7-e5=",  # Black accepts.
             "e2-e4=",  # White offers draw.
-            "e7-e5=",  # Black rejects.
+            "e7-e5",  # Black rejects.
             "Ng1-f3",  # White continues.
         ],
     )
@@ -98,7 +99,7 @@ class TestChess(TestCase):
         new_game.turn()
 
         assert not new_game.gameover
-        assert not new_game.white.draw or not new_game.black.draw
+        assert not new_game.draw
 
 
 class TestPlayer(TestCase):
