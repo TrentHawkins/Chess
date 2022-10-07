@@ -52,7 +52,7 @@ class Chess:
     #   Game termination flags:
         self.agreement: bool = False
         self.draw: bool = False
-        self.gameover: bool = False
+        self.termination: bool = False
 
     #   Each piece has moved in a custom position, except for pawn whose immovability can be discerned by their movement entropy.
         if board is not None:
@@ -82,7 +82,9 @@ class Chess:
         representation += f"{self.board}\n"  # Lets see the board!
         representation += "═════════════════════════\n"
 
-        if self.gameover:
+    #   Check winning conditions before draw conditions, as some as subset to winning conditions.
+    #   For example, stalemate is always true for checkmate, so it must be checked last.
+        if self.termination:
             if self.draw:
                 representation += " Game draw"
 
@@ -92,16 +94,16 @@ class Chess:
                 elif self.current.stalemate:
                     representation += " by stalemate"
 
-        #   Checks verify a losing player therefore, but then roles are flipped at the end of the turn.
             else:
                 representation += f" {self.current.name} won"
 
                 if self.opponent.resignation:
                     representation += f" by resignation"
 
-                elif self.opponent.checkmate:
+                elif self.current.checkmate:
                     representation += f" by checkmate"
 
+    #   Clear the line in case there are player move prompt left-overs:
         representation += "!\033[K\n"
         representation += "─────────┬───────────────\n"
 
@@ -109,6 +111,7 @@ class Chess:
         self.white.material -= self.black.material
         self.black.material -= self.white.material - self.black.material
 
+    #   Print captures pieces and material differences for both players:
         representation += f"{self.white}\n"
         representation += f"{self.black}\n"
 
@@ -116,6 +119,7 @@ class Chess:
         representation += f" ###   {self.white.name:7s}   {self.black.name:7s} \n"
         representation += "─────╥─────────┬─────────\n"
 
+    #   Running move history starts here:
         for round, (white, black) in enumerate(zip_longest(self.white.history, self.black.history)):
             representation += f" {round+1:03d} ║ {str(white):18s} │ {str(black) if black is not None else '':18s} \n"
 
@@ -202,38 +206,57 @@ class Chess:
     #   Set opponent's basic rules too:
         self.opponent.update()
 
-    #   Reset draw offers only for current player (to give the chance to opponent player to respond).
-        self.current.draw = False
-
-    def terminate(self):
+    def terminate(self) -> bool:
         """Terminate game based on its state and each of the player states:
 
         Draw by:
         -   mutual agreement
         -   three-fold movement repetition
+            FIXME: For now players have to mutually agree to a draw if this happens.
         -   stalemate
 
-        Game over by:
+        Termination by:
         -   reisgnation
         -   checkmate
-        """
-    #   Set draw flags:
-        self.agreement = self.current.draw and self.opponent.draw
-        self.draw = self.draw or self.current.stalemate or self.agreement
 
-    #   Set termination flags:
-        self.current.checkmate = self.current.squares() == set()
-        self.gameover = self.current.checkmate or self.current.resignation or self.draw
+        Returns:
+            Global game termination condition.
+        """
+        self.current.king.in_check = self.current.king.square in self.opponent.squares()
+
+    #   Reset draw offers only for current player (to give the chance to opponent player to respond).
+        self.agreement = self.current.draw and self.opponent.draw
+        self.current.draw = False
+
+    #   Set stalemate and checkmate conditions in one place as the relate and need to sync-up.
+        self.current.stalemate = self.current.squares() == set()
+        self.current.checkmate = self.current.stalemate and self.current.king.in_check
+
+    #   HACK: Edit last move as a check move, if no other modifier is added.
+        if self.current.king.in_check and not (self.current.draw or self.opponent.resignation):
+            self.opponent.history[-1].representation += "†"
+
+    #   The final game termination decision compliled:
+        self.draw = (self.current.stalemate and not self.current.checkmate) or self.agreement
+        self.termination = self.current.checkmate or self.opponent.resignation or self.draw
+
+    #   HACK: Edit last move as a checkmate move, if it was annotated as a check move first, else leave as is.
+        if self.current.checkmate:
+            self.opponent.history[-1].representation = self.opponent.history[-1].representation.replace("†", "‡")
+
+        return self.termination
 
     def turn(self):
         """Advance a turn."""
         self.update()
-
-    #   Reset draw offers only for current player (to give the chance to opponent player to respond).
-        self.current.draw = False
+        self.terminate()
 
     #   Update players first with game-context before printing!
         print(self)
+
+    #   Attempt to terminate game, before any more moves are input:
+        if self.termination:
+            return
 
     #   Make a move tough guy!
         move = self.current.read()
@@ -246,9 +269,6 @@ class Chess:
         #   Eliminate any out-lived ghost pieces (2 turns).
             if type(piece) is Piece and piece.life > 1:
                 del self.board[piece.square]  # type: ignore
-
-    #   Attempt to terminate game:
-        self.terminate()
 
     #   Prepare for the next turn:
     #   self.board.flipped = not self.board.flipped

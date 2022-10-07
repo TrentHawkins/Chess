@@ -7,7 +7,7 @@ if __name__ == "__main__":
 
 #   Main game loop:
 #   Game engine can properly detect this from the abstract game rules, will wrap it in this class later.
-    while not new_game.gameover:
+    while not new_game.termination:
         new_game.turn()
 
     print(new_game)

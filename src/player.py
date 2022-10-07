@@ -135,11 +135,6 @@ class Player:
     #   Count material off-line to allow contextual editing (to make this a material difference).
         self.material = sum(piece.value * count for piece, count in self.captured.items())
 
-    #   Player lost to checkmate:
-    #   When used by opponent player, opponent will always have more squares, otherwise the game would have ended a turn ago.
-        self.stalemate = self.stalemate or self.squares() == set()
-        self.checkmate = self.checkmate or (self.stalemate and self.king.in_check)
-
     def __call__(self, move: Move):
         """Move the source piece to target square if move is valid.
 
@@ -177,7 +172,7 @@ class Player:
         prompt = "your turn"
 
         while True:
-            notation = input(f"\033[H\033[15B {self.name}, {prompt}: ")
+            notation = input(f"\033[H\033[15B {self.name}, {prompt}: \033[K")
 
             move = \
                 Promotion.read(notation, self.pieces) or \

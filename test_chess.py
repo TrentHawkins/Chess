@@ -52,8 +52,9 @@ class TestChess(TestCase):
 
     #   Execute game:
         new_game.turn()
+        new_game.turn()  # This one is without input, black never gets the chance to respond.
 
-        assert new_game.gameover
+        assert new_game.termination
         assert new_game.white.resignation
 
     #   In this game, black resigns:
@@ -62,8 +63,9 @@ class TestChess(TestCase):
     #   Execute game:
         new_game.turn()
         new_game.turn()
+        new_game.turn()  # This one is without input, white never gets the chance to respond.
 
-        assert new_game.gameover
+        assert new_game.termination
         assert new_game.black.resignation
 
     @patch(
@@ -86,20 +88,23 @@ class TestChess(TestCase):
     #   Execute game:
         new_game.turn()
         new_game.turn()
+        new_game.turn()  # This one is without input, white never gets the chance to respond, black has agreed to a draw.
 
-        assert new_game.gameover
-        assert new_game.white.draw and new_game.black.draw
+        assert new_game.termination
+        assert new_game.draw
+        assert new_game.agreement
 
     #   In this game, white offers truce and black rejects:
         new_game = Chess()
 
     #   Execute game:
         new_game.turn()
-        new_game.turn()
+        new_game.turn()  # Black rejects draw offer, and game continues as such.
         new_game.turn()
 
-        assert not new_game.gameover
+        assert not new_game.termination
         assert not new_game.draw
+        assert not new_game.agreement
 
 
 class TestPlayer(TestCase):
@@ -212,9 +217,7 @@ class TestMoves(TestCase):
             "f2-f3",
             "e7-e6",
             "g2-g4",
-            "Qd8-h4",  # oh the fool
-            "Ng1-h3",  # white should not be able to do that
-            "Ng8-f6",  # invalid white move (black shouldn't even be able to reach this move)
+            "Qd8-h4",  # Oh the fool...
         ],
     )
     def test_king_check(self, mock_input):
@@ -229,24 +232,11 @@ class TestMoves(TestCase):
         new_game.turn()
         new_game.turn()
         new_game.turn()
-
-    #   NOTE: remember, switch of methods happen at the beginning of the next turn.
-    #   This means we can no longer check for squares during a normal game.
-    #   To do that we need to run an update manually first:
-        new_game.update()
+        new_game.turn()  # This one is without input, white never gets the chance to respond.
 
     #   White should have nowhere to go after the rules update:
-        assert new_game.current.squares() == set()
-
-    #   So lets dump some false moves and see what happens:
-        try:
-            new_game.turn()
-            new_game.turn()
-            assert False  # This should not happen.
-
-    #   Assert board hasn't changed:
-        except StopIteration:
-            assert True  # This should happen, as white could never really move.
+        assert new_game.white.squares() == set()
+        assert new_game.white.checkmate
 
     @patch(
         'builtins.input',
