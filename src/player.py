@@ -169,7 +169,7 @@ class Player:
         prompt = "your turn"
 
         while True:
-            notation = input(f"\033[H\033[15B {self.name}, {prompt}: \033[K")
+            notation = input(f"\033[H\033[15B {self.name}, {prompt}: ")
 
             move = \
                 Promotion.read(notation, self.pieces) or \

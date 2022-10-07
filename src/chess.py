@@ -89,8 +89,6 @@ class Chess:
                 if self.agreement:
                     representation += " by agreement"
 
-                representation += "!\033[K"
-
         #   Checks verify a losing player therefore, but then roles are flipped at the end of the turn.
             elif self.current.victory:
                 representation += f" {self.current.name} won"
@@ -98,9 +96,7 @@ class Chess:
                 if self.opponent.resignation:
                     representation += f" by resignation"
 
-                representation += f"!\033[K"
-
-        representation += "\n"
+        representation += "!\033[K\n"
         representation += "─────────┬───────────────\n"
 
     #   Get material differences:
