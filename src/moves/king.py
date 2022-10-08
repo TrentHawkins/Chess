@@ -59,9 +59,9 @@ class Castle(Move):
         piece: The king that castles.
     """
 
-#   Ask for any ot the piece letters to appear once or nonce (for pawns).
+#   King castle special symbols.
     move_range: ClassVar[str] = "(O-O|O-O-O)[=#]?"
-    notation: ClassVar[Pattern] = compile(move_range)
+    notation_range: ClassVar[Pattern] = compile(move_range)
 
 #   Only a king can castle:
     piece: King = field()  # reference to a king piece
@@ -90,7 +90,7 @@ class Castle(Move):
     @classmethod
     def read(cls, notation: str, king: King):
         f"""{super(Castle, cls).read.__doc__}"""
-        read = cls.notation.match(notation)
+        read = cls.notation_range.match(notation)
 
         if read:
             if "O-O-O" in read.string:

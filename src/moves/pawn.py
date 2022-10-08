@@ -4,7 +4,7 @@ En passant captures are indicated by specifying:
 -   the capturing pawn's file of departure,
 -   the "×", and
 -   the destination square (not the square of the captured pawn)
-
+python
 NOTE: En Passant is a capturing move, and so long we provide a trailing ghost target, no need for special implementation.
 Notation is precisely the same too.
 
@@ -35,6 +35,10 @@ class Jump(Move):
         piece: The pawn to make jump. It is a jump so square is known.
     """
 
+#   Ask for any ot the piece letters to appear once or nonce (for pawns).
+    move_range: ClassVar[str] = "(?:(([a-h])2)-((?:\\2)4))|(?:(([a-h])7)-((?:\\5)5))[=#]?"
+    notation_range: ClassVar[Pattern] = compile(move_range)
+
 #   Jumping is a starting pawn's property.
     piece: Pawn = field()
 
@@ -48,11 +52,20 @@ class Jump(Move):
     @classmethod
     def read(cls, notation: str, pieces: set[Piece]):
         f"""{super(Jump, cls).read.__doc__}"""
-        move = super(Jump, cls).read(notation, pieces)
+        read = cls.notation_range.match(notation)
 
-    #   Mind that the movement gap has to be 2 squares otherwise it is not a jump.
-        if move is not None and not move.piece.has_moved and len(move.square - move.piece.square) > 1:
-            return move
+        if read:
+            for piece in pieces:
+                source = Square(read.group(1) or read.group(4))
+                target = Square(read.group(3) or read.group(6))
+
+            #   Only generate a move object if the right piece is caught:
+                if type(piece) is Pawn and piece.square == source:
+                    move = cls(piece, target, draw="=" in notation, resign="#" in notation)
+
+                #   Only return this move if it is legal too or else we get overlaps:
+                    if move:
+                        return move
 
 
 @dataclass(repr=False)
@@ -65,8 +78,8 @@ class Promotion(Capture, Move):
     """
 
 #   Reading of promotions:
-    move_range: ClassVar[str] = f"({Move.move_range}|{Capture.move_range})=([{Pawn.piece_range}])"
-    notation: ClassVar[Pattern] = compile(move_range)
+    move_range: ClassVar[str] = f"({Move.move_range}|{Capture.move_range})([{Pawn.piece_range}])"
+    notation_range: ClassVar[Pattern] = compile(move_range)
 
     piece: Pawn = field()
     promotionPiece: Type = field()
@@ -87,7 +100,7 @@ class Promotion(Capture, Move):
     @classmethod
     def read(cls, notation: str, pieces: set[Piece]):
         f"""{super(Promotion, cls).read.__doc__}"""
-        read = cls.notation.match(notation)
+        read = cls.notation_range.match(notation)
 
     #   Try to see if input matches a promotion:
         if read:
