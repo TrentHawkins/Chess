@@ -1,9 +1,10 @@
 """A game of chess."""
 
 from datetime import datetime
+from io import TextIOWrapper
 from itertools import zip_longest
 from types import MethodType
-from typing import Iterable
+from typing import TextIO
 
 from .board import Board
 from .move import Move
@@ -24,7 +25,7 @@ class Chess:
         opponent: The other player.
     """
 
-    def __init__(self, board: Board | None = None, black: bool = False):
+    def __init__(self, game_file: str | None = None, board: Board | None = None, black: bool = False):
         """Start a chess game.
 
         Args:
@@ -39,6 +40,9 @@ class Chess:
         """
         print("\033[H\033[J")  # Clear entire screen before procceding.
 
+        self.game: TextIO | None = open(game_file) if game_file is not None else None
+
+    #   A custom or default board for the game.
         self.board: Board = board or Board()
 
     #   White usually starts first, but this player will always be the current one.
@@ -108,8 +112,8 @@ class Chess:
         representation += "─────────┬───────────────\n"
 
     #   Get material differences:
-        self.white.material -= self.black.material
-        self.black.material -= self.white.material - self.black.material
+        self.white.material_difference = self.white.material - self.black.material
+        self.black.material_difference = self.black.material - self.white.material
 
     #   Print captures pieces and material differences for both players:
         representation += f"{self.white}\n"
@@ -247,7 +251,9 @@ class Chess:
         return self.termination
 
     def turn(self):
-        """Advance a turn."""
+        """Advance a turn.
+
+        """
         self.update()
         self.terminate()
 
@@ -259,7 +265,7 @@ class Chess:
             return
 
     #   Make a move tough guy!
-        move = self.current.read()
+        move = self.current.read(self.game)
         self.current(move)
 
     #   Age pieces by one turn (included freshly created ghosts).

@@ -451,7 +451,7 @@ class TestPieces(TestCase):
         tal["e8"], tal["h8"], tal["g8"], tal["f8"] = tal["g8"], tal["f8"], tal["e8"], tal["h8"]
 
     #   A player, designated ONLY after the board is all set to the desired position:
-        tal_game = Chess(tal)
+        tal_game = Chess(board=tal)
 
     #   NOTE: remember, switch of methods happen at the beginning of the next turn.
     #   This means we can no longer check for squares during a normal game.
@@ -580,7 +580,7 @@ class TestPieces(TestCase):
         board["c8"], board["a6"] = board["a6"], board["c8"]
         board["f8"], board["a5"] = board["a5"], board["f8"]
 
-        set_game = Chess(board)
+        set_game = Chess(board=board)
 
         pawn = set_game.board["d2"]
         king = set_game.board["e1"]

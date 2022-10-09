@@ -5,6 +5,7 @@ A game of chess always has two players, but this class will be able to keep trac
 
 from collections import Counter
 from types import MethodType
+from typing import TextIO
 
 from .board import Board
 from .move import Capture, Move
@@ -53,6 +54,7 @@ class Player:
             }
         )
         self.material: int = 0  # Total material in terms of captured pieces' values.
+        self.material_difference: int = self.material  # Material difference with opponent to be set off-line.
 
     #   Keep track of moves made here, indexed by rounds.
         self.history: list[Move] = []
@@ -77,7 +79,7 @@ class Player:
             Players name followed by a color window and captured pieces
         """
         return f"         │ {' '.join(str(piece) for piece in self.captured.keys())}     \n" + \
-        f" {self.name:7s} │ {' '.join(str(count) for count in self.captured.values())} {self.material:+03d} "
+        f" {self.name:7s} │ {' '.join(str(count) for count in self.captured.values())} {self.material_difference:+03d} "
 
     def update(self):
         """Define player-context-sensitive rules for evaluating piece legal moves.
@@ -161,39 +163,71 @@ class Player:
 
         self.resignation = move.resign
 
-    def read(self) -> Move:
+    def read(self, game: TextIO | None = None) -> Move:
         """Read move from standard input with a prompt.
 
         Infinite movement reading till the user gets it right.
 
+        Args:
+            game: Optionally insert a game from file.
+                If the game is incomplete, players can continue the game as is
+                Otherwise, game will be read and engine will exit.
+
+        NOTE: The engine does not support navigating (studying) a game yet.
+        However, reading an incomplete game will allow furthering custom positions without the nedd to break the game engine.
+
         Returns:
             A valid movemement or nothing at all.
         """
-        prompt = "your turn"
+        prompt = "your move"
 
         while True:
-            notation = input(f"\033[H\033[15B {self.name}, {prompt}: \033[K")
+            try:
+                if game is not None and not game.closed:
+                    notation = game.readline()
 
-            move = \
-                Promotion.read(notation, self.pieces) or \
-                Capture  .read(notation, self.pieces) or \
-                Jump     .read(notation, self.pieces) or \
-                Move     .read(notation, self.pieces) or \
-                Castle   .read(notation, self.king)
+                #   If line in game text file is a comment ignore it.
+                    if notation.startswith("#"):
+                        continue
 
-        #   Check move here too to catch the re-try:
-            if move is not None:
-                self.history.append(move)  # Add move to history.
-                self.draw = move.draw  # Delegate draw offer intent or response to player.
+                #   If done reading close the file stream on your way out and never return to this clause.
+                    if notation == "":
+                        game.close()
 
-                print("033[12B")
+                else:
+                    notation = input(f"\033[H\033[15B {self.name}, {prompt}: \033[K")
 
-                return move
+            #   Try and read the move matching one of the expected patterns:
+                move = \
+                    Promotion.read(notation, self.pieces) or \
+                    Capture  .read(notation, self.pieces) or \
+                    Jump     .read(notation, self.pieces) or \
+                    Move     .read(notation, self.pieces) or \
+                    Castle   .read(notation, self.king)
 
-            else:
-                prompt = "try again"
+            #   Check move here too to catch the re-try:
+                if move is not None:
+                    self.history.append(move)  # Add move to history.
+                    self.draw = move.draw  # Delegate draw offer intent or response to player.
 
+                #   print(f"033[{4 + 2 * len(repr(self).splitlines())}B")
+
+                    return move
+
+            #   The move entered is not valid:
+                else:
+                    if game is None or game.closed:
+                        prompt = "try again"
+
+                    continue
+
+        #   Ignore end of file attempts:
+            except EOFError:
                 continue
+
+        #   Abruptly exit the game:
+            except KeyboardInterrupt:
+                exit(f"\033[2DAborted\033[{4 + 2 * len(repr(self).splitlines()) + len(self.history)}B")
 
     def squares(self) -> set[Square]:
         """Get all squares checked by player.
