@@ -163,9 +163,8 @@ class Piece:
         if target is not None:  # If target square is given
             target = Square(target)
 
-        if target in self.squares():
-            self.square = target  # Update the piece's square.
-            self.has_moved = True  # The pawns at their start and kings and rooks for castling use this flag.
+        self.square = target  # Update the piece's square.
+        self.has_moved = True  # The pawns at their start and kings and rooks for castling use this flag.
 
         return self
 

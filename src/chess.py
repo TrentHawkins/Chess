@@ -11,7 +11,7 @@ from .move import Move
 from .piece import Piece
 from .pieces.melee import King
 from .pieces.pawn import Pawn
-from .pieces.ranged import Rook
+from .pieces.ranged import Queen, Rook
 from .player import Player
 from .square import Square
 
@@ -144,9 +144,14 @@ class Chess:
             source = source_piece.square
 
         #   Check if current king is in danger after the move. If it is not, then the move is legit.
-            self.board[source], self.board[target], target_piece = None, source_piece, self.board[target]  # type: ignore
-            king_safe = self.current.king.square not in self.opponent.squares()
-            self.board[target], self.board[source] = target_piece, source_piece  # type: ignore
+            if source is not None:
+                self.board[source], self.board[target], target_piece = None, source_piece, self.board[target]
+                king_safe = self.current.king.square not in self.opponent.squares()
+                self.board[target], self.board[source] = target_piece, source_piece
+
+        #   King is not threatened by captured pieces.
+            else:
+                king_safe = True
 
             return king_safe
 
@@ -206,6 +211,7 @@ class Chess:
 
     #   Defining both castleabilities does not create an infinite recursion.
         self.current.king.castleable = MethodType(king_castleable, self.current.king)
+        self.opponent.king.castleable = MethodType(king_castleable, self.opponent.king)
 
     #   Set opponent's basic rules too:
         self.opponent.update()
@@ -226,7 +232,7 @@ class Chess:
         Returns:
             Global game termination condition.
         """
-        self.current.king.in_check = self.current.king.square in self.opponent.squares()
+        king_in_check = self.current.king.square in self.opponent.squares()
 
     #   Reset draw offers only for current player (to give the chance to opponent player to respond).
         self.agreement = self.current.draw and self.opponent.draw
@@ -234,10 +240,10 @@ class Chess:
 
     #   Set stalemate and checkmate conditions in one place as the relate and need to sync-up.
         self.current.stalemate = self.current.squares() == set()
-        self.current.checkmate = self.current.stalemate and self.current.king.in_check
+        self.current.checkmate = self.current.stalemate and king_in_check
 
     #   HACK: Edit last move as a check move, if no other modifier is added.
-        if self.current.king.in_check and not (self.current.draw or self.opponent.resignation):
+        if king_in_check and not (self.current.draw or self.opponent.resignation):
             self.opponent.history[-1].representation += "†"
 
     #   The final game termination decision compliled:
@@ -257,7 +263,6 @@ class Chess:
         self.update()
         self.terminate()
 
-    #   Update players first with game-context before printing!
         print(self)
 
     #   Attempt to terminate game, before any more moves are input:
@@ -273,8 +278,8 @@ class Chess:
             piece.life += 1
 
         #   Eliminate any out-lived ghost pieces (2 turns).
-            if type(piece) is Piece and piece.life > 1:
-                del self.board[piece.square]  # type: ignore
+            if type(piece) is Piece and piece.square is not None and piece.life > 1:
+                del self.board[piece.square]
 
     #   Prepare for the next turn:
     #   self.board.flipped = not self.board.flipped

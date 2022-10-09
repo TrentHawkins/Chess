@@ -244,16 +244,11 @@ class Board:
         #   Move the rook in-place. King will be moved as normal with the main move.
             self[move.castle], self[move.middle] = None, rook(move.castle)  # type: ignore
 
-    #   If the source piece is in-board and the target square is legit, make the move and switch its has-moved flag.
-        else:
-            if type(move) is Promotion and type(move.piece) is Pawn:
-                move.piece.promote(target, move.promotionPiece)
+    #   If the source piece is is a pawn and is heading for a promotion:
+        if type(move) is Promotion and type(move.piece) is Pawn:
+            move.piece.promote(target, move.promotionPiece)
 
-        #   If move is anything other than a promotion just move the piece.
-            else:
-                move.piece(target)
-
-    #   Make the move. If a castling, this is the king moving in place.
-        self[source], self[target] = None, move.piece  # type: ignore
+    #   In all cases, make the move. If a castling, this is the king moving in place.
+        self[source], self[target] = None, move.piece(target)  # type: ignore
 
         return target_piece

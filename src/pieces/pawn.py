@@ -106,7 +106,6 @@ class Pawn(Piece):
         f"""{super().__call__.__doc__}"""
 
         if Piece in Officer.__args__ and self.can_promote:
-            super().__call__(target)
             self.__class__ = Piece  # Promote pawn without changing any of its other attributes.
 
         return self
