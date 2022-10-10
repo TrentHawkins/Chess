@@ -76,18 +76,18 @@ class Pawn(Piece):
             for step in self.captures:  # For all target squares (diagonally with respect to pawn),
                 square = self.square + step * self.orientation  # Get target,
 
-                if self.capturable(square):  # If said target is inside board limits,
+                if self.capturable(square) and self.king_saved(square):  # If said target has capturable piece and keeps king safe,
                     squares.add(square)  # Add said target to pawn.
 
             square = self.square + self.step * self.orientation  # Get forward square,
 
-            if self.deployable(square):  # If said square is inside board limits,
+            if self.deployable(square) and self.king_saved(square):  # If said target is unblocked and keeps king safe,
                 squares.add(square)  # Add said square to possible moves,
 
                 if not self.has_moved:  # If the pawn is in its starting position,
                     square = self.square + self.jump * self.orientation  # Get next forward square,
 
-                    if self.deployable(square):  # If said square is inside board limits,
+                    if self.deployable(square) and self.king_saved(square):  # If said target is unblocked and keeps king safe,
                         squares.add(square)  # Add the next forward square to possible moves too.
 
         return squares
@@ -102,10 +102,11 @@ class Pawn(Piece):
             and self.square.rank == Square.rank_to_index[str((9 - self.orientation * 5) // 2)]\
             and pawn_square.rank == Square.rank_to_index[str((9 - self.orientation * 7) // 2)]
 
-    def promote(self, target: Square, Piece: Type):
+    def promote(self, square: Square, Piece: Type):
         f"""{super().__call__.__doc__}"""
 
-        if Piece in Officer.__args__ and self.can_promote:
+        if Piece in Officer.__args__ and self.can_promote(square):
+            super().__call__(square)
             self.__class__ = Piece  # Promote pawn without changing any of its other attributes.
 
         return self

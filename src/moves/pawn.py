@@ -78,7 +78,7 @@ class Promotion(Capture, Move):
     """
 
 #   Reading of promotions:
-    move_range: ClassVar[str] = f"({Move.move_range}|{Capture.move_range})([{Pawn.piece_range}])"
+    move_range: ClassVar[str] = f"{Move.move_range}([{Pawn.piece_range}])"
     notation_range: ClassVar[Pattern] = compile(move_range)
 
     piece: Pawn = field()
@@ -95,7 +95,7 @@ class Promotion(Capture, Move):
             for example: e8Q (promoting to queen). In standard FIDE notation, no punctuation is used;
             in Portable Game Notation (PGN) and many publications, pawn promotion is indicated by the equals sign (e8=Q).
         """
-        return super().__repr__() + ("⊜" if self.draw else "🏳" if self.resign else repr(self.promotionPiece))
+        return super().__repr__() + ("⊜" if self.draw else "🏳" if self.resign else self.promotionPiece.symbol)
 
     @classmethod
     def read(cls, notation: str, pieces: set[Piece]):
@@ -105,16 +105,11 @@ class Promotion(Capture, Move):
     #   Try to see if input matches a promotion:
         if read:
             for piece in pieces:
-                promotionPiece = cls.typePiece[read.group(-1)]  # The piece type to promote to is captured last,
+                source = Square(read.group(2))  # The square the piece to move is on.
+                target = Square(read.group(3))  # The square the piece shall move to.
 
-                offset = 3  # Regex group capturing offset due to the presence of "or" in the pattern.
-
-                source = Square(read.group(2)) or Square(read.group(offset + 2))  # The square the piece to move is on.
-                target = Square(read.group(3)) or Square(read.group(offset + 3))  # The square the piece shall move to.
-
-            #   NOTE: OK, who would offer a draw or resign right after promoting a pawn?
-            #   Only generate a move object if the right pawn is caught:
                 if type(piece) is Pawn and piece.square == source:
+                    promotionPiece = cls.typePiece[read.group(4)]  # The piece type to promote to is captured last,
                     move = cls(piece, target, promotionPiece, draw="=" in notation, resign="#" in notation)
 
                 #   Only return this move if it is legal too or else we get overlaps:

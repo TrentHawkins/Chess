@@ -38,12 +38,16 @@ class Ranged(Piece):
             for step in self.steps:  # For all legal directions,
                 square = self.square + step  # Get next square in direction,
 
-                while self.deployable(square):  # If said square is inside board limits,
+                while self.deployable(square):  # If said square is unblocked,
+                    if not self.king_saved(square):  # If said square leaves or puts king in danger,
+                        square += step  # Advance to the next square in said direction.
+                        continue  # Don't add said square, but continue looking ahead!
+
                     squares.add(square)  # Add said square to ranged piece.
                     square += step  # Advance to the next square in said direction.
 
                 if self.capturable(square):  # If the square after last has a capturable piece,
-                    squares.add(square)  # Do not forget to add trailing square to targets.
+                    squares.add(square)  # Do not forget to add said trailing square to targets.
 
         return squares
 

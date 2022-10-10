@@ -41,7 +41,7 @@ class Melee(Piece):
             for step in self.steps:  # For all target squares,
                 square = self.square + step  # Get target,
 
-                if self.deployable(square) or self.capturable(square):  # If said target is inside board limits,
+                if (self.deployable(square) or self.capturable(square)) and self.king_saved(square):  # If target square is legit,
                     squares.add(square)  # Add said target to meleed piece.
 
         return squares
@@ -142,9 +142,10 @@ class King(Melee):
         Returns:
             Whether piece is placeable on target square.
         """
+
         return not self.has_moved \
-            and self.deployable(square) \
-            and self.deployable(square + (square - self.square) // -2)
+            and self.deployable(square) and self.deployable(square + (square - self.square) // -2) \
+            and self.king_saved(square) and self.king_saved(square + (square - self.square) // -2)
 
     def squares(self) -> set[Square]:
         f"""{super().squares.__doc__}"""

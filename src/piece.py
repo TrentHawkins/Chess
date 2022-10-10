@@ -168,6 +168,21 @@ class Piece:
 
         return self
 
+    def king_saved(self, square: Square) -> bool:
+        """Check if king of current player is safe.
+
+        Check for king's safety after proposed move.
+        This will be used for probiding extra context to both deployability and capturability conditions.
+        This method will require simulating the proposed move to check if it passes for king safety.
+
+        Args:
+            square: The source square is `self.square` (not necessary).
+
+        Returns:
+            Whether king of current player is safe.
+        """
+        return True  # The king is apriory safe.
+
     def deployable(self, square: Square) -> bool:
         """Check if current piece is placeable on target square.
 

@@ -122,6 +122,7 @@ class Player:
             return source_piece.__class__.capturable(source_piece, target) and is_not_empty
 
         for piece in self.pieces:
+            piece.king_saved = MethodType(Piece.king_saved, piece)
             piece.deployable = MethodType(piece_deployable, piece)
 
             if type(piece) is Pawn:
@@ -184,7 +185,7 @@ class Player:
         while True:
             try:
                 if game is not None and not game.closed:
-                    notation = game.readline()
+                    notation = game.readline().rstrip()
 
                 #   If line in game text file is a comment ignore it.
                     if notation.startswith("#"):

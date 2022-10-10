@@ -123,9 +123,13 @@ class Chess:
         representation += f" ###   {self.white.name:7s}   {self.black.name:7s} \n"
         representation += "─────╥─────────┬─────────\n"
 
+    #   History display buffer: shows 32 last moves, meaning it forgets the past.
+        buffer = 32
+        offset = max(len(self.white.history) - buffer, 0)
+
     #   Running move history starts here:
-        for round, (white, black) in enumerate(zip_longest(self.white.history, self.black.history)):
-            representation += f" {round+1:03d} ║ {str(white):18s} │ {str(black) if black is not None else '':18s} \n"
+        for round, (white, black) in enumerate(zip_longest(self.white.history[-buffer:], self.black.history[-buffer:])):
+            representation += f" {round + offset + 1:03d} ║ {str(white):18s} │ {str(black) if black is not None else '':18s} \n"
 
         return representation
 
@@ -135,7 +139,7 @@ class Chess:
         This affects current player who needs opponent info to make decisions about movement legallity.
         """
 
-        def king_safe(source_piece: Piece, target: Square):
+        def piece_king_saved(source_piece: Piece, target: Square):
             """Check if king of current player is safe.
 
             Check for king's safety after proposed move.
@@ -161,8 +165,7 @@ class Chess:
 
             is_empty = target_piece is None or type(target_piece) is Piece
 
-            return source_piece.__class__.deployable(source_piece, target) and is_empty and \
-                king_safe(source_piece, target)
+            return source_piece.__class__.deployable(source_piece, target) and is_empty
 
         def piece_capturable(source_piece: Piece, target: Square):
             f"""{source_piece.capturable.__doc__}"""
@@ -171,8 +174,7 @@ class Chess:
             is_not_empty = target_piece is not None and type(target_piece) is not Piece \
                 and source_piece.orientation != target_piece.orientation
 
-            return source_piece.__class__.capturable(source_piece, target) and is_not_empty and \
-                king_safe(source_piece, target)
+            return source_piece.__class__.capturable(source_piece, target) and is_not_empty
 
         def pawn_capturable(source_piece: Pawn, target: Square):
             f"""{source_piece.capturable.__doc__}"""
@@ -181,8 +183,7 @@ class Chess:
             is_not_empty = target_piece is not None \
                 and source_piece.orientation != target_piece.orientation
 
-            return source_piece.__class__.capturable(source_piece, target) and is_not_empty and \
-                king_safe(source_piece, target)
+            return source_piece.__class__.capturable(source_piece, target) and is_not_empty
 
         def king_castleable(current_king: King, target: Square):
             f"""{current_king.castleable.__doc__}"""
@@ -201,6 +202,7 @@ class Chess:
 
     #   Update all pieces in the current player's collection.
         for piece in self.current.pieces:
+            piece.king_saved = MethodType(piece_king_saved, piece)
             piece.deployable = MethodType(piece_deployable, piece)
 
             if type(piece) is Pawn:
@@ -211,7 +213,6 @@ class Chess:
 
     #   Defining both castleabilities does not create an infinite recursion.
         self.current.king.castleable = MethodType(king_castleable, self.current.king)
-        self.opponent.king.castleable = MethodType(king_castleable, self.opponent.king)
 
     #   Set opponent's basic rules too:
         self.opponent.update()
