@@ -111,7 +111,7 @@ class Move:
 #   -   square of piece
 #   -   target of piece
     move_range: ClassVar[str] = \
-        f"([{Piece.piece_range}]?)([{Square.file_range}][{Square.rank_range}])-([{Square.file_range}][{Square.rank_range}])[=#]?"
+        f"([{Square.file_range}][{Square.rank_range}])-([{Square.file_range}][{Square.rank_range}])[=#]?"
     notation_range: ClassVar[Pattern] = compile(move_range)
 
 #   A move is defined by the piece you want to move (and thus the square it is on) and the target square.
@@ -158,13 +158,11 @@ class Move:
     #   Try to see if input matches this type of movement:
         if read:
             for piece in pieces:
-                typePiece = cls.typePiece[read.group(1)]  # The piece type to move is captured first in the regex pattern.
-
-                source = Square(read.group(2))  # The square the piece to move is on is captured next.
-                target = Square(read.group(3))  # The square the piece shall move to is captured next.
+                source = Square(read.group(1))  # The square the piece to move is on is captured next.
+                target = Square(read.group(2))  # The square the piece shall move to is captured next.
 
             #   Only generate a move object if the right piece is caught:
-                if type(piece) is typePiece and piece.square == source:
+                if piece.square == source:
                     move = cls(piece, target, draw="=" in notation, resign="#" in notation)
 
                 #   Only return this move if it is legal too or else we get overlaps:

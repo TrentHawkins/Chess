@@ -233,7 +233,7 @@ class Chess:
         Returns:
             Global game termination condition.
         """
-        king_in_check = self.current.king.square in self.opponent.squares()
+        self.current.king.in_check = self.current.king.square in self.opponent.squares()
 
     #   Reset draw offers only for current player (to give the chance to opponent player to respond).
         self.agreement = self.current.draw and self.opponent.draw
@@ -241,10 +241,10 @@ class Chess:
 
     #   Set stalemate and checkmate conditions in one place as the relate and need to sync-up.
         self.current.stalemate = self.current.squares() == set()
-        self.current.checkmate = self.current.stalemate and king_in_check
+        self.current.checkmate = self.current.stalemate and self.current.king.in_check
 
     #   HACK: Edit last move as a check move, if no other modifier is added.
-        if king_in_check and not (self.current.draw or self.opponent.resignation):
+        if self.current.king.in_check and not (self.current.draw or self.opponent.resignation):
             self.opponent.history[-1].representation += "†"
 
     #   The final game termination decision compliled:
@@ -260,6 +260,24 @@ class Chess:
     def turn(self):
         """Advance a turn.
 
+        Stages of a turn are:
+        -   Update context for both players:
+            -   Augment current player's context with king safety,
+            -   Strip opponent player of king safety controls
+        -   Check termination conditions:
+            -   Draw,
+                -   Mutual agreement,
+                -   Stalemate.
+            -   Resignation,
+            -   Checkmate.
+        -   Print:
+            -   Board state,
+            -   Both player states:
+                -   Captured pieces,
+                -   Material difference.
+            -   Game movement history (buffered).
+        -   Eliminate all outlived ghost pieces (en-passant).
+        -   Flip roles, current player becomes opponent and vice versa.
         """
         self.update()
         self.terminate()

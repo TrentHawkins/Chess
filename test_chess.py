@@ -13,10 +13,10 @@ class TestChess(TestCase):
             "e2-e4",
             "d7-d5",
             "e4-d5",
-            "Nb8-c6",
+            "b8-c6",
             "d5-c6",
-            "Qd8-d2",
-            "Qd1-d2",
+            "d8-d2",
+            "d1-d2",
         ],
     )
     def test_game(self, mock_input):
@@ -75,7 +75,7 @@ class TestChess(TestCase):
             "e7-e5=",  # Black accepts.
             "e2-e4=",  # White offers draw.
             "e7-e5",  # Black rejects.
-            "Ng1-f3",  # White continues.
+            "g1-f3",  # White continues.
         ],
     )
     def test_draw(self, mock_input):
@@ -217,7 +217,7 @@ class TestMoves(TestCase):
             "f2-f3",
             "e7-e6",
             "g2-g4",
-            "Qd8-h4",  # Oh the fool...
+            "d8-h4",  # Oh the fool...
         ],
     )
     def test_king_check(self, mock_input):
@@ -249,7 +249,7 @@ class TestMoves(TestCase):
             "e5-e6",
             "a5-a4",
             "e6-d7",  # check
-            "Ke8-d7",  # this the only logical move
+            "e8-d7",  # this the only logical move
         ],
     )
     def test_king_check_with_pawn(self, mock_input):
@@ -285,12 +285,12 @@ class TestMoves(TestCase):
         side_effect=[
             "e2-e4",  # white's king's opening
             "e7-e5",  # black's response
-            "Ng1-f3",  # white tries to open up short castling with knight first attacking black's pawn
-            "Nb8-c6",  # black defends pawn with knight
-            "Bf1-c4",  # white opens up short castling with bishop
-            "Ng8-f6",  # black tries to delay white's castling by attacking hanging pawn with knight
+            "g1-f3",  # white tries to open up short castling with knight first attacking black's pawn
+            "b8-c6",  # black defends pawn with knight
+            "f1-c4",  # white opens up short castling with bishop
+            "g8-f6",  # black tries to delay white's castling by attacking hanging pawn with knight
             "O-O",  # white castles short anyways
-            "Nf6-e4",  # white loses hanging pawn to black's knight
+            "f6-e4",  # white loses hanging pawn to black's knight
         ],
     )
     def test_castling_in_game(self, mock_input):
@@ -345,8 +345,8 @@ class TestMoves(TestCase):
             "c7-c5",
             "e4-e5",
             "d7-d5",
-            "Ng1-f3",  # Play something else
-            "Nb8-c6",  # Black continues
+            "g1-f3",  # Play something else
+            "b8-c6",  # Black continues
         ],
     )
     def test_en_passant(self, mock_input):

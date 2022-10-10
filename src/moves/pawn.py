@@ -105,11 +105,11 @@ class Promotion(Capture, Move):
     #   Try to see if input matches a promotion:
         if read:
             for piece in pieces:
-                source = Square(read.group(2))  # The square the piece to move is on.
-                target = Square(read.group(3))  # The square the piece shall move to.
+                source = Square(read.group(1))  # The square the piece to move is on.
+                target = Square(read.group(2))  # The square the piece shall move to.
 
                 if type(piece) is Pawn and piece.square == source:
-                    promotionPiece = cls.typePiece[read.group(4)]  # The piece type to promote to is captured last,
+                    promotionPiece = cls.typePiece[read.group(3)]  # The piece type to promote to is captured last,
                     move = cls(piece, target, promotionPiece, draw="=" in notation, resign="#" in notation)
 
                 #   Only return this move if it is legal too or else we get overlaps:
