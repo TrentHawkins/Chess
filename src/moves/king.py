@@ -83,8 +83,8 @@ class Castle(Move):
     def __repr__(self):
         """Notation for castle moves."""
         return {
-            Vector(0, +2): "\033[00;0mO-O\033[0m",
-            Vector(0, -2): "\033[00;0mO-O-O\033[0m",
+            Vector(0, +2): " \033[00;0mO-O\033[0m",
+            Vector(0, -2): " \033[00;0mO-O-O\033[0m",
         }[self.step] + ("⊜" if self.draw else "🏳" if self.resign else "")
 
     @classmethod
