@@ -78,8 +78,34 @@ class Player:
         Returns:
             Players name followed by a color window and captured pieces
         """
-        return f"         │ {' '.join(str(piece) for piece in self.captured.keys())}     \n" + \
-        f" {self.name:7s} │ {' '.join(str(count) for count in self.captured.values())} {self.material_difference:+03d} "
+        return f"│         │ {' '.join(str(piece) for piece in self.captured.keys())}     │\n" + \
+        f"│ {self.name:7s} │ {' '.join(str(count) for count in self.captured.values())} {self.material_difference:+03d} │"
+
+    def __call__(self, move: Move):
+        """Move the source piece to target square if move is valid.
+
+        Jumps should be checked here, because a ghost piece of the same color as the player must be generated with them.
+
+        Args:
+            move: The move to make.
+        """
+        target_piece = self.board(move)  # Make the move.
+
+        if type(move) is Jump:
+            self.board[move.middle] = Piece(self.orientation)  # This will have to go on the next round (2 turns).
+
+    #   NOTE: The en-passant can only be detected by type-checking, as it is otherwise a normal capture.
+        if type(target_piece) is Piece:  # If target piece is a ghost,
+            if type(move.piece) is Pawn:  # If it is a pawn targeting it en-passant,
+                target = move.square + move.piece.step * target_piece.orientation
+
+                target_piece, self.board[target] = self.board[target], None
+
+    #   If there was a opponent piece there, properly dispose of it.
+        if target_piece is not None:
+            self.captured[target_piece] += 1
+
+        self.resignation = move.resign
 
     def update(self):
         """Define player-context-sensitive rules for evaluating piece legal moves.
@@ -138,32 +164,6 @@ class Player:
     #   Count material off-line to allow contextual editing (to make this a material difference).
         self.material = sum(piece.value * count for piece, count in self.captured.items())
 
-    def __call__(self, move: Move):
-        """Move the source piece to target square if move is valid.
-
-        Jumps should be checked here, because a ghost piece of the same color as the player must be generated with them.
-
-        Args:
-            move: The move to make.
-        """
-        target_piece = self.board(move)  # Make the move.
-
-        if type(move) is Jump:
-            self.board[move.middle] = Piece(self.orientation)  # This will have to go on the next round (2 turns).
-
-    #   NOTE: The en-passant can only be detected by type-checking, as it is otherwise a normal capture.
-        if type(target_piece) is Piece:  # If target piece is a ghost,
-            if type(move.piece) is Pawn:  # If it is a pawn targeting it en-passant,
-                target = move.square + move.piece.step * target_piece.orientation
-
-                target_piece, self.board[target] = self.board[target], None
-
-    #   If there was a opponent piece there, properly dispose of it.
-        if target_piece is not None:
-            self.captured[target_piece] += 1
-
-        self.resignation = move.resign
-
     def read(self, game: TextIO | None = None) -> Move:
         """Read move from standard input with a prompt.
 
@@ -184,19 +184,21 @@ class Player:
 
         while True:
             try:
+                notation = input(f"\033[H\033[15B {self.name}, {prompt}: \033[K")
+
+            #   Load game move by move.
                 if game is not None and not game.closed:
-                    notation = game.readline().rstrip()
-
-                #   If line in game text file is a comment ignore it.
-                    if notation.startswith("#"):
-                        continue
-
-                #   If done reading close the file stream on your way out and never return to this clause.
                     if notation == "":
+                        notation = game.readline().rstrip()
+
+                #   If custom move is input, drop reading the game and continue playing normally.
+                    else:
                         game.close()
 
-                else:
-                    notation = input(f"\033[H\033[15B {self.name}, {prompt}: \033[K")
+                #   If line in game text file is a comment ignore it.
+                #   FIXME: This does not work as inteded. User has to press enter to skip comment lines.
+                #   if notation.startswith("#"):
+                #       continue
 
             #   Try and read the move matching one of the expected patterns:
                 move = \

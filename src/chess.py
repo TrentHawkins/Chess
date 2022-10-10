@@ -1,8 +1,8 @@
 """A game of chess."""
 
 from datetime import datetime
-from io import TextIOWrapper
-from itertools import zip_longest
+from itertools import cycle, zip_longest
+from shutil import get_terminal_size
 from types import MethodType
 from typing import TextIO
 
@@ -69,6 +69,9 @@ class Chess:
                 self.board.flipped = True
                 self.current, self.opponent = self.opponent, self.current
 
+    #   Three dots graphic:
+        self.dots = cycle("." * times for times in range(19))
+
     def __repr__(self):
         """ Representation of a game.
 
@@ -81,35 +84,36 @@ class Chess:
         """
         representation = "\033[H"  # Reset printing head.
 
-        representation += f"CHESS {datetime.today().replace(microsecond=0)}\n"
-        representation += "═════════════════════════\n"
+        representation += f" CHESS {datetime.today().replace(microsecond=0)} \n"
         representation += f"{self.board}\n"  # Lets see the board!
-        representation += "═════════════════════════\n"
 
     #   Check winning conditions before draw conditions, as some as subset to winning conditions.
     #   For example, stalemate is always true for checkmate, so it must be checked last.
         if self.termination:
             if self.draw:
-                representation += " Game draw"
+                representation += " Game drawn"
 
                 if self.agreement:
-                    representation += " by agreement"
+                    representation += " by agreement!"
 
                 elif self.current.stalemate:
-                    representation += " by stalemate"
+                    representation += " by stalemate!"
 
             else:
                 representation += f" {self.current.name} won"
 
                 if self.opponent.resignation:
-                    representation += f" by resignation"
+                    representation += f" by resignation!"
 
                 elif self.current.checkmate:
-                    representation += f" by checkmate"
+                    representation += f" by checkmate!"
+
+    #   else:
+    #       representation += f" Loading{next(self.dots)}"
 
     #   Clear the line in case there are player move prompt left-overs:
-        representation += "!\033[K\n"
-        representation += "─────────┬───────────────\n"
+        representation += f"\033[K\n"
+        representation += "┌─────────┬───────────────┐\n"
 
     #   Get material differences:
         self.white.material_difference = self.white.material - self.black.material
@@ -119,17 +123,31 @@ class Chess:
         representation += f"{self.white}\n"
         representation += f"{self.black}\n"
 
-        representation += "─────────┴───────────────\n"
-        representation += f" ###   {self.white.name:7s}   {self.black.name:7s} \n"
-        representation += "─────╥─────────┬─────────\n"
+        representation += "└─────────┴───────────────┘\n"
+        representation += f"  ###   {self.white.name:7s}   {self.black.name:7s}  \n"
+        representation += "┌─────╥─────────┬─────────┐\n"
 
     #   History display buffer: shows 32 last moves, meaning it forgets the past.
-        buffer = 32
+        buffer = get_terminal_size().lines - 32
         offset = max(len(self.white.history) - buffer, 0)
 
     #   Running move history starts here:
-        for round, (white, black) in enumerate(zip_longest(self.white.history[-buffer:], self.black.history[-buffer:])):
-            representation += f" {round + offset + 1:03d} ║ {str(white):18s} │ {str(black) if black is not None else '':18s} \n"
+        for round, (white, black) in enumerate(
+            list(
+                zip_longest(
+                    self.white.history,
+                    self.black.history,
+                )
+            )[-buffer:]
+        ):
+            if black is not None:
+                representation += f"│ {round + offset + 1:03d} ║ {str(white):18s} │ {str(black):18s} │\n"
+
+            else:
+                representation += f"│ {round + offset + 1:03d} ║ {str(white):18s} │         │\n"
+
+    #   The end:
+        representation += "└─────╨─────────┴─────────┘\n"
 
         return representation
 

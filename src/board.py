@@ -104,12 +104,14 @@ class Board:
 
         representation = ""
 
+        representation += "╔═════════════════════════╗\n"
+        representation += "║ ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖ ║\n"
+
         if self.flipped:
-            representation += " ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖ \n"
-            representation += " ▐▌  H G F E D C B A  ▐▌ \n"
+            representation += "║ ▐▌  H G F E D C B A  ▐▌ ║\n"
 
             for index, rank in enumerate(reversed(self.pieces)):
-                representation += " ▐▌" + str(index + 1) + next(border_color)
+                representation += "║ ▐▌" + str(index + 1) + next(border_color)
                 representation += (
                     next(square_color) + str(rank[7]) + next(edge_color) +
                     next(square_color) + str(rank[6]) + next(edge_color) +
@@ -120,19 +122,17 @@ class Board:
                     next(square_color) + str(rank[1]) + next(edge_color) +
                     next(square_color) + str(rank[0])
                 )
-                representation += next(border_color) + str(index + 1) + "▐▌ \n"
+                representation += next(border_color) + str(index + 1) + "▐▌ ║\n"
 
                 next(square_color)  # Flip colors for next rank to make a checkerboard.
 
-            representation += " ▐▌  H G F E D C B A  ▐▌ \n"
-            representation += " ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘ \n"
+            representation += "║ ▐▌  H G F E D C B A  ▐▌ ║\n"
 
         else:
-            representation += " ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖ \n"
-            representation += " ▐▌  A B C D E F G H  ▐▌ \n"
+            representation += "║ ▐▌  A B C D E F G H  ▐▌ ║\n"
 
             for index, rank in enumerate(self.pieces):
-                representation += " ▐▌" + str(Square.index_to_rank[index]) + next(border_color)
+                representation += "║ ▐▌" + str(Square.index_to_rank[index]) + next(border_color)
                 representation += (
                     next(square_color) + str(rank[0]) + next(edge_color) +
                     next(square_color) + str(rank[1]) + next(edge_color) +
@@ -143,12 +143,14 @@ class Board:
                     next(square_color) + str(rank[6]) + next(edge_color) +
                     next(square_color) + str(rank[7])
                 )
-                representation += next(border_color) + str(Square.index_to_rank[index]) + "▐▌ \n"
+                representation += next(border_color) + str(Square.index_to_rank[index]) + "▐▌ ║\n"
 
                 next(square_color)  # Flip colors for next rank to make a checkerboard.
 
-            representation += " ▐▌  A B C D E F G H  ▐▌ \n"
-            representation += " ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘ "
+            representation += "║ ▐▌  A B C D E F G H  ▐▌ ║\n"
+
+        representation += "║ ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘ ║\n"
+        representation += "╚═════════════════════════╝"
 
         return representation.replace("None", "\033[8m🨅\033[0m")
 
