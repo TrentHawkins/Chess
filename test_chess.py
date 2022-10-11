@@ -1,5 +1,6 @@
 """Unit tests for the Chess project."""
 
+
 from unittest import TestCase
 from unittest.mock import patch  # To mock user input for interactive tests.
 

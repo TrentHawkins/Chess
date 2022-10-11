@@ -5,6 +5,7 @@ Of the 6 type of chess pieces pawns are special:
         Captures diagonally. Can en-pasant. Can be promoted to a higher value piece at the end of a player's board. Worth 1.
 """
 
+
 from dataclasses import dataclass
 from typing import ClassVar, Type
 

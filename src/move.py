@@ -56,6 +56,7 @@ Long algebraic notation
     which is a common way for graphical chess programs to communicate with chess engines (e.g., for AI).
 """
 
+
 from dataclasses import dataclass, field
 from re import Pattern, compile
 from typing import ClassVar

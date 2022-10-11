@@ -14,6 +14,7 @@ Pawn promotion
     in Portable Game Notation (PGN) and many publications, pawn promotion is indicated by the equals sign (e8=Q).
 """
 
+
 from dataclasses import dataclass, field
 from re import Pattern, compile
 from typing import ClassVar, Type

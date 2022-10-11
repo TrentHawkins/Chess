@@ -25,6 +25,7 @@ Checkmate
     Checkmate at the completion of moves is represented by the symbol "‡".
 """
 
+
 from dataclasses import dataclass, field
 from re import Pattern, compile
 from typing import ClassVar

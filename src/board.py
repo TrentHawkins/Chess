@@ -3,6 +3,7 @@
 Referencing with chess algebraic notation is possible.
 """
 
+
 from itertools import cycle
 from typing import Generator
 

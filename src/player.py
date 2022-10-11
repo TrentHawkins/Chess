@@ -3,6 +3,7 @@
 A game of chess always has two players, but this class will be able to keep track of each player stats in a meaningful way.
 """
 
+
 from collections import Counter
 from types import MethodType
 from typing import TextIO

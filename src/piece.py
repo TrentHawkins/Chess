@@ -32,6 +32,7 @@ Naming the pieces
     In both standard algebraic notation and FAN, pawns are not identified by a letter or symbol,but rather by the absence of one.
 """
 
+
 from dataclasses import dataclass
 from enum import IntEnum
 from itertools import combinations

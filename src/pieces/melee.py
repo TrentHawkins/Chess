@@ -8,6 +8,7 @@ Of the 6 type of chess pieces the following are melee units:
 Remember pawns are kind of special.
 """
 
+
 from dataclasses import dataclass
 from itertools import product
 from typing import ClassVar

@@ -1,5 +1,6 @@
 """This is it folks. Lets play."""
 
+
 from sys import argv
 
 from src.chess import Chess

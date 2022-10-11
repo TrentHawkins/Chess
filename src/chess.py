@@ -1,5 +1,6 @@
 """A game of chess."""
 
+
 from datetime import datetime
 from itertools import cycle, zip_longest
 from shutil import get_terminal_size

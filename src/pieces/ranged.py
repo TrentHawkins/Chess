@@ -6,6 +6,7 @@ Of the 6 type of chess pieces the following are units with range:
     Queen: Moves both like a rook and bishop. Worth 9.
 """
 
+
 from dataclasses import dataclass
 from typing import ClassVar
 
