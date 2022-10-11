@@ -19,6 +19,20 @@ from .pieces.ranged import Bishop, Queen, Rook
 from .square import Square
 
 
+def post_game_prompt(prefix: str = ""):
+    try:
+        input(f"\033[2D{prefix}")
+
+    except (
+        KeyboardInterrupt,
+        EOFError,
+    ):
+        pass
+
+    finally:
+        return
+
+
 class Player:
     """A player.
 
@@ -31,15 +45,15 @@ class Player:
             NOTE: All captured pieces are expected to have `square == None` making them distinct only by type.
     """
 
-    def __init__(self, name: str, color: str, board: Board):
+    def __init__(self, color: str, board: Board, name: str | None = None):
         """Create collections for player.
 
         Args:
             name: The player's name.
+                default: Prompt user for it
             color: The color of the player's pieces.
             board: The board this player is playing on.
         """
-        self.name: str = name
         self.orientation: Orientation = Orientation[color]  # The allegiance of the player.
         self.board: Board = board  # The board this player is playing on.
 
@@ -70,6 +84,13 @@ class Player:
         for piece in self.pieces:
             if type(piece) is King:
                 self.king: King = piece
+
+    #   Set player name last for beautiful annotation:
+        self.name: str = name or input(f"\033[AEnter name for {self.king} (up to 4 characters): \033[K")
+        self.name = self.name[:4] if self.name != "" else {
+            "white": "Foo",
+            "black": "Bar",
+        }[color]  # Trim down to 4 characters
 
     def __repr__(self):
         """Represent a player by name and captured pieces.
@@ -165,7 +186,7 @@ class Player:
     #   Count material off-line to allow contextual editing (to make this a material difference).
         self.material = sum(piece.value * count for piece, count in self.captured.items())
 
-    def read(self, game: TextIO | None = None) -> Move:
+    def read(self, game: TextIO | None = None) -> Move | None:
         """Read move from standard input with a prompt.
 
         Infinite movement reading till the user gets it right.
@@ -231,7 +252,8 @@ class Player:
 
         #   Abruptly exit the game:
             except KeyboardInterrupt:
-                exit(f"\033[2DAborted\033[{4 + 2 * len(repr(self).splitlines()) + len(self.history)}B")
+                post_game_prompt("Aborted")
+                return
 
     def squares(self) -> set[Square]:
         """Get all squares checked by player.

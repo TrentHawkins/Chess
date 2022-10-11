@@ -17,27 +17,23 @@ Features supported include:
 
 # Usage
 
-## Playing a new game
-
 Run from root of repository with:
 
 ```sh
 python $(cwd)/main.py
 ```
+A menu will appear that has three choices:
+-   `NEW GAME`: Start a new game from scratch,
+-   `LOAD GAME`: Replay an annotated game, and continue from whichever point wished.
+-   `EXIT`: It is self-explanatory.
 
-You should be seeing the folowing screen:
-
-![](README/new_game.png)
+## Playing a new game
 
 The prompt accepts move commands in the form that designates a source square (that the piece we want to move is on) and a target square, the square we wish the piece to move to.
 
 The regex pattern for reading moves `[a-h][1-8]-[a-h][1-8][BNRQ=#]?`. The output displayed in the move history is a graphical variation of the [Chess long notation](https://en.wikipedia.org/wiki/Algebraic_notation_(chess)#Long_algebraic_notation).
 
-The engine prevents illegal moves from being made. If such a move is inputed, the engine will re-ask for a new move:
-
-![](README/try_again.png)
-
-This includes dynamic rules, like movement blocks, or prohibitions due to king checks.
+The engine prevents illegal moves from being made. If such a move is inputed, the engine will re-ask for a new move. This includes dynamic rules, like movement blocks, or prohibitions due to king checks.
 
 ### Pawn promotion
 
@@ -67,4 +63,4 @@ As soon as the game ends, the application exits with the last output printed.
 
 A file with a move per line following the aforementioned regex pattern may be used to load a game and prescribe it move by move. The interface looks the same, but by pressing `Enter`, it will advance a move in the history provided by the file.
 
-You may interrupt the file reading by entering a move of your own, instead of just pressing `Enter`, in which case the game will enter in "New game" mode. This way you can alway continue a saved game from any point you want as an alternative.
+You may interrupt the file reading by entering a move of your own, instead of just pressing `Enter`, in which case the game will enter in "new game" mode. This way you can alway continue a saved game from any point you want as an alternative.

@@ -8,12 +8,11 @@ from types import MethodType
 from typing import TextIO
 
 from .board import Board
-from .move import Move
 from .piece import Piece
 from .pieces.melee import King
 from .pieces.pawn import Pawn
-from .pieces.ranged import Queen, Rook
-from .player import Player
+from .pieces.ranged import Rook
+from .player import Player, post_game_prompt
 from .square import Square
 
 
@@ -39,16 +38,14 @@ class Chess:
             At the same time, pieces may not expose the king to a check willfully.
             Finally if king does come under check, no piece moves are allowed other than the ones protecting the king.
         """
-        print("\033[H\033[J")  # Clear entire screen before procceding.
-
         self.game: TextIO | None = open(game_file) if game_file is not None else None
 
     #   A custom or default board for the game.
         self.board: Board = board or Board()
 
     #   White usually starts first, but this player will always be the current one.
-        self.current: Player = Player("Foo", "white", self.board)  # input("Enter player name for white: ")
-        self.opponent: Player = Player("Bar", "black", self.board)  # input("Enter player name for black: ")
+        self.current: Player = Player("white", self.board)
+        self.opponent: Player = Player("black", self.board)
 
     #   Keep track of who is black and white:
         self.white: Player = self.current
@@ -73,6 +70,9 @@ class Chess:
     #   Three dots graphic:
         self.dots = cycle("." * times for times in range(19))
 
+    #   Clear entire screen after procceding.
+        print("\033[H\033[J")
+
     def __repr__(self):
         """ Representation of a game.
 
@@ -86,7 +86,7 @@ class Chess:
         representation = "\033[H"  # Reset printing head.
 
         representation += f" CHESS {datetime.today().replace(microsecond=0)} \n"
-        representation += f"{self.board}\n"  # Lets see the board!
+        representation += f"{self.board}\033[s\n"  # Lets see the board!
 
     #   Check winning conditions before draw conditions, as some as subset to winning conditions.
     #   For example, stalemate is always true for checkmate, so it must be checked last.
@@ -129,7 +129,7 @@ class Chess:
         representation += "┌─────╥─────────┬─────────┐\n"
 
     #   History display buffer: shows 32 last moves, meaning it forgets the past.
-        buffer = get_terminal_size().lines - 32
+        buffer: int = get_terminal_size().lines - 26
         offset = max(len(self.white.history) - buffer, 0)
 
     #   Running move history starts here:
@@ -148,7 +148,7 @@ class Chess:
                 representation += f"│ {round + offset + 1:03d} ║ {str(white):18s} │         │\n"
 
     #   The end:
-        representation += "└─────╨─────────┴─────────┘\n"
+        representation += "└─────╨─────────┴─────────┘\n\033[u"
 
         return representation
 
@@ -305,10 +305,18 @@ class Chess:
 
     #   Attempt to terminate game, before any more moves are input:
         if self.termination:
+            post_game_prompt()
             return
 
     #   Make a move tough guy!
         move = self.current.read(self.game)
+
+    #   If move terminates game, exit the game:
+        if move is None:
+            self.termination = True
+            return
+
+    #   Make the move!
         self.current(move)
 
     #   Age pieces by one turn (included freshly created ghosts).
