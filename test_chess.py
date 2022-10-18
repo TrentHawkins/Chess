@@ -25,7 +25,10 @@ class TestChess(TestCase):
         from src.chess import Chess
 
     #   Some game-breaking game:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
     #   Start rolling:
         new_game.turn()
@@ -51,7 +54,10 @@ class TestChess(TestCase):
         from src.chess import Chess
 
     #   In this game, white resigns:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
     #   Execute game:
         new_game.turn()
@@ -61,7 +67,10 @@ class TestChess(TestCase):
         assert new_game.white.resignation
 
     #   In this game, black resigns:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
     #   Execute game:
         new_game.turn()
@@ -88,7 +97,10 @@ class TestChess(TestCase):
         from src.chess import Chess
 
     #   In this game, white offers truce and black accepts:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
     #   Execute game:
         new_game.turn()
@@ -100,7 +112,10 @@ class TestChess(TestCase):
         assert new_game.agreement
 
     #   In this game, white offers truce and black rejects:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
     #   Execute game:
         new_game.turn()
@@ -120,7 +135,10 @@ class TestPlayer(TestCase):
         from src.chess import Chess
         from src.move import Capture, Move
 
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
         white_pawn = new_game.board["e2"]
         new_game.white(Move(white_pawn, "e4"))  # type: ignore  # The most famous opening move in the history of chess!
@@ -185,7 +203,10 @@ class TestBoard(TestCase):
         from src.pieces.pawn import Pawn
         from src.pieces.ranged import Bishop, Queen, Rook
 
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
     #   White pieces:
         assert new_game.current.pieces == {
@@ -230,7 +251,10 @@ class TestMoves(TestCase):
         from src.chess import Chess
 
     #   A fool's game:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
     #   Play 2 rounds (4 turns) leading to check(mate):
         new_game.turn()
@@ -262,7 +286,10 @@ class TestMoves(TestCase):
         from src.chess import Chess, Square
 
     #   A custom fools' game:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
     #   Play 3 rounds (6 turns) leading to white's checkmate:
         new_game.turn()
@@ -305,7 +332,10 @@ class TestMoves(TestCase):
         from src.square import Square
 
     #   New game:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
     #   Save the board:
         board = new_game.board
@@ -361,7 +391,10 @@ class TestMoves(TestCase):
         from src.square import Square
 
     #   A test game with en-passant happening:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
         white_pawn = new_game.board["e2"]
         black_pawn = new_game.board["d7"]
@@ -388,7 +421,10 @@ class TestMoves(TestCase):
         assert white_pawn.square is None and white_pawn in new_game.opponent.captured
 
     #   A test game with en-passant being skipped:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
         white_pawn = new_game.board["e2"]
         black_pawn = new_game.board["d7"]
@@ -456,7 +492,11 @@ class TestPieces(TestCase):
         tal["e8"], tal["h8"], tal["g8"], tal["f8"] = tal["g8"], tal["f8"], tal["e8"], tal["h8"]
 
     #   A player, designated ONLY after the board is all set to the desired position:
-        tal_game = Chess(board=tal)
+        tal_game = Chess(
+            white="Foo",
+            black="Bar",
+            board=tal,
+        )
 
     #   NOTE: remember, switch of methods happen at the beginning of the next turn.
     #   This means we can no longer check for squares during a normal game.
@@ -585,7 +625,11 @@ class TestPieces(TestCase):
         board["c8"], board["a6"] = board["a6"], board["c8"]
         board["f8"], board["a5"] = board["a5"], board["f8"]
 
-        set_game = Chess(board=board)
+        set_game = Chess(
+            white="Foo",
+            black="Bar",
+            board=board,
+        )
 
         pawn = set_game.board["d2"]
         king = set_game.board["e1"]
@@ -623,7 +667,11 @@ class TestPieces(TestCase):
         board["h8"] = Rook("black")
 
     #   Make new game with custom position.
-        new_game = Chess(board=board)
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+            board=board,
+        )
 
     #   HACK: This will invoke moves manually without turn-taking, so prep white as current player and black as opponent.
     #   If this update is not run, white will not have current's game context rules and black won't have opponent's either.

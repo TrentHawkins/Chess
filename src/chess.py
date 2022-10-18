@@ -25,7 +25,14 @@ class Chess:
         opponent: The other player.
     """
 
-    def __init__(self, game_file: str | None = None, board: Board | None = None, black: bool = False):
+    def __init__(
+        self,
+        game_file: str | None = None,
+        white: str | None = None,
+        black: str | None = None,
+        board: Board | None = None,
+        reversed: bool = False
+    ):
         """Start a chess game.
 
         Args:
@@ -44,8 +51,8 @@ class Chess:
         self.board: Board = board or Board()
 
     #   White usually starts first, but this player will always be the current one.
-        self.current: Player = Player("white", self.board, name="Foo")
-        self.opponent: Player = Player("black", self.board, name="Bar")
+        self.current: Player = Player("white", self.board, name=white)
+        self.opponent: Player = Player("black", self.board, name=black)
 
     #   Keep track of who is black and white:
         self.white: Player = self.current
@@ -63,7 +70,7 @@ class Chess:
                     piece.has_moved = True
 
         #   Switch to blacks turn in a custom position starting with black.
-            if black:
+            if reversed:
                 self.board.flipped = True
                 self.current, self.opponent = self.opponent, self.current
 
