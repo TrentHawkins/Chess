@@ -9,7 +9,7 @@ Naming the squares
 """
 
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from re import Pattern, compile
 from typing import ClassVar
 
@@ -35,8 +35,8 @@ class Vector:
         *: Scale displacements conformally.
     """
 
-    rank: Rank
-    file: File
+    rank: Rank = field()
+    file: File = field()
 
     def __add__(self, other):
         """Vector addition."""
@@ -146,10 +146,10 @@ class Square(Vector):
                     file,
                 )
 
-            case str():
+            case str(notation):
                 super().__init__(
-                    Square.rank_to_index[square[1]],
-                    Square.file_to_index[square[0]],
+                    Square.rank_to_index[notation[1]],
+                    Square.file_to_index[notation[0]],
                 )
 
     def __repr__(self):
@@ -159,8 +159,8 @@ class Square(Vector):
             The rank and file of square in chess notation.
         """
         return (
-            Square.index_to_file[self.file] +
-            Square.index_to_rank[self.rank]
+            Square.index_to_file[self.file].upper() +
+            Square.index_to_rank[self.rank].upper()
         )
 
     def __add__(self, other: Vector):

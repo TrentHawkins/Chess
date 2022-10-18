@@ -14,16 +14,24 @@ This implementation attempts at abstracting the castling logic to its fundamenta
     This requires a context at `board` level redefintion of the `deployable` function.
 
 The king checking and checkmating are only wrapped here, evaluation is delayed till game context is available.
+
+Check
+    A move that places the opponent's king in check usually has the symbol "†" appended.
+
+Stalemate
+    Stalemate has no notation on move level, game simply ends.
+
+Checkmate
+    Checkmate at the completion of moves is represented by the symbol "‡".
 """
 
-from dataclasses import dataclass
+
+from dataclasses import dataclass, field
 from re import Pattern, compile
 from typing import ClassVar
 
 from ..move import Move
-from ..piece import Piece
 from ..pieces.melee import King
-from ..pieces.ranged import Rook
 from ..square import Square, Vector
 
 
@@ -52,15 +60,23 @@ class Castle(Move):
         piece: The king that castles.
     """
 
-#   Ask for any ot the piece letters to appear once or nonce (for pawns).
-    move_range: ClassVar[str] = "O-O|O-O-O"
-    notation: ClassVar[Pattern] = compile(move_range)
+#   King castle special symbols.
+    move_range: ClassVar[str] = "(O-O|O-O-O)[=#]?"
+    notation_range: ClassVar[Pattern] = compile(move_range)
 
-    piece: King  # reference to a king piece
+#   Only a king can castle:
+    piece: King = field()  # reference to a king piece
+
+#   Castling requires two extra squares to define, the origin of the paired rook and its destination.
+    step: Square = field(init=False)
+
+    castle: Square = field(init=False)
+    middle: Square = field(init=False)
 
     def __post_init__(self):
-        """Set up the castling relevant squares."""
-        self.step = self.square - self.piece.square
+        super().__post_init__()
+
+        self.step = self.square - self.piece.square  # type: ignore
 
         self.castle = self.piece.square + self.piece.castles[self.step]  # type: ignore
         self.middle = self.piece.square + self.step // 2  # type: ignore
@@ -68,44 +84,29 @@ class Castle(Move):
     def __repr__(self):
         """Notation for castle moves."""
         return {
-            Vector(0, +2): "O-O",
-            Vector(0, -2): "O-O-O",
-        }[self.step]
+            Vector(0, +2): " \033[00;0mO-O\033[0m",
+            Vector(0, -2): " \033[00;0mO-O-O\033[0m",
+        }[self.step] + ("⊜" if self.draw else "🏳" if self.resign else "")
 
     @classmethod
-    def read(cls, move: str, king: King):
+    def read(cls, notation: str, king: King):
         f"""{super(Castle, cls).read.__doc__}"""
-        read = cls.notation.match(move)
+        read = cls.notation_range.match(notation)
 
         if read:
-            if read.string == "O-O":
-                return cls(king, king.square + king.short)  # type: ignore
+            if "O-O-O" in read.string:
+                move = cls(king, king.square + king.other, draw="=" in notation, resign="#" in notation)  # type: ignore
 
-            if read.string == "O-O-O":
-                return cls(king, king.square + king.other)  # type: ignore
+            else:
+                move = cls(king, king.square + king.short, draw="=" in notation, resign="#" in notation)  # type: ignore
 
-    def is_legal(self) -> bool:
+            if move:
+                return move
+
+    def __bool__(self) -> bool:
         """Check if castling with the two pieces is still possible.
 
         Returns:
             Whether castling with the two pieces is still possible.
         """
         return self.piece.castleable(self.square)
-
-
-@dataclass(repr=False)
-class Check(Move):
-    """A move that checks the opposing king.
-
-    This particular king of move will require context from the game, so evaluation is delayed.
-    """
-    ...
-
-
-@dataclass(repr=False)
-class Checkmate(Check):
-    """A move that checks the opposing king.
-
-    This particular king of move will require context from the game, so evaluation is delayed.
-    """
-    ...
