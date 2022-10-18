@@ -40,8 +40,10 @@ class TestChess(TestCase):
         'builtins.input',
         side_effect=[
             "e2-e4#",  # White resigns.
+            "",
             "e2-e4",
             "e7-e5#",  # Black resigns.
+            "",
         ],
     )
     def test_resignation(self, mock_input):
@@ -74,9 +76,11 @@ class TestChess(TestCase):
         side_effect=[
             "e2-e4=",  # White offers draw.
             "e7-e5=",  # Black accepts.
+            "",
             "e2-e4=",  # White offers draw.
             "e7-e5",  # Black rejects.
             "g1-f3",  # White continues.
+            "",
         ],
     )
     def test_draw(self, mock_input):

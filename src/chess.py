@@ -44,8 +44,8 @@ class Chess:
         self.board: Board = board or Board()
 
     #   White usually starts first, but this player will always be the current one.
-        self.current: Player = Player("white", self.board)
-        self.opponent: Player = Player("black", self.board)
+        self.current: Player = Player("white", self.board, name="Foo")
+        self.opponent: Player = Player("black", self.board, name="Bar")
 
     #   Keep track of who is black and white:
         self.white: Player = self.current
