@@ -8,9 +8,9 @@ Of the 6 type of chess pieces the following are melee units:
 Remember pawns are kind of special.
 """
 
+
 from dataclasses import dataclass
 from itertools import product
-from pickletools import long1
 from typing import ClassVar
 
 from ..piece import Piece
@@ -19,7 +19,7 @@ from .ranged import Bishop, Queen, Rook
 
 
 @dataclass(init=False, repr=False, eq=False)
-class Meleed(Piece):
+class Melee(Piece):
     """A close ranged piece:
         - King
         - Knight (has reach)
@@ -28,29 +28,28 @@ class Meleed(Piece):
     """
 
     def __repr__(self) -> str:
-        super().__repr__.__doc__
+        f"""{super().__repr__.__doc__}"""
         return {
             "white": f"\033[37;1m{self.symbol}\033[0m",
             "black": f"\033[30;1m{self.symbol}\033[0m",
         }[self.orientation.name]
 
-    @property
     def squares(self) -> set[Square]:
         f"""{super().squares.__doc__}"""
-        squares = super().squares
+        squares = super().squares()
 
         if self.square is not None:  # If meleed piece is on a board,
             for step in self.steps:  # For all target squares,
                 square = self.square + step  # Get target,
 
-                if self.deployable(square) or self.capturable(square):  # If said target is inside board limits,
+                if (self.deployable(square) or self.capturable(square)) and self.king_saved(square):  # If target square is legit,
                     squares.add(square)  # Add said target to meleed piece.
 
         return squares
 
 
 @dataclass(init=False, repr=False, eq=False)
-class Knight(Meleed):
+class Knight(Melee):
     """A knight.
 
     Moves two squares in any direction and one square in a vertical to that direction as one move.
@@ -88,7 +87,7 @@ class Knight(Meleed):
 
 
 @dataclass(init=False, repr=False, eq=False)
-class King(Meleed):
+class King(Melee):
     """A King.
 
     Moves one square in any direction that is not blocked by same side piece or targeted by enemy piece.
@@ -115,7 +114,7 @@ class King(Meleed):
     steps: ClassVar[set[Vector]] = Piece.straights | Piece.diagonals
 
 #   Castles (key: king move, value: corresponding rook relative position):
-    short = Vector(0, +2)
+    short: ClassVar[Vector] = Vector(0, +2)
     other = Vector(0, -2)
 
     castles: ClassVar[dict[Vector, Vector]] = {
@@ -123,6 +122,7 @@ class King(Meleed):
         other: Vector(0, -4),
     }
 
+#   King is in check flag.
     in_check: bool = False
 
     def castleable(self, square: Square) -> bool:
@@ -143,14 +143,14 @@ class King(Meleed):
         Returns:
             Whether piece is placeable on target square.
         """
-        return not self.has_moved \
-            and self.deployable(square) \
-            and self.deployable(square + (square - self.square) // -2)
 
-    @property
+        return not self.has_moved \
+            and self.deployable(square) and self.deployable(square + (square - self.square) // -2) \
+            and self.king_saved(square) and self.king_saved(square + (square - self.square) // -2)
+
     def squares(self) -> set[Square]:
         f"""{super().squares.__doc__}"""
-        squares = super().squares
+        squares = super().squares()
 
         if self.square is not None:
             for castle in self.castles:

@@ -32,6 +32,7 @@ Naming the pieces
     In both standard algebraic notation and FAN, pawns are not identified by a letter or symbol,but rather by the absence of one.
 """
 
+
 from dataclasses import dataclass
 from enum import IntEnum
 from itertools import combinations
@@ -45,6 +46,12 @@ class Orientation(IntEnum):
 
     white = -1  # Array indexing goes down the board, but white goes up.
     black = +1  # Array indexing goes down the board, and so does black.
+
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        return self.__class__["white"] if self.name == "black" else self.__class__["black"]
 
 
 @dataclass(init=False, repr=False)
@@ -114,7 +121,8 @@ class Piece:
             square: Location on a board (which board is irrelevant).
         """
         self.orientation: Orientation = Orientation[orientation] if isinstance(orientation, str) else orientation
-        self.square: Square | None = Square(square) if isinstance(square, str) else square
+        self.square: Square | None = Square(square) if square is not None else None
+
         self.life: int = 0  # The lifetime of a piece on the board in terms of game turns.
         self.has_moved: bool = False  # Has not moved upon creation.
 
@@ -140,7 +148,7 @@ class Piece:
 
         return hash((self.__class__.__name__, self.square))
 
-    def move(self, target: Square | str):
+    def __call__(self, target: Square | str):
         """Move the piece to a target square.
 
         Simply updates the piece's square and movement flag.
@@ -156,17 +164,31 @@ class Piece:
         if target is not None:  # If target square is given
             target = Square(target)
 
-        if target in self.squares:
-            self.square = target  # Update the piece's square.
-            self.has_moved = True  # The pawns at their start and kings and rooks for castling use this flag.
+        self.square = target  # Update the piece's square.
+        self.has_moved = True  # The pawns at their start and kings and rooks for castling use this flag.
 
         return self
+
+    def king_saved(self, square: Square) -> bool:
+        """Check if king of current player is safe.
+
+        Check for king's safety after proposed move.
+        This will be used for probiding extra context to both deployability and capturability conditions.
+        This method will require simulating the proposed move to check if it passes for king safety.
+
+        Args:
+            square: The source square is `self.square` (not necessary).
+
+        Returns:
+            Whether king of current player is safe.
+        """
+        return True  # The king is apriory safe.
 
     def deployable(self, square: Square) -> bool:
         """Check if current piece is placeable on target square.
 
-        This method is to be lazily-defined in board, access to current piece data makes it appropriate to sign it in here.
-        If this check fails, the capturability check will kick in as a next step.
+        This method will be updated by both player and game context (whenever opponent info is needed),
+        to account for king safety and obstacles (friendly pieces).
 
         Args:
             square: The source square is `self.square` (not necessary).
@@ -174,13 +196,13 @@ class Piece:
         Returns:
             Whether piece is placeable on target square.
         """
-        return self.square is not None and square is not None  # Make sure you check a piece that is on a board.
+        return self.square is not None and square is not None  # Make sure piece and square are on a board.
 
     def capturable(self, square: Square) -> bool:
         """Check if piece on target square is capturable by current piece.
 
-        This method is to be lazily-defined in board, access to current piece data makes it appropriate to sign it in here.
-        If this check fails... NOTE: Implement special checks.
+        This method will be updated by both player and game context (whenever opponent info is needed),
+        to account for king safety and opponent pieces (targets).
 
         Args:
             square: The source square is `self.square` (necessary for cross-checking color).
@@ -188,9 +210,8 @@ class Piece:
         Returns:
             Whether piece on target square is capturable by current piece.
         """
-        return self.square is not None and square is not None  # Make sure you check a piece that is on a board.
+        return self.square is not None and square is not None  # Make sure piece and square are on a board.
 
-    @property
     def squares(self) -> set[Square]:
         f"""Generate all legal moves a {self.__class__.__name__} can apriori make.
 
@@ -200,8 +221,7 @@ class Piece:
             condition: A condition that depends on a square, usually a target square.
 
         Returns:
-            2 sets of moves:
-                squares: any empty potential square the piece can move to
-                targets: any potential square in squares that the piece can target another piece
+            squares: any empty potential square the piece can move to
+            targets: any potential square in squares that the piece can target another piece
         """
         return set()  # A ghost piece cannot move or capture.

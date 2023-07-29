@@ -3,6 +3,7 @@
 Referencing with chess algebraic notation is possible.
 """
 
+
 from itertools import cycle
 from typing import Generator
 
@@ -81,9 +82,6 @@ class Board:
         Returns:
             The board representation.
         """
-        white = 3
-        black = 1
-
         square_color = cycle(
             [
                 f"\033[0m\033[4{self.theme['white']}m",  # white
@@ -105,14 +103,16 @@ class Board:
             ]
         )
 
-        representation = "\033[A" * 15 + "\n"
+        representation = ""
+
+        representation += "╔═════════════════════════╗\n"
+        representation += "║ ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖ ║\n"
 
         if self.flipped:
-            representation += " ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖ \n"
-            representation += " ▐▌  H G F E D C B A  ▐▌ \n"
+            representation += "║ ▐▌  H G F E D C B A  ▐▌ ║\n"
 
             for index, rank in enumerate(reversed(self.pieces)):
-                representation += " ▐▌" + str(index + 1) + next(border_color)
+                representation += "║ ▐▌" + str(index + 1) + next(border_color)
                 representation += (
                     next(square_color) + str(rank[7]) + next(edge_color) +
                     next(square_color) + str(rank[6]) + next(edge_color) +
@@ -123,19 +123,17 @@ class Board:
                     next(square_color) + str(rank[1]) + next(edge_color) +
                     next(square_color) + str(rank[0])
                 )
-                representation += next(border_color) + str(index + 1) + "▐▌ \n"
+                representation += next(border_color) + str(index + 1) + "▐▌ ║\n"
 
                 next(square_color)  # Flip colors for next rank to make a checkerboard.
 
-            representation += " ▐▌  H G F E D C B A  ▐▌ \n"
-            representation += " ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘ \n"
+            representation += "║ ▐▌  H G F E D C B A  ▐▌ ║\n"
 
         else:
-            representation += " ▗▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖ \n"
-            representation += " ▐▌  A B C D E F G H  ▐▌ \n"
+            representation += "║ ▐▌  A B C D E F G H  ▐▌ ║\n"
 
             for index, rank in enumerate(self.pieces):
-                representation += " ▐▌" + str(Square.index_to_rank[index]) + next(border_color)
+                representation += "║ ▐▌" + str(Square.index_to_rank[index]) + next(border_color)
                 representation += (
                     next(square_color) + str(rank[0]) + next(edge_color) +
                     next(square_color) + str(rank[1]) + next(edge_color) +
@@ -146,12 +144,14 @@ class Board:
                     next(square_color) + str(rank[6]) + next(edge_color) +
                     next(square_color) + str(rank[7])
                 )
-                representation += next(border_color) + str(Square.index_to_rank[index]) + "▐▌ \n"
+                representation += next(border_color) + str(Square.index_to_rank[index]) + "▐▌ ║\n"
 
                 next(square_color)  # Flip colors for next rank to make a checkerboard.
 
-            representation += " ▐▌  A B C D E F G H  ▐▌ \n"
-            representation += " ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘ \n"
+            representation += "║ ▐▌  A B C D E F G H  ▐▌ ║\n"
+
+        representation += "║ ▝▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘ ║\n"
+        representation += "╚═════════════════════════╝"
 
         return representation.replace("None", "\033[8m🨅\033[0m")
 
@@ -164,11 +164,14 @@ class Board:
         """
         square = Square(square)
 
-        self.pieces[square.rank][square.file] = piece
+    #   Remove whatever was there before it.
+        del self[square]
 
     #   If a true piece is assigned, update its square.
         if piece is not None:
             piece.square = square
+
+        self.pieces[square.rank][square.file] = piece
 
     def __getitem__(self, square: Square | str) -> Piece | None:
         """Get the piece of a given square.
@@ -181,9 +184,7 @@ class Board:
         """
         square = Square(square)
 
-    #   HACK: A square outside the board may be requested.
-        if square is not None:
-            return self.pieces[square.rank][square.file]
+        return self.pieces[square.rank][square.file]
 
     def __delitem__(self, square: Square | str):
         """Remove the piece of a given square.
@@ -192,7 +193,6 @@ class Board:
             square: The rank and file of the square on which to remove a piece (if any).
         """
         square = Square(square)
-
         piece = self[square]
 
     #   If there truly is a piece on that square, and referenced elsewhere, best do the book-keeping of taking it off-board.
@@ -219,7 +219,7 @@ class Board:
         """
         return any(piece in rank for rank in self.pieces)
 
-    def move(self, move: Move | Castle) -> Piece | None:
+    def __call__(self, move: Move) -> Piece | None:
         """Move the source piece to target square if move is valid.
 
         Whatever lies on the target square is saved for further processing, however its square is killed, naturally.
@@ -238,25 +238,20 @@ class Board:
         target = move.square  # This is defined for all kinds of moves either implicitely or explicitely.
 
     #   Save the piece captured in the move, if any.
-        target_piece = self[move.square]
+        target_piece = self[target]
 
     #   If the move is a castling, move the rook first before moving the king.
         if type(move) is Castle:
             rook = self[move.castle]
 
         #   Move the rook in-place. King will be moved as normal with the main move.
-            self[move.middle], self[move.castle] = rook.move(move.castle), None  # type: ignore
+            self[move.castle], self[move.middle] = None, rook(move.castle)  # type: ignore
 
-    #   If the source piece is in-board and the target square is legit, make the move and switch its has-moved flag.
-        else:
-            if type(move) is Promotion and type(move.piece) is Pawn:
-                move.piece.promote(target, move.promotionPiece)
+    #   If the source piece is is a pawn and is heading for a promotion:
+        if type(move) is Promotion and type(move.piece) is Pawn:
+            move.piece.promote(target, move.promotionPiece)
 
-        #   If move is anything other than a promotion just move the piece.
-            else:
-                move.piece.move(target)
-
-    #   Make the move. If a castling, this is the king moving in place.
-        self[target], self[source] = move.piece, None  # type: ignore
+    #   In all cases, make the move. If a castling, this is the king moving in place.
+        self[source], self[target] = None, move.piece(target)  # type: ignore
 
         return target_piece

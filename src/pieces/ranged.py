@@ -6,6 +6,7 @@ Of the 6 type of chess pieces the following are units with range:
     Queen: Moves both like a rook and bishop. Worth 9.
 """
 
+
 from dataclasses import dataclass
 from typing import ClassVar
 
@@ -24,27 +25,30 @@ class Ranged(Piece):
     """
 
     def __repr__(self) -> str:
-        super().__repr__.__doc__
+        f"""{super().__repr__.__doc__}"""
         return {
             "white": f"\033[37;1m{self.symbol}\033[0m",
             "black": f"\033[30;1m{self.symbol}\033[0m",
         }[self.orientation.name]
 
-    @property
     def squares(self) -> set[Square]:
         f"""{super().squares.__doc__}"""
-        squares = super().squares
+        squares = super().squares()
 
         if self.square is not None:  # If ranged piece is on a board,
             for step in self.steps:  # For all legal directions,
                 square = self.square + step  # Get next square in direction,
 
-                while self.deployable(square):  # If said square is inside board limits,
+                while self.deployable(square):  # If said square is unblocked,
+                    if not self.king_saved(square):  # If said square leaves or puts king in danger,
+                        square += step  # Advance to the next square in said direction.
+                        continue  # Don't add said square, but continue looking ahead!
+
                     squares.add(square)  # Add said square to ranged piece.
                     square += step  # Advance to the next square in said direction.
 
                 if self.capturable(square):  # If the square after last has a capturable piece,
-                    squares.add(square)  # Do not forget to add trailing square to targets.
+                    squares.add(square)  # Do not forget to add said trailing square to targets.
 
         return squares
 
@@ -93,8 +97,8 @@ class Rook(Ranged):
         castle = square - self.square
 
     #   Mind that the rook moves the other way the king does.
-        return not self.has_moved \
-            and self.deployable(self.square + self.other) if castle.file > 0 else True  # type: ignore
+        return not self.has_moved and self.square is not None \
+            and self.deployable(self.square + self.other) if castle.file > 0 else True
 
 
 @dataclass(init=False, repr=False, eq=False)

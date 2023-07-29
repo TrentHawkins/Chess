@@ -1,5 +1,6 @@
 """Unit tests for the Chess project."""
 
+
 from unittest import TestCase
 from unittest.mock import patch  # To mock user input for interactive tests.
 
@@ -7,7 +8,123 @@ from unittest.mock import patch  # To mock user input for interactive tests.
 class TestChess(TestCase):
     """Test issues related to the main game loop."""
 
-    ...
+    @patch(
+        'builtins.input',
+        side_effect=[
+            "e2-e4",
+            "d7-d5",
+            "e4-d5",
+            "b8-c6",
+            "d5-c6",
+            "d8-d2",
+            "d1-d2",
+        ],
+    )
+    def test_game(self, mock_input):
+        """Test random game."""
+        from src.chess import Chess
+
+    #   Some game-breaking game:
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
+
+    #   Start rolling:
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+
+    @patch(
+        'builtins.input',
+        side_effect=[
+            "e2-e4#",  # White resigns.
+            "",
+            "e2-e4",
+            "e7-e5#",  # Black resigns.
+            "",
+        ],
+    )
+    def test_resignation(self, mock_input):
+        """Test resignation action."""
+        from src.chess import Chess
+
+    #   In this game, white resigns:
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
+
+    #   Execute game:
+        new_game.turn()
+        new_game.turn()  # This one is without input, black never gets the chance to respond.
+
+        assert new_game.termination
+        assert new_game.white.resignation
+
+    #   In this game, black resigns:
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
+
+    #   Execute game:
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()  # This one is without input, white never gets the chance to respond.
+
+        assert new_game.termination
+        assert new_game.black.resignation
+
+    @patch(
+        'builtins.input',
+        side_effect=[
+            "e2-e4=",  # White offers draw.
+            "e7-e5=",  # Black accepts.
+            "",
+            "e2-e4=",  # White offers draw.
+            "e7-e5",  # Black rejects.
+            "g1-f3",  # White continues.
+            "",
+        ],
+    )
+    def test_draw(self, mock_input):
+        """Test resignation action."""
+        from src.chess import Chess
+
+    #   In this game, white offers truce and black accepts:
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
+
+    #   Execute game:
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()  # This one is without input, white never gets the chance to respond, black has agreed to a draw.
+
+        assert new_game.termination
+        assert new_game.draw
+        assert new_game.agreement
+
+    #   In this game, white offers truce and black rejects:
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
+
+    #   Execute game:
+        new_game.turn()
+        new_game.turn()  # Black rejects draw offer, and game continues as such.
+        new_game.turn()
+
+        assert not new_game.termination
+        assert not new_game.draw
+        assert not new_game.agreement
 
 
 class TestPlayer(TestCase):
@@ -18,34 +135,32 @@ class TestPlayer(TestCase):
         from src.chess import Chess
         from src.move import Capture, Move
 
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
-    #   HACK: Do not swirl players, just use both as is for simplicity:
-        white = new_game.current
-        black = new_game.opponent
-        board = new_game.board
+        white_pawn = new_game.board["e2"]
+        new_game.white(Move(white_pawn, "e4"))  # type: ignore  # The most famous opening move in the history of chess!
+        assert new_game.board["e2"] is None
+        assert new_game.board["e4"] is white_pawn
 
-        white_pawn = board["e2"]
-        white.move(Move(white_pawn, "e4"))  # type: ignore  # The most famous opening move in the history of chess!
-        assert board["e2"] is None
-        assert board["e4"] is white_pawn
+        black_pawn = new_game.board["d7"]
+        new_game.black(Move(black_pawn, "d5"))  # type: ignore  # An untypical response to create a capturing scenario.
+        assert new_game.board["d7"] is None
+        assert new_game.board["d5"] is black_pawn
 
-        black_pawn = board["d7"]
-        black.move(Move(black_pawn, "d5"))  # type: ignore  # An untypical response to create a capturing scenario.
-        assert board["d7"] is None
-        assert board["d5"] is black_pawn
-
-        white_pawn = board["e4"]
-        black_pawn = board["d5"]
-        white.move(Capture(white_pawn, "d5"))  # type: ignore  # The pawn at "e4" takes the pawn at "d5".
-        assert board["e4"] is None
-        assert board["d5"] is white_pawn
+        white_pawn = new_game.board["e4"]
+        black_pawn = new_game.board["d5"]
+        new_game.white(Capture(white_pawn, "d5"))  # type: ignore  # The pawn at "e4" takes the pawn at "d5".
+        assert new_game.board["e4"] is None
+        assert new_game.board["d5"] is white_pawn
 
     #   Ascertain that the captured pawn is properly gone:
         assert black_pawn is not None
         assert black_pawn.square is None
-        assert black_pawn not in black.pieces
-        assert black_pawn in white.captured and white.captured[black_pawn] == 1
+        assert black_pawn not in new_game.black.pieces
+        assert black_pawn in new_game.white.captured and new_game.white.captured[black_pawn] == 1
 
     def test_captured_counting(self):
         """Check if reduced implied hashing of captured pieces works on piece counters."""
@@ -88,7 +203,10 @@ class TestBoard(TestCase):
         from src.pieces.pawn import Pawn
         from src.pieces.ranged import Bishop, Queen, Rook
 
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
     #   White pieces:
         assert new_game.current.pieces == {
@@ -125,9 +243,7 @@ class TestMoves(TestCase):
             "f2-f3",
             "e7-e6",
             "g2-g4",
-            "Qd8-h4",  # oh the fool
-            "Ng1-h3",  # white should not be able to do that
-            "Ng8-f6",  # invalid white move (black shouldn't even be able to reach this move)
+            "d8-h4",  # Oh the fool...
         ],
     )
     def test_king_check(self, mock_input):
@@ -135,28 +251,21 @@ class TestMoves(TestCase):
         from src.chess import Chess
 
     #   A fool's game:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
     #   Play 2 rounds (4 turns) leading to check(mate):
-        new_game.round()
-        new_game.round()
-
-    #   NOTE: remember, switch of methods happen at the beginning of the next turn.
-    #   This means we can no longer check for squares during a normal game.
-    #   To do that we need to run an update manually first:
-        new_game.update()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()  # This one is without input, white never gets the chance to respond.
 
     #   White should have nowhere to go after the rules update:
-        assert new_game.current.squares == set()
-
-    #   So lets dump some false moves and see what happens:
-        try:
-            new_game.round()
-            assert False  # This should not happen.
-
-    #   Assert board hasn't changed:
-        except StopIteration:
-            assert True  # This should happen, as white could never really move.
+        assert new_game.white.squares() == set()
+        assert new_game.white.checkmate
 
     @patch(
         'builtins.input',
@@ -169,7 +278,7 @@ class TestMoves(TestCase):
             "e5-e6",
             "a5-a4",
             "e6-d7",  # check
-            "Ke8-d7",  # this the only logical move
+            "e8-d7",  # this the only logical move
         ],
     )
     def test_king_check_with_pawn(self, mock_input):
@@ -177,21 +286,27 @@ class TestMoves(TestCase):
         from src.chess import Chess, Square
 
     #   A custom fools' game:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
     #   Play 3 rounds (6 turns) leading to white's checkmate:
-        new_game.round()
-        new_game.round()
-        new_game.round()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
 
     #   Try the fourth round, where black should be immobilized apart from king:
         new_game.turn()
 
     #   White has nowhere to go but take the checking pawn:
-        assert new_game.current.king.squares == {Square("d7")}
+        assert new_game.current.king.squares() == {Square("d7")}
 
     #   Attacking squares are evaluated without king safety in-mind, as they are relevant only for opponent.
-        assert new_game.current.squares >= {Square("d7")}
+        assert new_game.current.squares() >= {Square("d7")}
 
     #   Finish the round with the only available move.
         new_game.turn()
@@ -202,12 +317,12 @@ class TestMoves(TestCase):
         side_effect=[
             "e2-e4",  # white's king's opening
             "e7-e5",  # black's response
-            "Ng1-f3",  # white tries to open up short castling with knight first attacking black's pawn
-            "Nb8-c6",  # black defends pawn with knight
-            "Bf1-c4",  # white opens up short castling with bishop
-            "Ng8-f6",  # black tries to delay white's castling by attacking hanging pawn with knight
+            "g1-f3",  # white tries to open up short castling with knight first attacking black's pawn
+            "b8-c6",  # black defends pawn with knight
+            "f1-c4",  # white opens up short castling with bishop
+            "g8-f6",  # black tries to delay white's castling by attacking hanging pawn with knight
             "O-O",  # white castles short anyways
-            "Nf6-e4",  # white loses hanging pawn to black's knight
+            "f6-e4",  # white loses hanging pawn to black's knight
         ],
     )
     def test_castling_in_game(self, mock_input):
@@ -217,7 +332,10 @@ class TestMoves(TestCase):
         from src.square import Square
 
     #   New game:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
     #   Save the board:
         board = new_game.board
@@ -226,9 +344,12 @@ class TestMoves(TestCase):
         white = new_game.current
 
     #   Play the first 3 rounds (6 turns) leading to the castle:
-        new_game.round()
-        new_game.round()
-        new_game.round()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
 
     #   Castling short square:
         short = Square("g1")
@@ -237,7 +358,8 @@ class TestMoves(TestCase):
         assert white.king.castleable(short)
 
     #   Play the castling out:
-        new_game.round()
+        new_game.turn()
+        new_game.turn()
 
     #   Ascertain pieces are in proper positions:
         assert board[short] == white.king
@@ -258,8 +380,8 @@ class TestMoves(TestCase):
             "c7-c5",
             "e4-e5",
             "d7-d5",
-            "Ng1-f3",  # Play something else
-            "Nb8-c6",  # Black continues
+            "g1-f3",  # Play something else
+            "b8-c6",  # Black continues
         ],
     )
     def test_en_passant(self, mock_input):
@@ -269,7 +391,10 @@ class TestMoves(TestCase):
         from src.square import Square
 
     #   A test game with en-passant happening:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
         white_pawn = new_game.board["e2"]
         black_pawn = new_game.board["d7"]
@@ -278,22 +403,28 @@ class TestMoves(TestCase):
         assert black_pawn is not None and black_pawn.square is not None
 
     #   Run 2 rounds (4 turns) to set-up en-passant for white:
-        new_game.round()
-        new_game.round()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
 
     #   Ascertain that black pawn left a ghost trail, that white pawn sees.
         assert type(new_game.board["d6"]) is Piece
-        assert Square("d6") in white_pawn.squares
+        assert Square("d6") in white_pawn.squares()
 
     #   Another round to execute en-passant:
-        new_game.round()
+        new_game.turn()
+        new_game.turn()
 
     #   Ascertain that both pawns got proprely captured:
         assert black_pawn.square is None and black_pawn in new_game.current.captured
         assert white_pawn.square is None and white_pawn in new_game.opponent.captured
 
     #   A test game with en-passant being skipped:
-        new_game = Chess()
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+        )
 
         white_pawn = new_game.board["e2"]
         black_pawn = new_game.board["d7"]
@@ -302,13 +433,16 @@ class TestMoves(TestCase):
         assert black_pawn is not None and black_pawn.square is not None
 
     #   Run 3 rounds (6 turns) to set-up en-passant for white and miss it:
-        new_game.round()
-        new_game.round()
-        new_game.round()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
+        new_game.turn()
 
     #   Ascertain that white pawn can no longer capture black pawn via en-passant:
         assert new_game.board["d6"] is None
-        assert Square("d6") not in white_pawn.squares
+        assert Square("d6") not in white_pawn.squares()
 
 
 class TestPieces(TestCase):
@@ -358,7 +492,11 @@ class TestPieces(TestCase):
         tal["e8"], tal["h8"], tal["g8"], tal["f8"] = tal["g8"], tal["f8"], tal["e8"], tal["h8"]
 
     #   A player, designated ONLY after the board is all set to the desired position:
-        tal_game = Chess(tal)
+        tal_game = Chess(
+            white="Foo",
+            black="Bar",
+            board=tal,
+        )
 
     #   NOTE: remember, switch of methods happen at the beginning of the next turn.
     #   This means we can no longer check for squares during a normal game.
@@ -367,13 +505,13 @@ class TestPieces(TestCase):
 
         piece = tal["c1"]
         assert piece is not None
-        assert piece.squares == {  # King (white)
+        assert piece.squares() == {  # King (white)
             Square("d2"),  # ↗
             Square("b1"),  # ←
         }
         piece = tal["d4"]
         assert piece is not None
-        assert piece.squares == {  # Queen (white)
+        assert piece.squares() == {  # Queen (white)
             Square("e5"),  # ↗
             Square("f6"),  # ↗  # capture
             Square("d5"),  # ↑
@@ -392,7 +530,7 @@ class TestPieces(TestCase):
         }
         piece = tal["f1"]
         assert piece is not None
-        assert piece.squares == {  # Bishop (white/white)
+        assert piece.squares() == {  # Bishop (white/white)
             Square("e2"),  # ↖
             Square("d3"),  # ↖
             Square("c4"),  # ↖
@@ -401,7 +539,7 @@ class TestPieces(TestCase):
         }
         piece = tal["g5"]
         assert piece is not None
-        assert piece.squares == {  # Bishop (white/black)
+        assert piece.squares() == {  # Bishop (white/black)
             Square("f6"),  # ↖  # capture
             Square("f4"),  # ↙
             Square("e3"),  # ↙
@@ -411,7 +549,7 @@ class TestPieces(TestCase):
         }
         piece = tal["e4"]
         assert piece is not None
-        assert piece.squares == {  # Knight (white/white)
+        assert piece.squares() == {  # Knight (white/white)
             Square("f6"),  # ↗ + ↑  # capture
             Square("g3"),  # ↘ + →
             Square("d2"),  # ↙ + ↓
@@ -421,7 +559,7 @@ class TestPieces(TestCase):
         }
         piece = tal["f3"]
         assert piece is not None
-        assert piece.squares == {  # Knight (white/black)
+        assert piece.squares() == {  # Knight (white/black)
             Square("h4"),  # ↗ + →
             Square("g1"),  # ↘ + ↓
             Square("e1"),  # ↙ + ↓
@@ -430,46 +568,46 @@ class TestPieces(TestCase):
         }
         piece = tal["h1"]
         assert piece is not None
-        assert piece.squares == {  # Rook (white/white)
+        assert piece.squares() == {  # Rook (white/white)
             Square("g1"),  # ↑
         }
         piece = tal["d1"]
         assert piece is not None
-        assert piece.squares == {  # Rook (white/black)
+        assert piece.squares() == {  # Rook (white/black)
             Square("e1"),  # ↑
             Square("d2"),  # ↑
             Square("d3"),  # ↑
         }
         piece = tal["a2"]
         assert piece is not None
-        assert piece.squares == {  # Pawn (white/A)
+        assert piece.squares() == {  # Pawn (white/A)
             Square("a3"),  # ↑
             Square("a4"),  # ↑
         }
         piece = tal["b2"]
         assert piece is not None
-        assert piece.squares == {  # Pawn (white/B)
+        assert piece.squares() == {  # Pawn (white/B)
             Square("b3"),  # ↑
             Square("b4"),  # ↑
         }
         piece = tal["c2"]
         assert piece is not None
-        assert piece.squares == {  # Pawn (white/C)
+        assert piece.squares() == {  # Pawn (white/C)
             Square("c3"),  # ↑
             Square("c4"),  # ↑
         }
         piece = tal["f2"]
         assert piece is not None
-        assert piece.squares == set()  # Pawn (white/F)
+        assert piece.squares() == set()  # Pawn (white/F)
         piece = tal["g2"]
         assert piece is not None
-        assert piece.squares == {  # Pawn (white/G)
+        assert piece.squares() == {  # Pawn (white/G)
             Square("g3"),  # ↑
             Square("g4"),  # ↑
         }
         piece = tal["h2"]
         assert piece is not None
-        assert piece.squares == {  # Pawn (white/H)
+        assert piece.squares() == {  # Pawn (white/H)
             Square("h3"),  # ↑
             Square("h4"),  # ↑
         }
@@ -487,7 +625,11 @@ class TestPieces(TestCase):
         board["c8"], board["a6"] = board["a6"], board["c8"]
         board["f8"], board["a5"] = board["a5"], board["f8"]
 
-        set_game = Chess(board)
+        set_game = Chess(
+            white="Foo",
+            black="Bar",
+            board=board,
+        )
 
         pawn = set_game.board["d2"]
         king = set_game.board["e1"]
@@ -498,9 +640,9 @@ class TestPieces(TestCase):
         set_game.update()
 
         assert king is not None
-        assert king.squares == set()  # Because it puts the king in check from "Ba6".
+        assert king.squares() == set()  # Because it puts the king in check from "Ba6".
         assert pawn is not None
-        assert pawn.squares == set()  # Because it discovers a check to the king from "Ba5".  # FIXME: Not implemented yet.
+        assert pawn.squares() == set()  # Because it discovers a check to the king from "Ba5".  # FIXME: Not implemented yet.
 
     def test_castling(self):
         """Test castling."""
@@ -525,7 +667,11 @@ class TestPieces(TestCase):
         board["h8"] = Rook("black")
 
     #   Make new game with custom position.
-        new_game = Chess(board=board)
+        new_game = Chess(
+            white="Foo",
+            black="Bar",
+            board=board,
+        )
 
     #   HACK: This will invoke moves manually without turn-taking, so prep white as current player and black as opponent.
     #   If this update is not run, white will not have current's game context rules and black won't have opponent's either.
@@ -545,60 +691,60 @@ class TestPieces(TestCase):
         assert new_game.current.king.castleable(other)
 
     #   Add some benigh danger to castling long:
-        new_game.opponent.move(Move(board["a8"], "b8"))  # type: ignore
+        new_game.opponent(Move(board["a8"], "b8"))  # type: ignore
 
     #   They should still be both deployable.
         assert new_game.current.king.castleable(short)
         assert new_game.current.king.castleable(other)
 
     #   Castling other square checked.
-        new_game.opponent.move(Move(board["b8"], "c8"))  # type: ignore
+        new_game.opponent(Move(board["b8"], "c8"))  # type: ignore
 
     #   Should only see one.
         assert new_game.current.king.castleable(short)
         assert not new_game.current.king.castleable(other)
 
     #   Castling other middle checked.
-        new_game.opponent.move(Move(board["c8"], "d8"))  # type: ignore
+        new_game.opponent(Move(board["c8"], "d8"))  # type: ignore
 
     #   Should only see one.
         assert new_game.current.king.castleable(short)
         assert not new_game.current.king.castleable(other)
 
     #   King checked. Pull other danger away to see if king check kills both castles.
-        new_game.opponent.move(Move(board["d8"], "b8"))  # type: ignore
-        new_game.opponent.move(Move(board["e7"], "b4"))  # type: ignore
+        new_game.opponent(Move(board["d8"], "b8"))  # type: ignore
+        new_game.opponent(Move(board["e7"], "b4"))  # type: ignore
 
     #   Should see none.
         assert not new_game.current.king.castleable(short)
         assert not new_game.current.king.castleable(other)
 
     #   Lets see if we can retrive them when the danger is gone.
-        new_game.opponent.move(Move(board["b4"], "e7"))  # type: ignore
+        new_game.opponent(Move(board["b4"], "e7"))  # type: ignore
 
     #   Should see both.
         assert new_game.current.king.castleable(short)
         assert new_game.current.king.castleable(other)
 
     #   Lets put an obstacle on the other castle near the rook, where the king doesn't even reach.
-        new_game.current.move(Move(board["e6"], "f5"))  # type: ignore
-        new_game.current.move(Move(board["f5"], "b1"))  # type: ignore
+        new_game.current(Move(board["e6"], "f5"))  # type: ignore
+        new_game.current(Move(board["f5"], "b1"))  # type: ignore
 
     #   Should see one.
         assert new_game.current.king.castleable(short)
         assert not new_game.current.king.castleable(other)
 
     #   Remove block.
-        new_game.current.move(Move(board["b1"], "f5"))  # type: ignore
-        new_game.current.move(Move(board["f5"], "e6"))  # type: ignore
+        new_game.current(Move(board["b1"], "f5"))  # type: ignore
+        new_game.current(Move(board["f5"], "e6"))  # type: ignore
 
     #   Should see both.
         assert new_game.current.king.castleable(short)
         assert new_game.current.king.castleable(other)
 
     #   Lets move the king back and forth.
-        new_game.current.move(Move(board["e1"], "d1"))  # type: ignore
-        new_game.current.move(Move(board["d1"], "e1"))  # type: ignore
+        new_game.current(Move(board["e1"], "d1"))  # type: ignore
+        new_game.current(Move(board["d1"], "e1"))  # type: ignore
 
     #   Should see none.
         assert not new_game.current.king.castleable(short)
@@ -619,11 +765,11 @@ class TestPieces(TestCase):
 
         assert pawn.square == Square("e7")
 
-        board.move(Promotion(pawn, Square("e8"), Queen))
+        board(Promotion(pawn, Square("e8"), Queen))
 
         assert pawn.square == Square("e8")  # Check if promoted pawn is still in-place.
         assert type(pawn) is Queen  # Check if pawn was indeed promoted.
-        assert pawn.squares == {
+        assert pawn.squares() == {
             Square("d8"),
             Square("c8"),
             Square("b8"),

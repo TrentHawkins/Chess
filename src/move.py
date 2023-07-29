@@ -44,7 +44,7 @@ Check
     A move that places the opponent's king in check usually has the symbol "†" appended.
 
 Checkmate
-    Checkmate at the completion of moves is represented by the symbol "‡" .
+    Checkmate at the completion of moves is represented by the symbol "‡".
 
 Long algebraic notation
     In long algebraic notation, both the starting and ending squares are specified, for example: e2e4.
@@ -56,7 +56,8 @@ Long algebraic notation
     which is a common way for graphical chess programs to communicate with chess engines (e.g., for AI).
 """
 
-from dataclasses import dataclass
+
+from dataclasses import dataclass, field
 from re import Pattern, compile
 from typing import ClassVar
 
@@ -111,15 +112,25 @@ class Move:
 #   -   square of piece
 #   -   target of piece
     move_range: ClassVar[str] = \
-        f"([{Piece.piece_range}]?)([{Square.file_range}][{Square.rank_range}])-([{Square.file_range}][{Square.rank_range}])"
-    notation: ClassVar[Pattern] = compile(move_range)
+        f"([{Square.file_range}][{Square.rank_range}])-([{Square.file_range}][{Square.rank_range}])[=#]?"
+    notation_range: ClassVar[Pattern] = compile(move_range)
 
-    piece: Piece
-    square: Square
+#   A move is defined by the piece you want to move (and thus the square it is on) and the target square.
+    piece: Piece = field()
+    square: Square = field()
+
+#   Custom flags for terminating game conditions.
+    draw: bool = field(default=False, kw_only=True)
+    resign: bool = field(default=False, kw_only=True)
+
+#   Frozen representation of move:
+    representation: str = field(init=False)
 
     def __post_init__(self):
-        """Recode square in notation to a `Square` object."""
+        """Set frozen copy of representation to avoid live alteration."""
         self.square = Square(self.square)
+        self.representation = repr(self.piece) + repr(self.piece.square) + "-" + repr(self.square)
+        self.representation += "⊜" if self.draw else "🏳" if self.resign else ""
 
     def __repr__(self):
         """Each move of a piece is indicated by the piece's uppercase letter, plus the coordinate of the destination square.
@@ -130,40 +141,42 @@ class Move:
 
         NOTE: This needs contextual resolve at `Board` or `Player` level. For now use long algebraic notation.
         """
-        return self.piece.symbol + repr(self.piece.square) + "-" + repr(self.square)
+        return self.representation
 
     @classmethod
-    def read(cls, input: str, pieces: set[Piece], offest: int = 0):
+    def read(cls, notation: str, pieces: set[Piece]):
         """Alternative constructor by reading (long) chess algebraic notation.
 
         Args:
-            move: Input move in (long) chess algebraic notation
+            notation: Input move in (long) chess algebraic notation
             pieces: A set of pieces to look for move.
 
         Returns:
             Return move is any, else nothing.
         """
-        read = cls.notation.match(input)
+        read = cls.notation_range.match(notation)
 
     #   Try to see if input matches this type of movement:
         if read:
             for piece in pieces:
-                typePiece = cls.typePiece[read.group(1)]  # The piece type to move is captured first in the regex pattern.
-
-                source = Square(read.group(2))  # The square the piece to move is on is captured next.
-                target = Square(read.group(3))  # The square the piece shall move to is captured next.
+                source = Square(read.group(1))  # The square the piece to move is on is captured next.
+                target = Square(read.group(2))  # The square the piece shall move to is captured next.
 
             #   Only generate a move object if the right piece is caught:
-                if type(piece) is typePiece and piece.square == source:
-                    move = cls(piece, target)
+                if piece.square == source:
+                    move = cls(piece, target, draw="=" in notation, resign="#" in notation)
 
                 #   Only return this move if it is legal too or else we get overlaps:
-                    if move.is_legal():
+                    if move:
                         return move
 
-    def is_legal(self):
-        """Check if move is legal based on piece and square context."""
-        return self.square in self.piece.squares and self.piece.deployable(self.square)
+    def __bool__(self):
+        """Check if move is legal based on piece and square context.
+
+        Returns:
+            Whether move is legal based on piece and square context.
+        """
+        return self.square in self.piece.squares() and self.piece.deployable(self.square)
 
 
 @dataclass(repr=False)
@@ -186,17 +199,15 @@ class Capture(Move):
     If the move is legal, whether there is a piece on the target square or not, read it with a dash.
     """
 
-    def __repr__(self):
-        """Each move of a piece is indicated by the piece's uppercase letter, plus the coordinate of the destination square.
+    def __post_init__(self):
+        """Reset frozen copy of representation to avoid live alteration."""
+        super().__post_init__()
+        self.representation = self.representation.replace("-", "×") if self.piece.capturable(self.square) else self.representation
 
-        For example, Be5 (bishop moves to e5), Nf3 (knight moves to f3).
-        For pawn moves, a letter indicating pawn is not used, only the destination square is given.
-        For example, c5 (pawn moves to c5).
+    def __bool__(self) -> bool:
+        """Check if move is legal based on piece and square context.
 
-        NOTE: This needs contextual resolve at `Board` or `Player` level. For now use long algebraic notation.
+        Returns:
+            Whether move is legal based on piece and square context.
         """
-        return super().__repr__().replace("-", "×") if self.piece.capturable(self.square) else super().__repr__()
-
-    def is_legal(self):
-        """Check if move is legal based on piece and square context."""
-        return self.square in self.piece.squares and self.piece.capturable(self.square)
+        return self.square in self.piece.squares() and self.piece.capturable(self.square)
